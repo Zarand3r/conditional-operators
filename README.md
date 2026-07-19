@@ -12,6 +12,7 @@ fine-tuning.
 
 - **Proposal:** [`docs/PROPOSAL.md`](docs/PROPOSAL.md)
 - **Novelty review + re-scoped claim + first kill-test:** [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) — **read this first.**
+- **Experiments (executed):** Stage-1 [`docs/RESULTS.md`](docs/RESULTS.md) — **CONFIRMED** (61.5% OOD win at 0.87× FiLM FLOPs); Stage-2 de-alignment control [`docs/RESULTS_STAGE2.md`](docs/RESULTS_STAGE2.md) — **CONFIRMED** (68.8% win when the operator must *learn* the hidden basis; no-basis ablation collapses to the floor). Specs under [`docs/specs/`](docs/specs/). Run via `.venv` (see memory) — `python -m conditional_operators.sweep` / `.stage2`. Both stages synthetic; not a novelty claim — Stage 3 (real conditional generation, GPU) is the next bar.
 
 **The honest framing (see notes):** the operator *families* overlap with the PEFT literature
 (OFT/BOFT/HRA/LoRA); the defensible contribution is studying them as **per-sample activation
