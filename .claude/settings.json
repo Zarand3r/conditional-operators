@@ -1,0 +1,15 @@
+{
+  "//": "Auto-install + auto-update the eng-skills plugin from the claude-skills marketplace (Zarand3r/claude-skills) on folder trust. autoUpdate keeps it current (third-party marketplaces are off by default). See https://github.com/Zarand3r/claude-skills",
+  "extraKnownMarketplaces": {
+    "claude-skills": {
+      "source": {
+        "source": "github",
+        "repo": "Zarand3r/claude-skills"
+      },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "eng-skills@claude-skills": true
+  }
+}
