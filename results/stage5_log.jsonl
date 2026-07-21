@@ -67,3 +67,4 @@
 {"arm": "proposed_mlp_gs", "seed": 6, "diverged": false, "params": 53376, "flops": 127274, "indist": 0.000497732195071876, "ood_val": 0.0014287736266851425, "ood_test": 0.0026345503283664584, "triples": 0.00396668998291716}
 {"arm": "proposed_mlp_gs", "seed": 7, "diverged": false, "params": 53376, "flops": 127274, "indist": 0.0004885329908574931, "ood_val": 0.0014035255589988083, "ood_test": 0.00265893543837592, "triples": 0.004217809881083667}
 {"arm": "proposed_mlp_gs", "seed": 8, "diverged": false, "params": 53376, "flops": 127274, "indist": 0.0008213327382691205, "ood_val": 0.0020897294743917882, "ood_test": 0.004041514883283526, "triples": 0.005321625154465437}
+{"arm": "proposed_mlp_gs", "seed": 9, "diverged": false, "params": 53376, "flops": 127274, "indist": 0.000724708428606391, "ood_val": 0.0018307510763406754, "ood_test": 0.0029145090375095606, "triples": 0.0035712189273908734}
