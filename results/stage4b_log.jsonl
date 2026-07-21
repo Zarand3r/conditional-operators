@@ -1,0 +1,8 @@
+{"arm": "film", "seed": 0, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.002567974559497088, "ood_val": 0.004263225477188826, "ood_test": 0.006359246792271733, "triples": 0.007469250704161823}
+{"arm": "film", "seed": 1, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.002638270554598421, "ood_val": 0.004057722515426576, "ood_test": 0.0061464355094358325, "triples": 0.007153143757022917}
+{"arm": "film", "seed": 2, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.0024493844830431044, "ood_val": 0.004124131170101464, "ood_test": 0.005880504730157554, "triples": 0.0072099093813449144}
+{"arm": "film", "seed": 3, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.0024420376284979284, "ood_val": 0.004203310585580766, "ood_test": 0.005698928143829107, "triples": 0.006847731187008321}
+{"arm": "film", "seed": 4, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.0024107564822770655, "ood_val": 0.0044622322311624885, "ood_test": 0.005753306089900434, "triples": 0.007120028138160706}
+{"arm": "film", "seed": 5, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.002341306069865823, "ood_val": 0.00446064630523324, "ood_test": 0.0061555871507152915, "triples": 0.0073830058099702}
+{"arm": "film", "seed": 6, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.002575002145022154, "ood_val": 0.004372724564746022, "ood_test": 0.006109358510002494, "triples": 0.007171084522269666}
+{"arm": "film", "seed": 7, "diverged": false, "params": 50560, "flops": 100224, "indist": 0.0024452286888845265, "ood_val": 0.0040270492900162935, "ood_test": 0.006017609965056181, "triples": 0.00718053407035768}

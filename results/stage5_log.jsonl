@@ -1,0 +1,4 @@
+{"arm": "film", "seed": 0, "diverged": false, "params": 50816, "flops": 100736, "indist": 0.0006200723728397861, "ood_val": 0.0025001137983053923, "ood_test": 0.004470120067708194, "triples": 0.007671797182410955}
+{"arm": "film", "seed": 1, "diverged": false, "params": 50816, "flops": 100736, "indist": 0.001126367540564388, "ood_val": 0.002036573307123035, "ood_test": 0.0035984039423055947, "triples": 0.005639458307996392}
+{"arm": "film", "seed": 2, "diverged": false, "params": 50816, "flops": 100736, "indist": 0.0006102836778154597, "ood_val": 0.0033488436602056026, "ood_test": 0.006144529674202204, "triples": 0.009983913041651249}
+{"arm": "film", "seed": 3, "diverged": false, "params": 50816, "flops": 100736, "indist": 0.0007804398483131081, "ood_val": 0.003556158335413784, "ood_test": 0.005427921423688531, "triples": 0.008904711343348026}

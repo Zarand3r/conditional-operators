@@ -1,0 +1,426 @@
+% Conditioning as Group Action — conference draft.
+% Generic clean article layout; swap the preamble block for the target venue's
+% official style file (neurips_20XX.sty / iclr20XX.sty) at submission time.
+% Tables under tables/ and figures under figs/ are AUTO-GENERATED from results/*.json
+% (gen_tables.py, figures.py) — regenerate, never hand-edit.
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm}
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\newtheorem{proposition}{Proposition}
+\newcommand{\T}{T}
+\newcommand{\ours}{Lie conditioning}
+
+\title{Conditioning as Group Action:\\ Lie-Algebra Feature Modulation Composes\\ Where FiLM and Hypernetworks Memorize}
+\author{Richard Bao\\ \texttt{richardbao419@gmail.com}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Feature-wise Linear Modulation (FiLM) conditions a network by scaling and shifting each feature
+independently: $y=\gamma(c)\odot x+\beta(c)$. We study its natural generalization
+$y=\T(c)\,x+\beta(c)$ for structured, per-sample operators $\T(c)$, and identify a single design
+choice that dominates compositional generalization: \emph{the condition should enter the operator
+linearly in a Lie algebra}. Our conditioner, $\T(c)=P\,R(Wc)\,P^{\top}$ --- planar rotations with
+angles linear in $c$, conjugated by a learned structured orthogonal basis $P$ --- satisfies
+$\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ \emph{exactly, by construction, for any weights}, so composition of
+conditions is a property of the parametrization rather than something learned from data. Under a
+pre-registered, budget-fair protocol (equal backbones, conditioning cost $\le$1.2$\times$ FiLM,
+margins and statistical tests fixed before each run), we evaluate against FiLM, conditional
+LayerNorm, concatenation, and two input-conditioned hypernetwork baselines on five compositional
+benchmarks: two synthetic operator-learning suites and three image-transformation suites (dSprites
+and 3D~Shapes) in which a conditioning operator must transform a \emph{learned} latent so that a
+frozen-architecture decoder renders an image of a never-trained combination of factor changes.
+\ours{} wins every suite: by up to five orders of magnitude when conditions form a group, and by
+53.8\% over the strongest (43$\times$ more expensive) hypernetwork baseline on real images
+($p{=}9.1\times10^{-5}$, Cliff's $\delta{=}{-}1.0$, $N{=}10$ seeds), while using the fewest
+parameters of any conditioner. An ablation that swaps only the linear angle map for an MLP --- same
+orthogonal basis, more compute --- degrades OOD error by 1.5--43{,}000$\times$, isolating
+linearity-in-the-algebra as the mechanism. Higher-capacity conditioners generalize \emph{worse}:
+compositional conditioning is an inductive-bias problem, not a capacity problem.
+\end{abstract}
+
+\section{Introduction}
+
+Conditioning --- injecting a class, an action, a timestep, or a text embedding into a network's
+computation --- is one of the most reused mechanisms in deep learning. Diffusion models modulate
+every block on the timestep and class via adaLN \citep{peebles2023dit}; visual reasoning, speech,
+and RL systems modulate features on questions, speakers, and goals \citep{perez2018film}; world
+models condition latent dynamics on actions. Almost all of this conditioning is carried by three
+mechanisms: concatenation, feature-wise affine modulation (FiLM), or a hypernetwork that emits
+weights from the condition.
+
+These mechanisms sit at two extremes of an expressivity axis. FiLM's diagonal transform is cheap
+and stable but cannot rotate, mix, or exchange information between features. Hypernetworks can
+express any linear operator but pay quadratic cost and, as we show, systematically \emph{memorize}
+the training conditions: their error on novel combinations of familiar conditions is worse than
+FiLM's, despite 43$\times$ the conditioning compute. The middle of this axis --- structured
+operator families between diagonal and dense --- is well explored for \emph{weight} fine-tuning
+(orthogonal and low-rank adapters: LoRA, OFT, BOFT, HRA
+\citep{hu2022lora,qiu2023oft,liu2024boft,yuan2024hra}), but largely unexplored in FiLM's role:
+\emph{per-sample, input-conditioned modulation of activations}.
+
+We ask a sharp version of the question: \emph{which structure, at FiLM-level cost, buys
+compositional generalization} --- correct behavior on combinations of conditions never seen
+together in training? Our answer imports a mechanism from positional encoding. RoPE
+\citep{su2021rope} and its generalization GRAPE \citep{grape2025} encode position $n$ as a group
+action $G(n)=\exp(n\,\omega L)$: because position enters \emph{linearly in the Lie algebra}, the
+relative law $G(n{+}m)=G(n)G(m)$ holds exactly. We transplant this construction from scalar
+positions in attention to arbitrary condition vectors in activation modulation:
+\begin{equation}
+\label{eq:op}
+y \;=\; \T(c)\,x+\beta(c), \qquad
+\T(c) \;=\; P\; R(Wc)\; P^{\top},
+\end{equation}
+where $R(\theta)$ applies planar $2{\times}2$ rotations with angle vector $\theta$, $W$ is a
+\emph{linear, bias-free} map from the condition into the angle space (the maximal torus of
+$\mathrm{SO}(d)$), and $P$ is a learned orthogonal change of basis. Same-plane rotations commute,
+so for any $W$ and $P$,
+\begin{equation}
+\label{eq:comp}
+\T(c_1+c_2) \;=\; \T(c_1)\,\T(c_2),
+\end{equation}
+\emph{exactly, at every point in training}. Composition of conditions is not learned; it is a
+theorem about the parametrization. The operator is exactly orthogonal (stable spectra), is the
+identity at initialization and at $c=0$, and costs $1.11\times$ FiLM's conditioning FLOPs when $P$
+is parametrized as a structured (Group-and-Shuffle style \citep{gorbunov2024gs}) orthogonal ---
+a budget a \emph{dense} learned basis provably cannot meet (\S\ref{sec:budget}).
+
+\paragraph{Contributions.}
+\textbf{(1)} We formulate conditioning as a spectrum of per-sample structured operators
+generalizing FiLM, positioned explicitly against the PEFT literature that owns these operator
+families for \emph{weight} adaptation (\S\ref{sec:related}).
+\textbf{(2)} We introduce \ours{} (Eq.~\ref{eq:op}), which makes condition composition exact by
+construction at FiLM-class cost, including a budget analysis showing dense learned bases exceed
+any FiLM-comparable FLOP ceiling while structured orthogonal bases fit (\S\ref{sec:method}).
+\textbf{(3)} We contribute a pre-registered, budget-fair evaluation protocol --- margins,
+statistical tests, and single-read OOD splits fixed before every run; equal-parameter,
+equal-FLOP comparisons enforced by a shared counter --- and release it end-to-end
+(\S\ref{sec:protocol}).
+\textbf{(4)} Across five benchmarks we show: near machine-precision compositional generalization
+and zero-shot extrapolation to longer compositions when conditions form a group; a robust
+$\ge$2$\times$ advantage on real-image transformation with learned latents, surviving categorical
+(non-group) factors; a mechanism-isolating ablation; interpretable learned rotations that recover
+ground-truth generators to $2\times10^{-4}$ rad; and a consistent \emph{capacity inversion} ---
+the more expressive the conditioner, the worse its compositional OOD (\S\ref{sec:results}).
+
+\section{Related work}
+\label{sec:related}
+
+\paragraph{FiLM and conditional normalization.} FiLM \citep{perez2018film} and its conditional
+normalization variants (conditional BN/LN, adaLN in DiT \citep{peebles2023dit}) apply per-feature
+affine transforms generated from a condition. All are diagonal: no feature mixing. We keep FiLM's
+role --- per-sample activation modulation --- and enrich only the operator.
+
+\paragraph{Structured operators in PEFT.} The operator families between diagonal and dense are
+well studied as \emph{weight} fine-tuning: low-rank (LoRA \citep{hu2022lora}), block-diagonal
+orthogonal (OFT \citep{qiu2023oft}), butterfly orthogonal (BOFT \citep{liu2024boft}), Householder
+(HRA \citep{yuan2024hra}), block-orthogonal-with-permutations (Group-and-Shuffle
+\citep{gorbunov2024gs}); \citet{he2022unified} give a unified view. These learn a \emph{fixed}
+transform of weights per task. We claim no novelty for the operator families themselves; our
+setting differs on every axis that matters --- per-sample, input-conditioned, activation-space,
+and evaluated for compositional generation rather than task adaptation. Hypernetwork-generated
+adapters (e.g., input-conditioned LoRA variants \citep{ha2017hypernetworks}) generate weights from
+conditions but inherit the memorization behavior we quantify in \S\ref{sec:results}.
+
+\paragraph{Position encodings as group actions.} RoPE \citep{su2021rope} rotates query/key pairs
+by angles linear in position; GRAPE \citep{grape2025} generalizes this to group representations
+$G(n)=\exp(n\omega L)$ with exact relative laws. The mechanism --- argument linear in a Lie
+algebra, hence exact composition --- is theirs; our contribution is transplanting it from scalar
+position in attention to arbitrary condition vectors in FiLM's role, learning the basis $P$, and
+demonstrating budget-fair compositional gains there.
+
+\paragraph{Compositional generalization in generative models.} \citet{montero2021role} showed
+that reconstruction-trained generative models fail to render unseen factor combinations on
+dSprites-class data, largely independent of disentanglement. Our image experiments adopt that
+recombination paradigm but move the question to the \emph{conditioning mechanism}: with backbone,
+data, and training identical, which operator family recombines? Symmetry-based representation
+learning \citep{higgins2018towards,cohen2016group} argues latents should carry group actions; we
+provide a conditioning-side mechanism and controlled evidence for it.
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Conditioning as a structured operator}
+FiLM is the diagonal case $\T(c)=\mathrm{diag}(1+\gamma(c))$ of $y=\T(c)x+\beta(c)$. We require of
+any richer $\T(c)$: \textbf{(i) identity at init} ($\T\equiv I$, $\beta\equiv0$), so the
+conditioned model starts as the unconditioned one; \textbf{(ii) bounded spectrum}
+($\sigma_{\max}(\T(c))\approx1$), so modulation cannot blow up activations; \textbf{(iii)
+compositionality} --- ideally $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$; \textbf{(iv) FiLM-class cost}. All
+four are unit-tested properties of our released implementation.
+
+\subsection{\ours{}: the condition enters linearly in the Lie algebra}
+In Eq.~\ref{eq:op}, $W\in\mathbb{R}^{(d/2)\times k}$ is linear with no bias, so $c=0$ gives
+$\T=I$, and $W{=}0$ at initialization gives identity-init. $R(\theta)$ rotates coordinate pairs
+$(x_{2i},x_{2i+1})$ by $\theta_i$ --- the maximal torus of $\mathrm{SO}(d)$, applied in
+closed form (no matrix exponential at runtime).
+
+\begin{proposition}
+For any $W,P$ and any $c_1,c_2$: $\T(c_1+c_2)=\T(c_1)\T(c_2)$, and $\T(c)^{\top}\T(c)=I$.
+\end{proposition}
+\begin{proof}
+$R(\theta_1)R(\theta_2)=R(\theta_1{+}\theta_2)$ since coordinate-pair rotations act on disjoint
+planes; $W$ linear gives $W(c_1{+}c_2)=Wc_1{+}Wc_2$; conjugation by a fixed $P$ preserves both
+products. Orthogonality: $R$ and $P$ are orthogonal.
+\end{proof}
+
+The point of the construction is what it removes: an MLP head from $c$ to angles (or to any
+operator parameters) must \emph{learn} composition from data and extrapolate it to unseen
+combinations. Here composition holds at initialization, during training, and off-distribution.
+The learned parts --- $W$'s columns (a generator per condition dimension) and the basis $P$ ---
+only determine \emph{which} planes and \emph{how fast} each condition dimension rotates them.
+
+\subsection{The basis must be structured: a budget analysis}
+\label{sec:budget}
+$\T(c)$ must act in the right basis: a coordinate-aligned torus fails whenever the data's factors
+mix coordinates (S2 below shows this collapse). A \emph{dense} learned orthogonal $P$ costs two
+$d{\times}d$ matrix--vector products per sample --- $4d^2$ FLOPs, i.e.\ $1.52\times$ FiLM's entire
+conditioning budget at $d{=}128$, before counting anything else. (An early version of our own
+accounting under-counted this by $2\times$; the corrected counter is a regression-tested part of
+the release, and the erratum is documented in the repository.) We therefore parametrize $P$ as
+$L{=}5$ layers of block-diagonal orthogonal matrices (eight $16{\times}16$ Cayley blocks per
+layer, $Q=(I{+}A)^{-1}(I{-}A)$ for skew $A$, exactly orthogonal, identity at $A{=}0$) with fixed
+permutations between layers, in the spirit of BOFT and Group-and-Shuffle
+\citep{liu2024boft,gorbunov2024gs}. Total conditioning cost: $1.11\times$ FiLM FLOPs, with $P$
+undercomplete (4{,}800 parameters vs.\ $\dim\mathrm{SO}(128)=8{,}128$) --- it need only discover
+the planes the conditions act on, not an arbitrary rotation.
+
+\section{Pre-registered, budget-fair protocol}
+\label{sec:protocol}
+
+\paragraph{Arms.} Six conditioners share one condition encoder and differ only in the operator:
+FiLM; Concat-MLP; conditional LayerNorm; \textbf{Hypernetwork} ($\T=I{+}\Delta W(c)$, dense);
+\textbf{Dynamic low-rank} ($\T=I{+}A(c)B(c)^{\top}$, per-sample LoRA-style); and \ours{}. A
+seventh reported (never gated) arm isolates the mechanism: identical structured $P$, but an MLP
+angle head replacing $W$ --- \emph{more} compute than ours, differing only in linearity.
+
+\paragraph{Fairness.} A single shared counter measures trainable parameters and per-sample
+forward FLOPs of the whole conditioning path. Gates: ours must hold $\le1.05\times$ the smallest
+hypernetwork baseline's parameters and $\le1.20\times$ FiLM's FLOPs; unstructured baselines may be
+arbitrarily larger (they are: up to 48$\times$ our parameters). Table~\ref{tab:budget} reports the
+budgets. All arms share identical backbones, optimizers, schedules, seeds, and (for image suites)
+identical evaluation triplets.
+
+\paragraph{Pre-registration.} For every suite, the success margin, significance test, seed count,
+and split protocol were written down before the run: verdict = win only if ours beats the
+\emph{strongest hypernetwork-family} baseline (not merely FiLM --- beating a diagonal operator on
+rotation-bearing tasks would be nearly tautological) by $\ge$20\% relative OOD error, one-sided
+Mann--Whitney $p\le0.01$ and Cliff's $|\delta|\ge0.474$ over $N{=}10$ seeds, at fair budget, with
+no in-distribution regression. Model selection uses a validation split; each OOD test split is
+evaluated once per trained arm. Deviations (two pre-run amendments; one accounting erratum) are
+disclosed in the repository alongside append-only logs sufficient to recompute every statistic.
+
+\paragraph{Benchmarks.} \textbf{S1 (synthetic, aligned):} inputs $x\in\mathbb{R}^{128}$; a
+multi-hot condition over $K{=}8$ primitive block-plane rotations requests $y=M(c)x$; train on
+singletons + 8 pairs, test on 10 held-out pairs. \textbf{S2 (synthetic, hidden basis):}
+identical, but $M(c)=B\,R(c)\,B^{\top}$ for a fixed random orthonormal $B$ --- the operator is
+\emph{not} handed the data's basis and must discover it; we additionally evaluate all 56
+never-trained \emph{triple} compositions. \textbf{S3 (dSprites):} conditional image
+transformation. Encode a real image $x_1$, apply the conditioning arm for a factor-change
+$\Delta$ over \{scale, orientation, position$_x$, position$_y$\}, decode, and score pixel MSE
+against the \emph{ground-truth} image at the shifted factors (dSprites \citep{matthey2017dsprites}
+is a deterministic factor$\to$image map, so compositional generation is objectively scoreable).
+Train on single-factor changes + 2 of 6 two-factor types; OOD-test on 2 never-trained two-factor
+types; report never-trained three-factor types. \textbf{S3b (dSprites + categorical):} adds shape
+change --- a factor that is \emph{not} a one-parameter group --- encoded as a one-hot difference
+(which still adds). \textbf{S4 (3D Shapes):} the same protocol on RGB, 3D-rendered scenes
+\citep{burgess2018shapes} with six factors (three cyclic hues, scale, orientation, and categorical
+shape), $\Delta\in\mathbb{R}^{9}$.
+
+\section{Results}
+\label{sec:results}
+
+\begin{table}[t]
+\centering
+\caption{Compositional OOD error (never-trained condition combinations; mean over 10 seeds; lower
+is better). S1/S2: MSE on $y=M(c)x$. S3--S4: pixel MSE against ground-truth transformed images.
+Every suite passed its pre-registered gate (margin vs.\ strongest hypernetwork baseline, one-sided
+Mann--Whitney $p\le0.01$, Cliff's $\delta=-1.0$, i.e.\ complete seed separation).}
+\label{tab:main}
+\input{tables/main_results}
+\end{table}
+
+\begin{table}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\caption{Conditioning-path budgets (S3 instantiation). Ours is the cheapest arm.}
+\label{tab:budget}
+\input{tables/budget}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\caption{Compositional gap on image suites: OOD/in-dist error ratio (1.0 = no gap). In-dist error
+is statistically indistinguishable across arms, isolating composition.}
+\label{tab:ratio}
+\input{tables/ratio}
+\end{minipage}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/f1_ood_all_stages.pdf}
+\caption{Compositional OOD error by conditioner across suites (log scale; bars: mean $\pm$ sd over
+10 seeds; blue = ours, orange = mechanism ablation). \ours{} is lowest in every suite --- by five
+orders of magnitude when conditions form a group (S2), and by a robust margin on real-image
+suites with learned latents.}
+\label{fig:main}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.54\textwidth}
+\includegraphics[width=\textwidth]{figs/f2_length_extrapolation.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.42\textwidth}
+\includegraphics[width=\textwidth]{figs/f4_angle_recovery.pdf}
+\end{minipage}
+\caption{\textbf{Left (S2):} extrapolation to composition length 3 --- conditions strictly longer
+than anything trained. Ours is flat at $\sim$$10^{-8}$; every baseline, including the
+identical-basis MLP-head ablation, degrades. \textbf{Right (S1):} learned singleton angles
+recover the true generators to $2\times10^{-4}$ rad --- the operator is directly interpretable.}
+\label{fig:length}
+\end{figure}
+
+\paragraph{When conditions form a group, composition is solved, not approximated (S1--S2).}
+On the hidden-basis suite, ours reaches $3.3\times10^{-8}$ OOD MSE --- five orders of magnitude
+below the strongest baseline (Table~\ref{tab:main}) --- and, on the 56 never-trained
+\emph{triples}, $5.3\times10^{-8}$: error does not grow with composition length
+(Fig.~\ref{fig:length}, left). The composition identity (Eq.~\ref{eq:comp}) holds on trained
+models to $6.7\times10^{-6}$ (Frobenius). A coordinate-aligned ablation ($P{=}I$) collapses to
+FiLM's error --- basis discovery, not hand-alignment, carries the result --- and the learned
+angles match the ground-truth generators to $2\times10^{-4}$ rad (Fig.~\ref{fig:length}, right):
+one interpretable rotation plane per primitive.
+
+\paragraph{The advantage survives learned latents and real images (S3--S4).}
+On dSprites transformation, all arms fit in-distribution identically ($\approx1.4\times10^{-3}$
+pixel MSE) --- the comparison isolates composition by construction --- yet ours is the only arm
+whose OOD/in-dist ratio stays near 1 (1.25$\times$ vs.\ 2.1--3.3$\times$ for all baselines;
+Table~\ref{tab:ratio}), beating the strongest baseline by 53.8\% at 39$\times$ fewer conditioning
+FLOPs. Never-trained three-factor changes degrade ours most gracefully (1.48$\times$ its own
+in-dist). The categorical suite (S3b) and 3D~Shapes (S4) probe factors with no one-parameter
+group structure; results in Table~\ref{tab:main}.\footnote{S3b/S4 cells are generated from the
+same pre-registered pipeline as all others; see the repository for per-suite verdicts.}
+
+\paragraph{The mechanism is the linearity, and capacity actively hurts.}
+The ablation shares our orthogonal basis and exceeds our compute; it differs \emph{only} in
+replacing the linear angle map with an MLP. It is 43{,}000$\times$ worse on synthetic triples and
+1.55$\times$ worse on dSprites OOD. Meanwhile the two hypernetwork-family arms --- the only arms
+that can represent \emph{any} conditioning operator --- have the \emph{worst} compositional gaps
+on images (2.7$\times$ and 3.3$\times$) despite 6--43$\times$ the FLOPs: they spend capacity
+memorizing training condition-types. Compositional conditioning is an inductive-bias problem;
+adding expressivity moves it in the wrong direction.
+
+\section{Limitations and scope}
+Learned latents do not support exact group action: the real-image advantage is a robust
+$\approx$2$\times$, not the synthetic suites' $10^{5}\times$, and Eq.~\ref{eq:comp} holding in the
+operator does not force the encoder--decoder pair to respect it. Our images are controlled
+64$\times$64 benchmarks with known factors; natural-image, text-conditioned, and diffusion-scale
+evaluations (the natural deployment is the adaLN site in DiT blocks) are future work, as is
+conditioning at multiple depths. Conditions whose semantics are far from any group action ---
+open-ended text, unordered categories at large cardinality --- may need hybrid operators
+(orthogonal $\times$ low-rank), which our framework accommodates but this paper does not evaluate
+at scale.
+
+\section{Reproducibility statement}
+Every experiment was pre-registered (margins, tests, splits fixed before running; specifications
+in the repository), runs from a single command per suite, and writes append-only logs from which
+every number in this paper --- all tables and figures are generated directly from those logs ---
+can be recomputed. Property tests pin the operator invariants (identity-init, orthogonality,
+bounded spectrum, exact composition) and the fairness counters. We additionally disclose two
+pre-run amendments (training loss on sparse binary images; step count) and one corrected FLOP
+accounting erratum, with the corrected counter regression-tested.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{20}
+
+\bibitem[Perez et al.(2018)]{perez2018film}
+E.~Perez, F.~Strub, H.~de~Vries, V.~Dumoulin, A.~Courville.
+\newblock FiLM: Visual reasoning with a general conditioning layer.
+\newblock \emph{AAAI}, 2018.
+
+\bibitem[Peebles and Xie(2023)]{peebles2023dit}
+W.~Peebles, S.~Xie.
+\newblock Scalable diffusion models with transformers.
+\newblock \emph{ICCV}, 2023.
+
+\bibitem[Hu et al.(2022)]{hu2022lora}
+E.~Hu, Y.~Shen, P.~Wallis, Z.~Allen-Zhu, Y.~Li, S.~Wang, L.~Wang, W.~Chen.
+\newblock LoRA: Low-rank adaptation of large language models.
+\newblock \emph{ICLR}, 2022.
+
+\bibitem[Qiu et al.(2023)]{qiu2023oft}
+Z.~Qiu, W.~Liu, H.~Feng, Y.~Xue, Y.~Feng, Z.~Liu, D.~Zhang, A.~Weller, B.~Sch{\"o}lkopf.
+\newblock Controlling text-to-image diffusion by orthogonal finetuning.
+\newblock \emph{NeurIPS}, 2023.
+
+\bibitem[Liu et al.(2024)]{liu2024boft}
+W.~Liu, Z.~Qiu, Y.~Feng, Y.~Xiu, Y.~Xue, L.~Yu, H.~Feng, Z.~Liu, J.~Heo, S.~Peng, et~al.
+\newblock Parameter-efficient orthogonal finetuning via butterfly factorization.
+\newblock \emph{ICLR}, 2024.
+
+\bibitem[Yuan et al.(2024)]{yuan2024hra}
+S.~Yuan, H.~Liu, H.~Xu.
+\newblock Bridging the gap between low-rank and orthogonal adaptation via Householder reflection
+adaptation.
+\newblock \emph{NeurIPS}, 2024.
+
+\bibitem[Gorbunov et al.(2024)]{gorbunov2024gs}
+M.~Gorbunov, N.~Yudin, V.~Soboleva, A.~Alanov, A.~Naumov, M.~Rakhuba.
+\newblock Group and shuffle: Efficient structured orthogonal parametrization.
+\newblock \emph{NeurIPS}, 2024.
+
+\bibitem[He et al.(2022)]{he2022unified}
+J.~He, C.~Zhou, X.~Ma, T.~Berg-Kirkpatrick, G.~Neubig.
+\newblock Towards a unified view of parameter-efficient transfer learning.
+\newblock \emph{ICLR}, 2022.
+
+\bibitem[Ha et al.(2017)]{ha2017hypernetworks}
+D.~Ha, A.~Dai, Q.~Le.
+\newblock Hypernetworks.
+\newblock \emph{ICLR}, 2017.
+
+\bibitem[Su et al.(2021)]{su2021rope}
+J.~Su, Y.~Lu, S.~Pan, A.~Murtadha, B.~Wen, Y.~Liu.
+\newblock RoFormer: Enhanced transformer with rotary position embedding.
+\newblock \emph{arXiv:2104.09864}, 2021.
+
+\bibitem[GRAPE(2025)]{grape2025}
+Anonymous.
+\newblock Group representational position encoding.
+\newblock \emph{arXiv:2512.07805; ICLR}, 2026.
+
+\bibitem[Montero et al.(2021)]{montero2021role}
+M.~Montero, C.~Ludwig, R.~Costa, G.~Malhotra, J.~Bowers.
+\newblock The role of disentanglement in generalisation.
+\newblock \emph{ICLR}, 2021.
+
+\bibitem[Higgins et al.(2018)]{higgins2018towards}
+I.~Higgins, D.~Amos, D.~Pfau, S.~Racaniere, L.~Matthey, D.~Rezende, A.~Lerchner.
+\newblock Towards a definition of disentangled representations.
+\newblock \emph{arXiv:1812.02230}, 2018.
+
+\bibitem[Cohen and Welling(2016)]{cohen2016group}
+T.~Cohen, M.~Welling.
+\newblock Group equivariant convolutional networks.
+\newblock \emph{ICML}, 2016.
+
+\bibitem[Matthey et al.(2017)]{matthey2017dsprites}
+L.~Matthey, I.~Higgins, D.~Hassabis, A.~Lerchner.
+\newblock dSprites: Disentanglement testing sprites dataset.
+\newblock \url{https://github.com/deepmind/dsprites-dataset}, 2017.
+
+\bibitem[Burgess and Kim(2018)]{burgess2018shapes}
+C.~Burgess, H.~Kim.
+\newblock 3D Shapes dataset.
+\newblock \url{https://github.com/deepmind/3d-shapes}, 2018.
+
+\end{thebibliography}
+
+\end{document}

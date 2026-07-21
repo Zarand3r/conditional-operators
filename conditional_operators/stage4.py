@@ -92,11 +92,11 @@ class Data:
 # ---------------------------------------------------------------- backbone (identical everywhere)
 
 class Backbone(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, in_ch: int = 1) -> None:
         super().__init__()
         ch = 64
         self.enc = nn.Sequential(
-            nn.Conv2d(1, ch, 4, 2, 1), nn.ReLU(),        # 32
+            nn.Conv2d(in_ch, ch, 4, 2, 1), nn.ReLU(),    # 32
             nn.Conv2d(ch, ch, 4, 2, 1), nn.ReLU(),       # 16
             nn.Conv2d(ch, ch * 2, 4, 2, 1), nn.ReLU(),   # 8
             nn.Conv2d(ch * 2, ch * 2, 4, 2, 1), nn.ReLU(),  # 4
@@ -106,7 +106,7 @@ class Backbone(nn.Module):
             nn.ConvTranspose2d(ch * 2, ch * 2, 4, 2, 1), nn.ReLU(),
             nn.ConvTranspose2d(ch * 2, ch, 4, 2, 1), nn.ReLU(),
             nn.ConvTranspose2d(ch, ch, 4, 2, 1), nn.ReLU(),
-            nn.ConvTranspose2d(ch, 1, 4, 2, 1))
+            nn.ConvTranspose2d(ch, in_ch, 4, 2, 1))
 
     def encode(self, x):
         return self.enc(x)
@@ -130,11 +130,16 @@ def _zero_(l: nn.Linear) -> nn.Linear:
 
 
 class CondArm(nn.Module):
-    """Base: shared delta-encoder + zero-init beta. Subclass adds the operator on z."""
+    """Base: shared delta-encoder + zero-init beta. Subclass adds the operator on z.
 
-    def __init__(self) -> None:
+    dc = condition input dimension (4 geometric deltas by default; Stage-4b appends 3
+    categorical shape-delta dims).
+    """
+
+    def __init__(self, dc: int = DC) -> None:
         super().__init__()
-        self.e1, self.e2 = nn.Linear(DC, H), nn.Linear(H, H)
+        self.dc = dc
+        self.e1, self.e2 = nn.Linear(dc, H), nn.Linear(H, H)
         self.beta = _zero_(nn.Linear(H, DZ))
 
     def enc(self, d):
@@ -148,12 +153,12 @@ class CondArm(nn.Module):
         return sum(p.numel() for p in self.parameters())
 
     def flops(self):
-        return _fl(DC, H) + _fl(H, H) + _fl(H, DZ) + self.op_flops()
+        return _fl(self.dc, H) + _fl(H, H) + _fl(H, DZ) + self.op_flops()
 
 
 class FiLM4(CondArm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.g = _zero_(nn.Linear(H, DZ))
 
     def op(self, h, d, z):
@@ -164,8 +169,8 @@ class FiLM4(CondArm):
 
 
 class ConcatMLP4(CondArm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.w1 = nn.Linear(DZ + H, H)
         self.w2 = _zero_(nn.Linear(H, DZ))
 
@@ -177,8 +182,8 @@ class ConcatMLP4(CondArm):
 
 
 class CondLN4(CondArm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.ln = nn.LayerNorm(DZ, elementwise_affine=False)
         self.g = _zero_(nn.Linear(H, DZ))
 
@@ -190,8 +195,8 @@ class CondLN4(CondArm):
 
 
 class Hypernet4(CondArm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.w = _zero_(nn.Linear(H, DZ * DZ))
 
     def op(self, h, d, z):
@@ -202,8 +207,8 @@ class Hypernet4(CondArm):
 
 
 class DynLin4(CondArm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.a = _zero_(nn.Linear(H, DZ * LOWRANK))
         self.b = nn.Linear(H, DZ * LOWRANK)
 
@@ -219,9 +224,9 @@ class DynLin4(CondArm):
 class Lie4(CondArm):
     """T(d) = P R(W d) P^T: W linear bias-free (exact composition in d), GS-P from Stage-3."""
 
-    def __init__(self):
-        super().__init__()
-        self.W = nn.Linear(DC, DZ // 2, bias=False)
+    def __init__(self, dc=DC):
+        super().__init__(dc)
+        self.W = nn.Linear(dc, DZ // 2, bias=False)
         nn.init.zeros_(self.W.weight)
         self.P = GSOrthogonal()
 
@@ -229,14 +234,14 @@ class Lie4(CondArm):
         return self.P.apply_t(_rotate(self.W(d), self.P.apply(z)))
 
     def op_flops(self):
-        return _fl(DC, DZ // 2) + 3 * DZ + 2 * GSOrthogonal.apply_flops()
+        return _fl(self.dc, DZ // 2) + 3 * DZ + 2 * GSOrthogonal.apply_flops()
 
 
 class MLPGS4(Lie4):
     """Ablation: same GS-P, MLP angle head (reported, not gated; over FiLM ceiling)."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dc=DC):
+        super().__init__(dc)
         self.head = _zero_(nn.Linear(H, DZ // 2))
 
     def op(self, h, d, z):
@@ -253,10 +258,10 @@ GATE_ARMS = ("film", "concat_mlp", "cond_layernorm", "hypernet", "dynamic_linear
 
 
 class Model(nn.Module):
-    def __init__(self, arm_name: str):
+    def __init__(self, arm_name: str, dc: int = DC):
         super().__init__()
         self.backbone = Backbone()
-        self.cond = ARM_CLASSES[arm_name]()
+        self.cond = ARM_CLASSES[arm_name](dc=dc)
 
     def forward(self, x1, d):
         z = self.backbone.encode(x1)
