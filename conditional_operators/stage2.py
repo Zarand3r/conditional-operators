@@ -124,7 +124,12 @@ class ProposedBasis(Proposed):
         return qx @ P.T                  # P (.)
 
     def op_flops(self):
-        return super().op_flops() + (2 * D * D if self.learn_basis else 0)
+        # ERRATUM 2026-07-21: P is applied twice per sample (x@P then qx@P.T), each a
+        # [1,D]@[D,D] matmul = 2*D*D FLOPs -> 4*D*D total. The original 2*D*D undercount made
+        # this arm appear to fit the <=1.20x FiLM ceiling; true cost is ~1.52x, so the Stage-2
+        # verdict is UNFAIR under AC-4 (see docs/RESULTS_STAGE2.md erratum). Stage-3 replaces
+        # dense P with a structured orthogonal that genuinely fits the budget.
+        return super().op_flops() + (2 * (2 * D * D) if self.learn_basis else 0)
 
     def dense_operator(self, c):
         P = self._P()

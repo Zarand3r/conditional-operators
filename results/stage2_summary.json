@@ -5,9 +5,9 @@
     "n_seeds": 10,
     "steps": 4000
   },
-  "verdict": "confirmed",
+  "verdict": "unfair",
   "reasons": [
-    "AC-1..AC-5 pass; proposed beats hypernet by 68.8% (p=9.1e-05, delta=-1.00)"
+    "AC-4 fairness violated: params=60356 vs 1.05x166272, flops=152960 vs 1.20x100480"
   ],
   "criteria": {
     "AC-1": true,
@@ -66,8 +66,9 @@
       "ood_test_std": 0.00019403386782934295,
       "indist_mean": 6.490951614068763e-06,
       "params": 60356,
-      "flops": 120192,
-      "flops_vs_film": 1.1961783439490445
+      "flops": 152960,
+      "flops_vs_film": 1.5222929936305734
     }
-  }
+  },
+  "erratum": "2026-07-21: original run under-counted the dense-P basis FLOPs (2*D*D instead of 4*D*D). Corrected proposed FLOPs = 152960 = 1.522x FiLM, over the pre-registered 1.20x ceiling -> verdict downgraded CONFIRMED -> UNFAIR per the spec's failure semantics. MSE results are unaffected and remain valid; the arm was over-budget, so the comparison is inconclusive at the registered budget. Superseded by Stage-3 (structured-P within true budget)."
 }

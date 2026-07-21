@@ -62,9 +62,14 @@ class TestLearnedBasisOperator(unittest.TestCase):
             worst = max(worst, torch.linalg.svdvals(m.dense_operator(c))[0].item())
         self.assertLessEqual(worst, 1.02)  # orthogonal P,Q + bounded low-rank
 
-    def test_ac4_budget_holds(self):
+    def test_ac4_budget_violated_erratum(self):
+        # ERRATUM 2026-07-21: the dense-P basis costs 4*D*D per sample (two [1,D]@[D,D] matmuls);
+        # the corrected counter puts this arm at ~1.52x FiLM — OVER the 1.20x ceiling. This test
+        # pins the corrected accounting so the undercount can never silently return. The
+        # within-budget replacement is Stage-3's GSOrthogonal (see tests/test_stage3.py).
         m = stage2.build2("proposed", 0)
-        self.assertLessEqual(m.flops(), 1.20 * FiLM().flops())
+        self.assertGreater(m.flops(), 1.20 * FiLM().flops())
+        self.assertAlmostEqual(m.flops() / FiLM().flops(), 1.522, places=3)
 
     def test_nobasis_ablation_is_identity_operator(self):
         m = stage2.build2("proposed_nobasis", 0)

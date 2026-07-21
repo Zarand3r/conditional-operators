@@ -33,6 +33,10 @@ def main() -> None:
         "# Stage-2 Results — Structure Without the Answer Handed To It",
         "",
         "*Auto-generated from `results/stage2_summary.json` by `render_stage2.py`.*",
+    ]
+    if s.get("erratum"):
+        lines += ["", "> **ERRATUM.** " + s["erratum"], ""]
+    lines += [
         f"Criteria: [`specs/STAGE2_SPEC.md`](specs/STAGE2_SPEC.md). Control: **de-aligned basis** "
         f"(AC-7) — data is `M(c)=B·R(c)·Bᵀ` with `B` a fixed random orthonormal basis, so the "
         f"operator's coordinate blocks are NOT aligned to the generative factors.",

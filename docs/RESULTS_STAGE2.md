@@ -1,14 +1,17 @@
 # Stage-2 Results — Structure Without the Answer Handed To It
 
 *Auto-generated from `results/stage2_summary.json` by `render_stage2.py`.*
+
+> **ERRATUM.** 2026-07-21: original run under-counted the dense-P basis FLOPs (2*D*D instead of 4*D*D). Corrected proposed FLOPs = 152960 = 1.522x FiLM, over the pre-registered 1.20x ceiling -> verdict downgraded CONFIRMED -> UNFAIR per the spec's failure semantics. MSE results are unaffected and remain valid; the arm was over-budget, so the comparison is inconclusive at the registered budget. Superseded by Stage-3 (structured-P within true budget).
+
 Criteria: [`specs/STAGE2_SPEC.md`](specs/STAGE2_SPEC.md). Control: **de-aligned basis** (AC-7) — data is `M(c)=B·R(c)·Bᵀ` with `B` a fixed random orthonormal basis, so the operator's coordinate blocks are NOT aligned to the generative factors.
 Config: 10 seeds, 4000 steps.
 
-## Verdict: **CONFIRMED**
+## Verdict: **UNFAIR**
 
-> CONFIRMED — the Stage-1 advantage SURVIVES de-alignment; structure is not just alignment.
+> UNFAIR — fairness (AC-4) violated; rerun at matched budget.
 
-- AC-1..AC-5 pass; proposed beats hypernet by 68.8% (p=9.1e-05, delta=-1.00)
+- AC-4 fairness violated: params=60356 vs 1.05x166272, flops=152960 vs 1.20x100480
 
 ## The decisive control: the no-basis ablation
 
@@ -29,7 +32,7 @@ The coordinate-block operator that *won* Stage-1 collapses to the FiLM floor her
 | cond_layernorm | 0.02713 ± 0.00049 | 0.02719 | 50,688 | 1.01× |
 | hypernet | 0.00344 ± 0.00087 | 0.00005 | 2,147,712 | 42.74× |
 | dynamic_linear | 0.00608 ± 0.00044 | 0.00002 | 166,272 | 3.30× |
-| **proposed** | 0.00107 ± 0.00019 | 0.00001 | 60,356 | 1.20× |
+| **proposed** | 0.00107 ± 0.00019 | 0.00001 | 60,356 | 1.52× |
 
 **AC-2 bar (best unstructured):** `hypernet`  ·  **margin:** 68.8%  ·  **p:** 9.1e-05  ·  **Cliff's δ:** -1
 
