@@ -1,0 +1,96 @@
+{
+  "stage": "4b",
+  "spec": "docs/specs/STAGE4_SPEC.md addendum (stage4b.py docstring)",
+  "task": "dSprites transformation INCLUDING categorical shape factor (non-group)",
+  "config": {
+    "n_seeds": 10,
+    "steps": 12000,
+    "device": "cuda"
+  },
+  "final_verdict": "confirmed",
+  "reasons": [
+    "AC-1..AC-5 pass; proposed beats hypernet by 42.9% (p=9.1e-05, delta=-1.00)"
+  ],
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.4292457113695475,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.005947561247739941,
+      "ood_test_std": 0.0002469236808030379,
+      "triples_mean": 0.00718348934315145,
+      "triples_std": 0.00016622820277764855,
+      "indist_mean": 0.002466831705532968,
+      "params": 50560,
+      "flops": 100224,
+      "flops_vs_film": 1.0
+    },
+    "concat_mlp": {
+      "ood_test_mean": 0.00630018983501941,
+      "ood_test_std": 0.00016648988322688353,
+      "triples_mean": 0.007840828259941191,
+      "triples_std": 0.00018590610526258983,
+      "indist_mean": 0.002573680551722646,
+      "params": 83456,
+      "flops": 165760,
+      "flops_vs_film": 1.6538952745849298
+    },
+    "cond_layernorm": {
+      "ood_test_mean": 0.006148686632514,
+      "ood_test_std": 0.00034178029357303673,
+      "triples_mean": 0.007505965721793473,
+      "triples_std": 0.0003888971141070183,
+      "indist_mean": 0.0024006914638448505,
+      "params": 50560,
+      "flops": 100736,
+      "flops_vs_film": 1.0051085568326947
+    },
+    "hypernet": {
+      "ood_test_mean": 0.006990405276883394,
+      "ood_test_std": 0.0003712842379159294,
+      "triples_mean": 0.008938970067538321,
+      "triples_std": 0.00039814377707033635,
+      "indist_mean": 0.0024322888522874562,
+      "params": 2147584,
+      "flops": 4294400,
+      "flops_vs_film": 42.84802043422733
+    },
+    "dynamic_linear": {
+      "ood_test_mean": 0.008092388673685492,
+      "ood_test_std": 0.00040965316860786416,
+      "triples_mean": 0.010604711761698127,
+      "triples_std": 0.0005046883362194189,
+      "indist_mean": 0.0025049536023288967,
+      "params": 298240,
+      "flops": 595712,
+      "flops_vs_film": 5.943805874840358
+    },
+    "proposed": {
+      "ood_test_mean": 0.003989803791046143,
+      "ood_test_std": 0.00012852773060798847,
+      "triples_mean": 0.004604947485495359,
+      "triples_std": 0.000109512102553195,
+      "indist_mean": 0.0024454549478832633,
+      "params": 44736,
+      "flops": 111274,
+      "flops_vs_film": 1.1102530332056195
+    },
+    "proposed_mlp_gs": {
+      "ood_test_mean": 0.004964261513669044,
+      "ood_test_std": 0.00016758444893949907,
+      "triples_mean": 0.006028099684044719,
+      "triples_std": 0.00014126989523045074,
+      "indist_mean": 0.002473311894573271,
+      "params": 52992,
+      "flops": 126762,
+      "flops_vs_film": 1.264786877394636
+    }
+  }
+}

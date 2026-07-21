@@ -304,9 +304,20 @@ pixel MSE) --- the comparison isolates composition by construction --- yet ours 
 whose OOD/in-dist ratio stays near 1 (1.25$\times$ vs.\ 2.1--3.3$\times$ for all baselines;
 Table~\ref{tab:ratio}), beating the strongest baseline by 53.8\% at 39$\times$ fewer conditioning
 FLOPs. Never-trained three-factor changes degrade ours most gracefully (1.48$\times$ its own
-in-dist). The categorical suite (S3b) and 3D~Shapes (S4) probe factors with no one-parameter
-group structure; results in Table~\ref{tab:main}.\footnote{S3b/S4 cells are generated from the
-same pre-registered pipeline as all others; see the repository for per-suite verdicts.}
+in-dist).
+
+\paragraph{Categorical factors attenuate but do not break the advantage (S3b).}
+Adding shape change --- a factor with no one-parameter group structure, encoded as a one-hot
+difference --- attenuates the margin exactly as the theory predicts (exact composition no longer
+covers every factor), yet the pre-registered gate still passes decisively: 42.9\% over the
+strongest baseline ($p{=}9.1\times10^{-5}$, complete seed separation), with a compositional gap
+of 1.63$\times$ vs.\ 2.4--3.2$\times$ for every baseline (Table~\ref{tab:ratio}). The linear map
+simply assigns each categorical transition its own rotation, sacrificing exactness on the
+categorical dimension while preserving it on the geometric ones. The capacity inversion persists
+here too (hypernetwork 2.87$\times$, dynamic low-rank 3.23$\times$, both worse than FiLM's
+2.41$\times$). 3D~Shapes (S4) extends the protocol to RGB scenes with six factors; results in
+Table~\ref{tab:main}.\footnote{All suite cells are generated from the same pre-registered
+pipeline; per-suite verdicts and logs are in the repository.}
 
 \paragraph{The mechanism is the linearity, and capacity actively hurts.}
 The ablation shares our orthogonal basis and exceeds our compute; it differs \emph{only} in
