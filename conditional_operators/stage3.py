@@ -67,7 +67,7 @@ class GSOrthogonal(nn.Module):
 
     def _blocks(self) -> torch.Tensor:
         a = self.skew - self.skew.transpose(-1, -2)           # enforce skew
-        eye = torch.eye(B_BLK).expand_as(a)
+        eye = torch.eye(B_BLK, device=a.device, dtype=a.dtype).expand_as(a)
         return torch.linalg.solve(eye + a, eye - a)           # [L, N_BLK, b, b], orthogonal
 
     def apply(self, x: torch.Tensor) -> torch.Tensor:
