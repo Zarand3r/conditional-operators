@@ -23,11 +23,15 @@
 \maketitle
 
 \begin{abstract}
-Feature-wise Linear Modulation (FiLM) conditions a network by scaling and shifting each feature
-independently: $y=\gamma(c)\odot x+\beta(c)$. We study its natural generalization
-$y=\T(c)\,x+\beta(c)$ for structured, per-sample operators $\T(c)$, and identify a single design
-choice that dominates compositional generalization: \emph{the condition should enter the operator
-linearly in a Lie algebra}. Our conditioner, $\T(c)=P\,R(Wc)\,P^{\top}$ --- planar rotations with
+\textbf{The finding, plainly:} if a network is conditioned by \emph{rotating} its features --- with
+rotation angles that are a linear function of the condition --- then combined conditions produce
+combined effects automatically, because rotations add; the network then handles combinations of
+conditions it has never seen, which FiLM and even far more expensive hypernetwork conditioners
+consistently fail at. Formally: Feature-wise Linear Modulation (FiLM) conditions a network by
+scaling and shifting each feature independently, $y=\gamma(c)\odot x+\beta(c)$. We study its
+natural generalization $y=\T(c)\,x+\beta(c)$ for structured, per-sample operators $\T(c)$, and
+identify the single design choice that dominates compositional generalization: \emph{the condition
+should enter the operator linearly in a Lie algebra}. Our conditioner, $\T(c)=P\,R(Wc)\,P^{\top}$ --- planar rotations with
 angles linear in $c$, conjugated by a learned structured orthogonal basis $P$ --- satisfies
 $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ \emph{exactly, by construction, for any weights}, so composition of
 conditions is a property of the parametrization rather than something learned from data. Under a

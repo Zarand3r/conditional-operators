@@ -19,6 +19,7 @@ from __future__ import annotations
 import copy
 import json
 import math
+import os
 import sys
 import time
 
@@ -207,8 +208,12 @@ def train_one(arm, seed, data, splits, steps, batch=256, lr=1e-3):
     opt = torch.optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.99))
     gen = torch.Generator().manual_seed(seed)
     tc_all = cond_vec(train_c)
+    throttle_ms = int(os.environ.get("STAGE6_THROTTLE_MS", "0"))
     diverged = False
     for step in range(steps):
+        if throttle_ms and step % 5 == 0:
+            torch.cuda.synchronize() if DEVICE == "cuda" else None
+            time.sleep(throttle_ms / 1000.0)
         idx = torch.randint(len(train_c), (batch,), generator=gen)
         x0 = combo_images(data, [train_c[i] for i in idx.tolist()])
         c = tc_all[idx.to(DEVICE)]
@@ -276,13 +281,25 @@ def run(n_seeds, steps):
     splits = make_combos()
     runs = {a: [] for a in ARMS6}
     RESULTS_DIR.mkdir(exist_ok=True)
-    with (RESULTS_DIR / "stage6_log.jsonl").open("w") as log:
+    log_path = RESULTS_DIR / "stage6_log.jsonl"
+    done = set()
+    if log_path.exists():                                   # resume after crash/power loss
+        for line in log_path.read_text().splitlines():
+            r = json.loads(line)
+            runs[r["arm"]].append(r)
+            done.add((r["arm"], r["seed"]))
+        if done:
+            print(f"resuming: {len(done)} completed runs found", flush=True)
+    with log_path.open("a") as log:
         for arm in ARMS6:
             for seed in range(n_seeds):
+                if (arm, seed) in done:
+                    continue
                 t = time.time()
                 r = train_one(arm, seed, data, splits, steps)
                 runs[arm].append(r)
-                log.write(json.dumps(r) + "\n"); log.flush()
+                log.write(json.dumps(r) + "\n")
+                log.flush(); os.fsync(log.fileno())          # survive hard power loss
                 print(f"{arm:10} seed={seed} ood_test={r['ood_test']:.5f} "
                       f"indist={r['indist']:.5f} [{time.time()-t:.0f}s]", flush=True)
     verdict, crit, stats = decide6(runs)

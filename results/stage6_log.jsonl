@@ -1,0 +1,14 @@
+{"arm": "film", "seed": 0, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.04837778955698013, "ood_val": 0.04909757152199745, "ood_test": 0.050192467868328094}
+{"arm": "film", "seed": 1, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.04309222102165222, "ood_val": 0.04304851219058037, "ood_test": 0.044913340359926224}
+{"arm": "film", "seed": 2, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.03184953331947327, "ood_val": 0.03429712355136871, "ood_test": 0.03558095544576645}
+{"arm": "film", "seed": 3, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.041940122842788696, "ood_val": 0.04112136736512184, "ood_test": 0.043619927018880844}
+{"arm": "film", "seed": 4, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.04450276494026184, "ood_val": 0.04428640380501747, "ood_test": 0.045270368456840515}
+{"arm": "film", "seed": 5, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.04613739252090454, "ood_val": 0.0479549877345562, "ood_test": 0.046462904661893845}
+{"arm": "film", "seed": 6, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.018028678372502327, "ood_val": 0.023582210764288902, "ood_test": 0.024849001318216324}
+{"arm": "film", "seed": 7, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.045800864696502686, "ood_val": 0.044714219868183136, "ood_test": 0.04535423964262009}
+{"arm": "film", "seed": 8, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.03920670971274376, "ood_val": 0.04052732139825821, "ood_test": 0.041912950575351715}
+{"arm": "film", "seed": 9, "diverged": false, "class_path_flops": 34560, "params": 1889344, "indist": 0.03893015906214714, "ood_val": 0.03725184500217438, "ood_test": 0.03990873321890831}
+{"arm": "hypernet", "seed": 0, "diverged": false, "class_path_flops": 16811776, "params": 4002880, "indist": 0.038992784917354584, "ood_val": 0.040290333330631256, "ood_test": 0.03859958052635193}
+{"arm": "hypernet", "seed": 1, "diverged": false, "class_path_flops": 16811776, "params": 4002880, "indist": 0.047516271471977234, "ood_val": 0.049478981643915176, "ood_test": 0.04694438725709915}
+{"arm": "hypernet", "seed": 2, "diverged": false, "class_path_flops": 16811776, "params": 4002880, "indist": 0.05301891267299652, "ood_val": 0.054595671594142914, "ood_test": 0.05328033119440079}
+{"arm": "hypernet", "seed": 3, "diverged": false, "class_path_flops": 16811776, "params": 4002880, "indist": 0.027102570980787277, "ood_val": 0.02949347347021103, "ood_test": 0.029490990564227104}

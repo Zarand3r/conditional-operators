@@ -20,8 +20,14 @@
 \maketitle
 
 \begin{abstract}
-We present \textbf{CGA} (Conditioning as Group Action), a framework that treats feature
-conditioning $y=\T(c)\,x+\beta(c)$ as a group representation of the condition space: the condition
+\textbf{Substance:} condition a network by \emph{rotating} its features, with angles linear in
+the condition --- then combined conditions compose automatically (rotations add), and the network
+generalizes to combinations it never saw, where FiLM and far costlier hypernetworks fail.
+\textbf{Significance:} this moves composition from something a network must learn to something
+the parametrization guarantees --- the same move RoPE made for position, here made for
+conditioning, a mechanism as ubiquitous as position encoding. We present \textbf{CGA}
+(Conditioning as Group Action), a framework that treats feature conditioning
+$y=\T(c)\,x+\beta(c)$ as a group representation of the condition space: the condition
 $c$ enters the operator \emph{linearly in an abelian Lie algebra},
 $\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so the homomorphism law $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$
 holds exactly, for any weights, by construction. Choosing the algebra recovers deployed mechanisms
