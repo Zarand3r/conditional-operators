@@ -1,0 +1,217 @@
+% Concise GRAPE-style version: framework-first, propositions, exact special-case recoveries,
+% compact experiments. Tables/figures shared with the long version (auto-generated from results/).
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm}
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newcommand{\T}{T}
+
+\title{CGA: Conditioning as Group Action}
+\author{Richard Bao\\ \texttt{richardbao419@gmail.com}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present \textbf{CGA} (Conditioning as Group Action), a framework that treats feature
+conditioning $y=\T(c)\,x+\beta(c)$ as a group representation of the condition space: the condition
+$c$ enters the operator \emph{linearly in an abelian Lie algebra},
+$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so the homomorphism law $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$
+holds exactly, for any weights, by construction. Choosing the algebra recovers deployed mechanisms
+as special cases: the diagonal algebra yields an exactly-compositional variant of FiLM
+(FiLM's usual MLP head parametrizes the same orbit \emph{without} the homomorphism, which we show
+is precisely what fails under composition); the maximal torus $\mathfrak{so}(2)^{d/2}$ with
+scalar $c{=}n$ recovers RoPE, and with learned generators the multiplicative GRAPE construction,
+transplanted from attention positions to arbitrary condition vectors in FiLM's role. The
+instantiation we study --- planar rotations with angles $Wc$, conjugated by a Group-and-Shuffle
+structured orthogonal basis --- is exactly orthogonal, identity at $c{=}0$ and at initialization,
+and costs $1.11\times$ FiLM's conditioning FLOPs (a \emph{dense} learned basis provably exceeds
+any FiLM-comparable budget; at transformer sites the basis can be dropped entirely, as in RoPE).
+Under a pre-registered, budget-fair protocol against FiLM, conditional LayerNorm, concatenation,
+and two input-conditioned hypernetworks (up to $48\times$ our parameters), CGA has the lowest
+compositional OOD error on all five suites we evaluate --- two synthetic operator suites and three
+image-transformation suites on dSprites and 3D~Shapes --- with complete seed separation throughout
+($p{=}9.1{\times}10^{-5}$, $N{=}10$), including zero-shot extrapolation to compositions longer
+than any seen in training. Swapping only the linear map for an MLP degrades OOD error by up to
+$4.3{\times}10^{4}$; the most expressive baselines generalize \emph{worst}. One suite's
+pre-registered gate returns a negative on a non-OOD criterion --- a $1.46\times$ in-distribution
+fit penalty on 3D~Shapes --- which we report as registered: exact orthogonality is a
+robustness--fit trade-off, quantified.
+\end{abstract}
+
+\section{The framework}
+
+Let $x\in\mathbb{R}^d$ be features and $c\in\mathbb{R}^k$ a condition. FiLM
+\citep{perez2018film} computes $y=\gamma(c)\odot x+\beta(c)$; adaLN in DiT blocks
+\citep{peebles2023dit} is its normalized form; hypernetworks emit $W(c)$
+\citep{ha2017hypernetworks}. All are instances of
+\begin{equation}
+y=\T(c)\,x+\beta(c),
+\label{eq:family}
+\end{equation}
+differing in the family from which the per-sample operator $\T(c)$ is drawn.
+
+\begin{definition}[Compositional conditioner]
+$\T:\mathbb{R}^k\!\to\!\mathrm{GL}(d)$ is \emph{compositional} if it is a homomorphism from
+$(\mathbb{R}^k,+)$: $\T(c_1{+}c_2)=\T(c_1)\,\T(c_2)$ and $\T(0)=I$.
+\end{definition}
+
+\begin{proposition}[Exact composition by construction]
+\label{prop:main}
+Let $\mathfrak{a}$ be an abelian subalgebra of $\mathfrak{gl}(d)$, $\mathrm{A}:\mathbb{R}^m\!\to\!
+\mathfrak{a}$ linear, $W\in\mathbb{R}^{m\times k}$, and $P$ orthogonal. Then
+$\T(c)=P\exp(\mathrm{A}(Wc))\,P^{\top}$ is a compositional conditioner for \emph{any} $W,P$; if
+$\mathfrak{a}$ is skew-symmetric, $\T(c)$ is orthogonal.
+\end{proposition}
+\begin{proof}
+$\exp(X)\exp(Y)=\exp(X{+}Y)$ for commuting $X,Y$; $\mathrm{A}\circ W$ is linear; conjugation
+preserves products and $\exp(0)=I$.
+\end{proof}
+
+Composition is thus a property of the \emph{parametrization} --- it holds at initialization,
+during training, and off-distribution. Everything learnable ($W$, $P$) only selects
+\emph{which} one-parameter subgroups the condition drives and \emph{how fast}.
+
+\paragraph{Special cases.} Choices of $(\mathfrak{a}, c, P)$ recover deployed mechanisms exactly:
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+$\mathfrak{a}$ & condition & $P$ & recovered mechanism \\
+\midrule
+$\mathrm{diag}(\mathbb{R}^d)$ & $c$ & $I$ & \emph{exponential FiLM}: $y=e^{Wc}\odot x$ (compositional) \\
+$\mathfrak{so}(2)^{d/2}$ & $c=n$ (scalar position) & $I$ & RoPE \citep{su2021rope} \\
+$\mathfrak{so}(2)^{d/2}$ & $c=n$, learned planes & learned & multiplicative GRAPE \citep{grape2025} \\
+$\mathfrak{so}(2)^{d/2}$ & general $c\in\mathbb{R}^k$ & structured & \textbf{this work} (FiLM's role) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Standard FiLM parametrizes the same diagonal orbit through an MLP head $\gamma(c)$ --- the orbit
+is right, the homomorphism is absent, and \S\ref{sec:exp} shows empirically that this is exactly
+what fails under composition: our ablation with an MLP angle head (same orbit, same basis, more
+compute) loses by up to $4.3\times10^4$. The PEFT literature (LoRA, OFT, BOFT, HRA,
+Group-and-Shuffle \citep{hu2022lora,qiu2023oft,liu2024boft,yuan2024hra,gorbunov2024gs}) owns these
+operator families as \emph{fixed weight} adaptations; CGA places them in FiLM's role ---
+per-sample, input-conditioned, activation-space --- where the composition question exists.
+
+\paragraph{Cost, and where the basis comes from.}
+With $\mathfrak{a}=\mathfrak{so}(2)^{d/2}$, $\exp$ is closed-form planar rotation: $3d$ FLOPs, no
+matrix exponential. The basis is the entire budget question. A dense learned $P$ costs $4d^2$
+FLOPs per sample ($1.52\times$ FiLM's whole conditioning path at $d{=}128$) --- infeasible under
+any FiLM-comparable ceiling. Two resolutions: \textbf{(i)} a structured orthogonal $P$
+(five block-diagonal Cayley layers with fixed shuffles, à la Group-and-Shuffle): total
+$1.11\times$ FiLM, undercomplete (4{,}800 parameters vs.\ $\dim\mathrm{SO}(128){=}8{,}128$) yet
+sufficient, since $P$ need only expose the planes the condition acts on; \textbf{(ii)} at
+transformer sites, \emph{no explicit $P$}: the adjacent dense projections absorb the basis, which
+is exactly how RoPE deploys. The operator satisfies identity-init ($W{=}0\Rightarrow\T\equiv I$),
+$\T(0)=I$ structurally, and $\sigma(\T(c))\equiv 1$; all are unit-tested invariants of the
+release.
+
+\section{Experiments}
+\label{sec:exp}
+
+\paragraph{Protocol.} Pre-registered throughout: margins, tests ($N{=}10$ seeds, one-sided
+Mann--Whitney $p\le0.01$, Cliff's $|\delta|\ge0.474$), and single-read OOD splits fixed before
+each run; equal backbones; a shared counter enforces conditioning cost $\le1.20\times$ FiLM and
+parameters $\le1.05\times$ the smallest hypernetwork baseline (baselines may be larger --- up to
+$48\times$). Verdicts are reported as registered, including the negative. Baselines: FiLM,
+conditional LayerNorm, Concat-MLP, dense hypernetwork $I{+}\Delta W(c)$, dynamic low-rank
+$I{+}A(c)B(c)^{\top}$; plus the MLP-head ablation (identical basis, more compute, no linearity).
+
+\paragraph{Suites.} \textbf{S1/S2 (synthetic):} learn $y=M(c)x$ for multi-hot compositions of 8
+rotation primitives; S2 hides the primitives' planes behind a random basis $B$ and additionally
+tests all 56 never-trained \emph{triples}. \textbf{S3/S3b (dSprites) and S4 (3D~Shapes):}
+conditional image transformation --- encode a real image, apply $\T(\Delta)$ on the learned latent
+for a factor-change $\Delta$, decode; score pixel MSE against the dataset's unique ground-truth
+image; OOD $=$ never-trained two-factor change types; S3b/S4 include a \emph{categorical} (shape)
+factor encoded as a one-hot difference.
+
+\begin{table}[t]
+\centering
+\caption{Compositional OOD error (mean over 10 seeds). CGA is lowest in every column with
+complete seed separation vs.\ the strongest hypernetwork baseline ($p{=}9.1{\times}10^{-5}$,
+$\delta{=}{-}1.0$). S1--S3b pass the full pre-registered gate; S4 returns a registered negative
+on a separate in-distribution criterion (text).}
+\label{tab:main}
+\input{tables/main_results}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/f1_ood_all_stages.pdf}
+\caption{OOD error by conditioner (log scale; blue = CGA, orange = MLP-head ablation).}
+\label{fig:main}
+\end{figure}
+
+\paragraph{Findings.} \textbf{(1) Group-structured conditions: solved, not approximated.} On S2,
+CGA reaches $3.3{\times}10^{-8}$ OOD MSE --- five orders below the best baseline --- and
+$5.3{\times}10^{-8}$ on never-trained triples: error does not grow with composition length.
+Learned angles recover the true generators to $2{\times}10^{-4}$ rad; a coordinate-aligned
+ablation ($P{=}I$) collapses to FiLM's error, so basis \emph{discovery} carries the result.
+\textbf{(2) The advantage survives learned latents.} On dSprites all arms fit in-distribution
+identically, isolating composition: CGA's OOD/in-dist gap is $1.25\times$
+($1.63\times$ with the categorical factor) vs.\ $2.1$--$3.3\times$ for every baseline, a
+$53.8\%$ ($42.9\%$) margin over the strongest baseline at $39\times$ fewer conditioning FLOPs.
+\textbf{(3) Linearity is the mechanism.} The MLP-head ablation --- same basis, same orbit, more
+compute --- is $4.3{\times}10^{4}\times$ worse on synthetic triples and $1.55\times$ worse on
+dSprites. \textbf{(4) Capacity inverts.} The two hypernetwork arms, the only ones able to
+represent \emph{any} operator, have the worst compositional gaps on images ($2.7$--$26\times$):
+expressivity is spent memorizing training condition types. \textbf{(5) The registered negative.}
+On 3D~Shapes, CGA again has the best OOD error ($87.5\%$ margin; gap $1.13\times$ vs.\
+$13$--$26\times$) but pays a $1.46\times$ in-distribution fit penalty that trips the
+pre-registered no-regression gate ($\le1.10\times$). We report the suite as a negative, as
+registered: exact orthogonality is a robustness--fit trade-off, and our protocol prices it
+instead of hiding it.
+
+\section{Discussion}
+
+CGA does for conditioning what RoPE/GRAPE did for position: it moves a desirable law ---
+composition --- from something a network must learn into something the parametrization
+guarantees. The evidence here is deliberately controlled (64$\times$64, known factors); the
+deployment experiment is the adaLN site of diffusion transformers, where the basis-free variant
+drops in at below-FiLM marginal cost. Two boundaries are already quantified: categorical factors
+attenuate (but do not remove) the advantage, and richer scenes can price the orthogonality
+constraint in in-distribution fit --- motivating the abelian-algebra generalizations of
+Proposition~\ref{prop:main} beyond the pure torus (e.g., torus $\times$ bounded diagonal) as the
+next design point. Adjacent prior work learns group actions on latents for world models
+\citep{quessard2020,caselles2019}; CGA differs in living in FiLM's role under budget parity, and
+in that composition is exact by construction rather than a training objective.
+
+\paragraph{Reproducibility.} All specs pre-registered; every number regenerated from append-only
+logs; operator invariants and fairness counters are unit tests; amendments and one accounting
+erratum disclosed in the repository.
+
+\begin{thebibliography}{9}
+\bibitem[Perez et al.(2018)]{perez2018film} E.~Perez et al. FiLM: Visual reasoning with a general
+conditioning layer. \emph{AAAI}, 2018.
+\bibitem[Peebles and Xie(2023)]{peebles2023dit} W.~Peebles, S.~Xie. Scalable diffusion models
+with transformers. \emph{ICCV}, 2023.
+\bibitem[Ha et al.(2017)]{ha2017hypernetworks} D.~Ha, A.~Dai, Q.~Le. Hypernetworks. \emph{ICLR}, 2017.
+\bibitem[Su et al.(2021)]{su2021rope} J.~Su et al. RoFormer: Enhanced transformer with rotary
+position embedding. \emph{arXiv:2104.09864}, 2021.
+\bibitem[GRAPE(2026)]{grape2025} Anonymous. Group representational position encoding.
+\emph{ICLR}, 2026. arXiv:2512.07805.
+\bibitem[Hu et al.(2022)]{hu2022lora} E.~Hu et al. LoRA. \emph{ICLR}, 2022.
+\bibitem[Qiu et al.(2023)]{qiu2023oft} Z.~Qiu et al. Orthogonal finetuning. \emph{NeurIPS}, 2023.
+\bibitem[Liu et al.(2024)]{liu2024boft} W.~Liu et al. BOFT. \emph{ICLR}, 2024.
+\bibitem[Yuan et al.(2024)]{yuan2024hra} S.~Yuan et al. Householder reflection adaptation.
+\emph{NeurIPS}, 2024.
+\bibitem[Gorbunov et al.(2024)]{gorbunov2024gs} M.~Gorbunov et al. Group and shuffle: Efficient
+structured orthogonal parametrization. \emph{NeurIPS}, 2024.
+\bibitem[Quessard et al.(2020)]{quessard2020} R.~Quessard, T.~Barrett, W.~Clements. Learning
+disentangled representations and group structure of dynamical environments. \emph{NeurIPS}, 2020.
+\bibitem[Caselles-Dupr\'e et al.(2019)]{caselles2019} H.~Caselles-Dupr\'e, M.~Garcia-Ortiz,
+D.~Filliat. Symmetry-based disentangled representation learning requires interaction with
+environments. \emph{NeurIPS}, 2019.
+\end{thebibliography}
+
+\end{document}
