@@ -65,3 +65,7 @@ transformer entry (bijective; persists through all blocks), `W` on raw `c` (no c
 Class-path cost: 25,472 FLOPs = 0.74× film's marginal class path (34,560) — AC-4 satisfied with
 margin. The MLP ablation uses the same single site (reported-only; ~2.2× film). Hypernet keeps
 per-block dense mixing (the unstructured arm is allowed arbitrary size, as in every prior stage).
+
+**Config amendment (pre-run, VAL-calibrated):** film-arm VAL generation MSE at 20k steps (0.063)
+is still improving steeply (0.43→0.15→0.063 at 5k/10k/20k); steps raised 20,000 → 40,000 before
+any decision run. No other change.
