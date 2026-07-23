@@ -24,3 +24,4 @@ venv/
 .idea/
 .vscode/
 datasets/
+docs/paper/project_context.md
