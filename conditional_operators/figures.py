@@ -170,8 +170,37 @@ def _save(fig, name):
     print(f"wrote {FIGS / name}.pdf/.png")
 
 
+def fig_horizon():
+    """F5: rollout horizon curve (stage-7): error vs rollout length per arm."""
+    s = _load("stage7_summary.json")
+    if not s:
+        return
+    fig, ax = plt.subplots(figsize=(3.6, 2.6))
+    xs = [3, 10, 20]
+    for a in ORDER:
+        pa = s["per_arm"].get(a)
+        if not pa:
+            continue
+        ys = [pa["indist"], pa["h10"], pa["h20"]]
+        ax.plot(xs, ys, marker="o", ms=4, lw=1.6 if a == "proposed" else 1.0,
+                color=_color(a), label=ARM_LABEL[a], zorder=3 if a == "proposed" else 2)
+    ax.set_yscale("log")
+    ax.set_xticks(xs, ["3\n(trained)", "10", "20"])
+    ax.set_xlabel("rollout length (actions)")
+    ax.set_ylabel("generation MSE (log)")
+    ax.set_title("World-model rollouts: error compounds for every arm", fontsize=9, loc="left")
+    ax.grid(axis="y", color="#e0e0e0", lw=0.6)
+    ax.set_axisbelow(True)
+    ax.legend(fontsize=6.5, frameon=False, ncol=2)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    fig.tight_layout()
+    _save(fig, "f5_rollout_horizon")
+
+
 if __name__ == "__main__":
     fig_main()
     fig_length()
     fig_ratio()
     fig_mechanism()
+    fig_horizon()

@@ -41,14 +41,17 @@ $c{=}0$ and at initialization, and costs $1.11\times$ FiLM's conditioning FLOPs;
 basis provably exceeds any FiLM-comparable budget, and transformer sites need no explicit basis
 at all, as in RoPE. Under a pre-registered, budget-fair protocol against FiLM, conditional
 LayerNorm, concatenation, and two input-conditioned hypernetworks (up to $48\times$ our
-parameters), CGA achieves the lowest compositional OOD error on all six suites we evaluate, with
-complete seed separation throughout ($p{=}9.1{\times}10^{-5}$, $N{=}10$), including zero-shot
-extrapolation to compositions longer than any seen in training. Swapping only the linear map for
-an MLP degrades OOD error by up to $4.3{\times}10^{4}$. The most expressive baselines generalize
-worst. Two pre-registered gates returned negatives that bound the method: a $1.46\times$
-in-distribution fit penalty on rich scenes, and a content-conditioning failure in diffusion; we
-report both as registered. Exact orthogonality trades fit for guarantees, and we quantify the
-trade.
+parameters), CGA achieves the lowest compositional OOD error on all five transformation suites,
+with complete seed separation throughout ($p{=}9.1{\times}10^{-5}$, $N{=}10$), including
+zero-shot extrapolation to compositions longer than any seen in training. Swapping only the
+linear map for an MLP degrades OOD error by up to $4.3{\times}10^{4}$. The most expressive
+baselines generalize worst. Three pre-registered gates returned negatives that bound the method:
+a $1.46\times$ in-distribution fit penalty on rich scenes; a content-conditioning failure in
+diffusion (a rotation preserves information, so it transforms representations and cannot inject
+content); and no advantage in recurrent world-model rollouts, where representation-consistency
+error dominates operator-composition error and accumulates under isometries that a contractive
+transition would absorb. We report all three as registered. Exact composition is a guarantee
+about the operator, and the negatives locate where operator guarantees stop paying.
 \end{abstract}
 
 \section{The framework}
@@ -139,7 +142,12 @@ tests all 56 never-trained \emph{triples}. \textbf{S3/S3b (dSprites) and S4 (3D~
 conditional image transformation. The model encodes a real image, applies $\T(\Delta)$ on the
 learned latent for a factor-change $\Delta$, and decodes; pixel MSE against the dataset's unique
 ground-truth image scores the result. OOD means never-trained two-factor change types; S3b/S4
-include a categorical (shape) factor encoded as a one-hot difference.
+include a categorical (shape) factor encoded as a one-hot difference. \textbf{S5 (content role):}
+a width-128 DiT trained as a factor-conditional diffusion model on dSprites; full conditioning
+determines the target image uniquely, so held-out-combination generation is scored by pixel MSE
+against ground truth. \textbf{S6 (rollout role):} an action-conditioned world model in which the
+conditioning arm is the latent transition, applied recurrently; OOD means unseen action-type
+pairs and rollout horizons 10 and 20 with training capped at 3.
 
 \begin{table}[t]
 \centering
@@ -174,10 +182,16 @@ compositional gaps on images ($2.7$--$26\times$): the extra expressivity memoriz
 condition types. \textbf{(5) The registered negatives.} On 3D~Shapes, CGA posts the best OOD
 error ($87.5\%$ margin; gap $1.13\times$ vs.\ $13$--$26\times$) and pays a $1.46\times$
 in-distribution fit penalty that trips the pre-registered no-regression gate ($\le1.10\times$).
-In a conditional-diffusion suite, rotation conditioning underfits when the condition must specify
-image content: a rotation preserves information, so it transforms representations well and
-injects content poorly. We report both suites as negatives, as registered. Exact orthogonality
-trades fit for guarantees; our protocol prices the trade.
+In the content suite (S5), rotation conditioning underfits by $7\times$ when the condition must
+specify image content, and the MLP-head ablation fails identically ($0.31$ vs.\ film's $0.04$):
+the failure sits in the rotation channel itself, which preserves information and therefore
+transforms representations well and injects content poorly. In the rollout suite (S6), every arm
+compounds error identically over never-trained horizons (all reach ${\approx}0.043$ at length
+20), and the mildly contractive dynamic low-rank arm degrades least: rollout error is dominated
+by representation-consistency error, which contraction absorbs at each step and which an isometry
+preserves indefinitely; exact operator composition does not repair an inconsistent latent. We
+report all three suites as negatives, as registered. The protocol prices the guarantees rather
+than assuming they pay everywhere.
 
 \section{Discussion}
 
@@ -185,11 +199,14 @@ CGA does for conditioning what RoPE and GRAPE did for position: it moves composi
 behavior the network must learn into a law the parametrization guarantees. The evidence here is
 deliberately controlled (64$\times$64 images, known factors); the deployment experiment is the
 adaLN site of diffusion transformers, where the basis-free variant drops in below FiLM's marginal
-cost. Three boundaries are already quantified: categorical factors attenuate the advantage,
-richer scenes price the orthogonality constraint in in-distribution fit, and content
-specification defeats a transformation channel. These motivate the abelian-algebra
-generalizations of Proposition~\ref{prop:main} beyond the pure torus (torus $\times$ bounded
-diagonal) as the next design point. Adjacent work learns group actions on latents for world
+cost. Four boundaries are already quantified: categorical factors attenuate the advantage;
+richer scenes price the orthogonality constraint in in-distribution fit; content specification
+defeats a transformation channel; and recurrent rollouts are limited by representation
+consistency, which no operator guarantee repairs. The first three motivate the abelian-algebra
+generalizations of Proposition~\ref{prop:main} beyond the pure torus (torus $\times$ diagonal:
+complex-valued FiLM, with magnitude as the content channel and phase as the composition channel)
+as the next design point; the fourth motivates pairing the operator with a representation
+consistency objective. Adjacent work learns group actions on latents for world
 models \citep{quessard2020,caselles2019}; CGA lives in FiLM's role under budget parity, and its
 composition law holds by construction instead of by training objective.
 

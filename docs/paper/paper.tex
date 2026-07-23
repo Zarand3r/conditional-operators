@@ -41,15 +41,18 @@ LayerNorm, concatenation, and two input-conditioned hypernetwork baselines on fi
 benchmarks: two synthetic operator-learning suites and three image-transformation suites (dSprites
 and 3D~Shapes) in which a conditioning operator must transform a \emph{learned} latent so that a
 frozen-architecture decoder renders an image of a never-trained combination of factor changes.
-\ours{} has the lowest compositional OOD error on all five suites: by up to five orders of
-magnitude when conditions form a group, and by 42.9--53.8\% over the strongest (43$\times$ more
-expensive) hypernetwork baseline on image suites ($p{=}9.1\times10^{-5}$, Cliff's
-$\delta{=}{-}1.0$, $N{=}10$ seeds), while using the fewest parameters of any conditioner, and
-passes the full pre-registered gate on four of the five. On the fifth (3D~Shapes), the gate
-returns a \emph{registered negative}: ours is still best on every compositional metric
-(87.5\% below the strongest baseline; OOD/in-dist gap 1.13$\times$ vs.\ 13--26$\times$), but pays
-a 1.46$\times$ in-distribution fit penalty that trips the pre-registered no-regression criterion
- and quantifies a real fit-vs-composition trade-off instead of hiding it. An ablation that swaps
+\ours{} has the lowest compositional OOD error on all five transformation suites: by up to five
+orders of magnitude when conditions form a group, and by 42.9--53.8\% over the strongest
+(43$\times$ more expensive) hypernetwork baseline on image suites ($p{=}9.1\times10^{-5}$,
+Cliff's $\delta{=}{-}1.0$, $N{=}10$ seeds), while using the fewest parameters of any conditioner,
+and passes the full pre-registered gate on four of them. Three further pre-registered gates
+return \emph{registered negatives} that bound the method: on 3D~Shapes, a 1.46$\times$
+in-distribution fit penalty despite the best OOD metrics (87.5\% margin; gap 1.13$\times$ vs.\
+13--26$\times$); in conditional diffusion, a 7$\times$ underfit when the condition specifies
+image content, because a rotation preserves information and therefore cannot inject it; and in
+recurrent world-model rollouts, no advantage, because representation-consistency error dominates
+operator-composition error. The negatives locate exactly where operator guarantees pay and where
+they stop. An ablation that swaps
 only the linear angle map for an MLP, same orthogonal basis, more compute, degrades OOD
 error by 1.5--43{,}000$\times$, isolating linearity-in-the-algebra as the mechanism.
 Higher-capacity conditioners generalize \emph{worse}: compositional conditioning is an
@@ -349,6 +352,28 @@ denominator: Concat-MLP and Cond-LN fit 4--7$\times$ worse in-distribution than 
 \footnote{All suite cells are generated from the same pre-registered pipeline; per-suite verdicts
 and append-only logs are in the repository.}
 
+\paragraph{S5 (content role): rotation cannot inject content.}
+A width-128 diffusion transformer trained factor-conditionally on dSprites (full conditioning
+determines the target image uniquely, so generation on held-out combinations is scored by pixel
+MSE against ground truth) yields the second registered negative: the rotation class path
+underfits at 0.296 vs.\ adaLN's 0.042, and the MLP-head ablation fails identically (0.308). The
+failure therefore sits in the channel, not the linearity: a rotation preserves information, so it
+transforms representations well and injects content poorly. Every suite the method wins
+conditions on \emph{changes}; this suite conditions on \emph{content}. The distinction gives
+practitioners a usage rule and gives the framework its next design point (a magnitude channel;
+\S\ref{sec:limits}).
+
+\paragraph{S6 (rollout role): consistency, not composition, limits world models.}
+An action-conditioned world model applies the conditioning arm recurrently as the latent
+transition; horizons of 10 and 20 actions (training capped at 3) probe error compounding. Every
+arm compounds identically (all reach $\approx$0.043 at length 20; our margin over the strongest
+baseline is 7\%, far below the registered 30\%), and the mildly contractive dynamic low-rank arm
+degrades least (0.015 at length 20). The mechanism: each step introduces a small mismatch between
+$\T(a)\,z(s)$ and $z(s{+}1)$; a contractive transition reabsorbs that mismatch toward the
+decodable manifold at every step, while an isometry preserves it indefinitely. Exact operator
+composition cannot repair an inconsistent representation. This falsified our own pre-registered
+prediction, and we report it as registered.
+
 \paragraph{The mechanism is the linearity, and capacity actively hurts.}
 The ablation shares our orthogonal basis and exceeds our compute; it differs \emph{only} in
 replacing the linear angle map with an MLP. It is 43{,}000$\times$ worse on synthetic triples and
@@ -359,13 +384,17 @@ memorizing training condition-types. Compositional conditioning is an inductive-
 adding expressivity moves it in the wrong direction.
 
 \section{Limitations and scope}
+\label{sec:limits}
 Learned latents do not support exact group action: the real-image advantage is a reliable
 $\approx$2$\times$, not the synthetic suites' $10^{5}\times$, and Eq.~\ref{eq:comp} holding in the
 operator does not force the encoder--decoder pair to respect it. S4 shows the constraint can
 carry a real in-distribution cost (1.46$\times$ the best memorizer) on richer scenes, our own
 gate scores that suite as a negative, so exact orthogonality should be understood as a
-robustness--fit trade-off, not a free lunch; relaxations (orthogonal $\times$ bounded low-rank)
-are the obvious next design point. Our images are controlled
+robustness--fit trade-off, not a free lunch. S5 and S6 add two harder boundaries: the operator
+conditions on changes, not content, and its guarantees end where representation consistency
+begins. All three point at the same successor design: the abelian algebra torus $\times$
+diagonal, i.e.\ complex-valued FiLM with magnitude as the content channel and phase as the
+composition channel, paired with a consistency objective for recurrent use. Our images are controlled
 64$\times$64 benchmarks with known factors; natural-image, text-conditioned, and diffusion-scale
 evaluations (the natural deployment is the adaLN site in DiT blocks) are future work, as is
 conditioning at multiple depths. Conditions whose semantics are far from any group action, such as
