@@ -23,40 +23,31 @@
 \maketitle
 
 \begin{abstract}
-\textbf{The finding, plainly:} if a network is conditioned by \emph{rotating} its features, with
-rotation angles that are a linear function of the condition, then combined conditions produce
-combined effects automatically, because rotations add; the network then handles combinations of
-conditions it has never seen, which FiLM and even far more expensive hypernetwork conditioners
-consistently fail at. Formally: Feature-wise Linear Modulation (FiLM) conditions a network by
-scaling and shifting each feature independently, $y=\gamma(c)\odot x+\beta(c)$. We study its
-natural generalization $y=\T(c)\,x+\beta(c)$ for structured, per-sample operators $\T(c)$, and
-identify the single design choice that dominates compositional generalization: \emph{the condition
-should enter the operator linearly in a Lie algebra}. Our conditioner, $\T(c)=P\,R(Wc)\,P^{\top}$, planar rotations with
-angles linear in $c$, conjugated by a learned structured orthogonal basis $P$, satisfies
-$\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ \emph{exactly, by construction, for any weights}, so composition of
-conditions is a property of the parametrization rather than something learned from data. Under a
-pre-registered, budget-fair protocol (equal backbones, conditioning cost $\le$1.2$\times$ FiLM,
-margins and statistical tests fixed before each run), we evaluate against FiLM, conditional
-LayerNorm, concatenation, and two input-conditioned hypernetwork baselines on five compositional
-benchmarks: two synthetic operator-learning suites and three image-transformation suites (dSprites
-and 3D~Shapes) in which a conditioning operator must transform a \emph{learned} latent so that a
-frozen-architecture decoder renders an image of a never-trained combination of factor changes.
-\ours{} has the lowest compositional OOD error on all five transformation suites: by up to five
-orders of magnitude when conditions form a group, and by 42.9--53.8\% over the strongest
-(43$\times$ more expensive) hypernetwork baseline on image suites ($p{=}9.1\times10^{-5}$,
-Cliff's $\delta{=}{-}1.0$, $N{=}10$ seeds), while using the fewest parameters of any conditioner,
-and passes the full pre-registered gate on four of them. Three further pre-registered gates
-return \emph{registered negatives} that bound the method: on 3D~Shapes, a 1.46$\times$
-in-distribution fit penalty despite the best OOD metrics (87.5\% margin; gap 1.13$\times$ vs.\
-13--26$\times$); in conditional diffusion, a 7$\times$ underfit when the condition specifies
-image content, because a rotation preserves information and therefore cannot inject it; and in
-recurrent world-model rollouts, no advantage, because representation-consistency error dominates
-operator-composition error. The negatives locate exactly where operator guarantees pay and where
-they stop. An ablation that swaps
-only the linear angle map for an MLP, same orthogonal basis, more compute, degrades OOD
-error by 1.5--43{,}000$\times$, isolating linearity-in-the-algebra as the mechanism.
-Higher-capacity conditioners generalize \emph{worse}: compositional conditioning is an
-inductive-bias problem, not a capacity problem.
+Networks are usually conditioned by scaling features (FiLM) or by generating weights
+(hypernetworks). Both learn what each condition does. Neither learns what two conditions do
+together unless training data shows them together. We condition differently: rotate the
+features, with rotation angles that are a linear function of the condition. Rotations add, so
+combined conditions produce combined effects automatically, and the network handles condition
+combinations it never saw. Formally, we generalize FiLM's $y=\gamma(c)\odot x+\beta(c)$ to
+$y=\T(c)\,x+\beta(c)$ and pick $\T(c)=P\,R(Wc)\,P^{\top}$: planar rotations, angles linear in
+$c$, in a learned structured orthogonal basis. This satisfies
+$\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ exactly, for any weights. Composition becomes a property of the
+parametrization instead of a behavior learned from data. We test this under a pre-registered
+protocol: margins, statistical tests, and data splits fixed and committed before every run, with
+conditioning cost capped at $1.2\times$ FiLM's. Across five transformation suites (two
+synthetic, three on dSprites and 3D~Shapes images), \ours{} has the lowest error on
+never-trained condition combinations: by up to five orders of magnitude when conditions form a
+group, and by 42.9--53.8\% over the strongest hypernetwork baseline on images
+($p{=}9.1\times10^{-5}$, $N{=}10$ seeds), while using the fewest parameters of any conditioner.
+An ablation that swaps only the linear map for an MLP, with the same basis and more compute,
+loses by up to 43{,}000$\times$: the linear map is the mechanism. More expressive conditioners
+generalize worse; their capacity memorizes the training combinations. Three pre-registered gates
+also returned negatives, and we report them: a $1.46\times$ fit penalty on rich scenes; a
+$7\times$ failure when the condition specifies image content, because a rotation moves
+information and cannot add it; and no advantage in world-model rollouts, where representation
+consistency, not operator composition, is the bottleneck. Together the suites give practitioners
+a usage rule: use this operator for conditions that are changes to combine, and keep FiLM for
+conditions that say what to generate.
 \end{abstract}
 
 \section{Introduction}

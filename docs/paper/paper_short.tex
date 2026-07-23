@@ -1,7 +1,6 @@
-% Concise GRAPE-style version: framework-first, propositions, exact special-case recoveries,
-% compact experiments. Tables/figures shared with the long version (auto-generated from results/).
-% Prose conforms to the paper-writing skill's mechanical gate (M1-M18): no em-dashes, active
-% voice, claim-first sentences.
+% Concise GRAPE-style version. Tables/figures auto-generated from results/ (never hand-edit).
+% Prose register: paper-writing skill craft_reference.md (plain words, ~21-word sentences,
+% claim-first, active voice, no em-dashes).
 \documentclass[10pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amsthm}
@@ -22,49 +21,41 @@
 \maketitle
 
 \begin{abstract}
-Condition a network by rotating its features, with rotation angles linear in the condition, and
-combined conditions compose automatically: rotations add, so the network handles combinations it
-never saw in training. FiLM and hypernetwork conditioners fail on the same combinations at up to
-43$\times$ the cost. We present \textbf{CGA} (Conditioning as Group Action), a framework that
-treats feature conditioning $y=\T(c)\,x+\beta(c)$ as a group representation of the condition
-space: the condition $c$ enters the operator linearly in an abelian Lie algebra,
-$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so the homomorphism law $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$
-holds exactly, for any weights, by construction. Choosing the algebra recovers deployed
-mechanisms as special cases. The diagonal algebra yields an exactly compositional variant of
-FiLM; FiLM's usual MLP head parametrizes the same orbit without the homomorphism, and our
-ablations show this missing law is what fails under composition. The maximal torus
-$\mathfrak{so}(2)^{d/2}$ with scalar $c{=}n$ recovers RoPE, and with learned generators the
-multiplicative GRAPE construction, transplanted from attention positions to arbitrary condition
-vectors in FiLM's role. Our instantiation, planar rotations with angles $Wc$ conjugated by a
-Group-and-Shuffle structured orthogonal basis, is exactly orthogonal, equals the identity at
-$c{=}0$ and at initialization, and costs $1.11\times$ FiLM's conditioning FLOPs; a dense learned
-basis provably exceeds any FiLM-comparable budget, and transformer sites need no explicit basis
-at all, as in RoPE. Under a pre-registered, budget-fair protocol against FiLM, conditional
-LayerNorm, concatenation, and two input-conditioned hypernetworks (up to $48\times$ our
-parameters), CGA achieves the lowest compositional OOD error on all five transformation suites,
-with complete seed separation throughout ($p{=}9.1{\times}10^{-5}$, $N{=}10$), including
-zero-shot extrapolation to compositions longer than any seen in training. Swapping only the
-linear map for an MLP degrades OOD error by up to $4.3{\times}10^{4}$. The most expressive
-baselines generalize worst. Three pre-registered gates returned negatives that bound the method:
-a $1.46\times$ in-distribution fit penalty on rich scenes; a content-conditioning failure in
-diffusion (a rotation preserves information, so it transforms representations and cannot inject
-content); and no advantage in recurrent world-model rollouts, where representation-consistency
-error dominates operator-composition error and accumulates under isometries that a contractive
-transition would absorb. We report all three as registered. Exact composition is a guarantee
-about the operator, and the negatives locate where operator guarantees stop paying.
+Networks are usually conditioned by scaling features (FiLM) or by generating weights
+(hypernetworks). Both learn what each condition does. Neither learns what two conditions do
+\emph{together} unless training data shows them together. We condition differently: rotate the
+features, and make the rotation angles a linear function of the condition. Rotations add, so
+combined conditions produce combined effects automatically. The network handles condition
+combinations it never saw. We call the framework \textbf{CGA} (Conditioning as Group Action):
+the condition enters the operator linearly in an abelian Lie algebra,
+$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ holds exactly for any
+weights. Known methods drop out as special cases: a diagonal algebra gives a compositional
+variant of FiLM, and the rotation algebra with scalar position gives RoPE. Our version costs
+$1.11\times$ FiLM's conditioning compute and uses fewer parameters than every baseline. We test
+it under a pre-registered protocol: success margins, statistical tests, and data splits were
+fixed and committed before each run. Across five transformation suites (synthetic operators,
+dSprites, 3D~Shapes), CGA has the lowest error on never-trained condition combinations, with
+complete seed separation ($p{=}9.1{\times}10^{-5}$, $N{=}10$). It extrapolates to longer
+combinations than training ever contained. Replacing its linear map with an MLP, holding
+everything else fixed, raises error by up to $4.3{\times}10^{4}$. The most expressive baselines
+generalize worst. Three pre-registered gates also returned negatives, and we report them: a
+$1.46\times$ fit penalty on rich scenes; a $7\times$ failure when the condition specifies image
+content (a rotation moves information and cannot add it); and no advantage in world-model
+rollouts, where the bottleneck is representation consistency, not operator composition. The
+negatives tell practitioners exactly where the method stops working.
 \end{abstract}
 
 \section{The framework}
 
 Let $x\in\mathbb{R}^d$ be features and $c\in\mathbb{R}^k$ a condition. FiLM
-\citep{perez2018film} computes $y=\gamma(c)\odot x+\beta(c)$; adaLN in DiT blocks
-\citep{peebles2023dit} is its normalized form; hypernetworks emit $W(c)$
-\citep{ha2017hypernetworks}. All are instances of
+\citep{perez2018film} computes $y=\gamma(c)\odot x+\beta(c)$. AdaLN in DiT blocks
+\citep{peebles2023dit} is its normalized form. Hypernetworks emit full weights $W(c)$
+\citep{ha2017hypernetworks}. All of these are instances of
 \begin{equation}
 y=\T(c)\,x+\beta(c),
 \label{eq:family}
 \end{equation}
-and they differ only in the family from which the per-sample operator $\T(c)$ is drawn.
+and they differ only in where the per-sample operator $\T(c)$ comes from.
 
 \begin{definition}[Compositional conditioner]
 $\T:\mathbb{R}^k\!\to\!\mathrm{GL}(d)$ is \emph{compositional} if it is a homomorphism from
@@ -75,19 +66,20 @@ $(\mathbb{R}^k,+)$: $\T(c_1{+}c_2)=\T(c_1)\,\T(c_2)$ and $\T(0)=I$.
 \label{prop:main}
 Let $\mathfrak{a}$ be an abelian subalgebra of $\mathfrak{gl}(d)$, $\mathrm{A}:\mathbb{R}^m\!\to\!
 \mathfrak{a}$ linear, $W\in\mathbb{R}^{m\times k}$, and $P$ orthogonal. Then
-$\T(c)=P\exp(\mathrm{A}(Wc))\,P^{\top}$ is a compositional conditioner for every $W,P$; if
+$\T(c)=P\exp(\mathrm{A}(Wc))\,P^{\top}$ is a compositional conditioner for every $W,P$. If
 $\mathfrak{a}$ is skew-symmetric, $\T(c)$ is orthogonal.
 \end{proposition}
 \begin{proof}
 $\exp(X)\exp(Y)=\exp(X{+}Y)$ for commuting $X,Y$; $\mathrm{A}\circ W$ is linear; conjugation
-preserves products and $\exp(0)=I$.
+preserves products; $\exp(0)=I$.
 \end{proof}
 
-Composition is a property of the parametrization: it holds at initialization, during training,
-and off-distribution. The learnable parts, $W$ and $P$, select which one-parameter subgroups the
-condition drives and how fast.
+The point is simple. Composition is usually a behavior the network must learn from data. Here it
+is a property of the parametrization. It holds at initialization, during training, and far
+outside the training distribution. Training only decides \emph{which} directions the condition
+rotates and \emph{how fast}.
 
-\paragraph{Special cases.} Choices of $(\mathfrak{a}, c, P)$ recover deployed mechanisms exactly:
+\paragraph{Special cases.} Choices of $(\mathfrak{a}, c, P)$ recover deployed mechanisms:
 
 \begin{center}
 \small
@@ -103,58 +95,58 @@ $\mathfrak{so}(2)^{d/2}$ & general $c\in\mathbb{R}^k$ & structured & \textbf{thi
 \end{tabular}
 \end{center}
 
-Standard FiLM parametrizes the same diagonal orbit through an MLP head $\gamma(c)$: the orbit
-matches, the homomorphism is absent, and \S\ref{sec:exp} shows this missing law is what fails
-under composition. Our ablation with an MLP angle head (same orbit, same basis, more compute)
-loses by up to $4.3\times10^4$. The PEFT literature (LoRA, OFT, BOFT, HRA, Group-and-Shuffle
-\citep{hu2022lora,qiu2023oft,liu2024boft,yuan2024hra,gorbunov2024gs}) owns these operator
-families as fixed weight adaptations; CGA places them in FiLM's role, per-sample and in
-activation space, where the composition question exists.
+Standard FiLM reaches the same diagonal operators through an MLP head $\gamma(c)$. The operators
+match; the composition law is missing. Section~\ref{sec:exp} shows the missing law is exactly
+what fails on unseen combinations: an ablation with the same operators, the same basis, and more
+compute loses by up to $4.3\times10^4$ once its map from condition to operator is an MLP. The
+PEFT literature (LoRA, OFT, BOFT, HRA, Group-and-Shuffle
+\citep{hu2022lora,qiu2023oft,liu2024boft,yuan2024hra,gorbunov2024gs}) uses these operator
+families to fine-tune \emph{weights}, one fixed transform per task. CGA uses them in FiLM's
+role: a new operator per sample, applied to activations, where the composition question lives.
 
-\paragraph{Cost, and where the basis comes from.}
-With $\mathfrak{a}=\mathfrak{so}(2)^{d/2}$, $\exp$ is closed-form planar rotation: $3d$ FLOPs and
-no matrix exponential. The basis carries the entire budget question. A dense learned $P$ costs
-$4d^2$ FLOPs per sample, which is $1.52\times$ FiLM's whole conditioning path at $d{=}128$ and
-exceeds any FiLM-comparable ceiling. Two resolutions work. \textbf{(i)} A structured orthogonal
-$P$ (five block-diagonal Cayley layers with fixed shuffles, following Group-and-Shuffle) brings
-the total to $1.11\times$ FiLM; $P$ is undercomplete (4{,}800 parameters vs.\
-$\dim\mathrm{SO}(128){=}8{,}128$) yet suffices, because $P$ need only expose the planes the
-condition acts on. \textbf{(ii)} Transformer sites need no explicit $P$: the adjacent dense
-projections absorb the basis, which is how RoPE deploys. The operator satisfies identity
-initialization ($W{=}0\Rightarrow\T\equiv I$), $\T(0)=I$ structurally, and
-$\sigma(\T(c))\equiv 1$; unit tests pin all three invariants in the release.
+\paragraph{Cost.}
+With $\mathfrak{a}=\mathfrak{so}(2)^{d/2}$, $\exp$ is a closed-form planar rotation: $3d$ FLOPs,
+no matrix exponential. The basis $P$ is the whole budget question. A dense learned $P$ costs
+$4d^2$ FLOPs per sample, which is $1.52\times$ FiLM's entire conditioning path at $d{=}128$. Two
+fixes work. First, a structured orthogonal $P$ (five block-diagonal Cayley layers with fixed
+shuffles, following Group-and-Shuffle) brings the total to $1.11\times$ FiLM. This $P$ has
+4{,}800 parameters against the 8{,}128 dimensions of $\mathrm{SO}(128)$, and that is enough: it
+only needs to find the planes the condition acts on. Second, inside a transformer no explicit
+$P$ is needed at all. The dense projections next to the rotation learn the basis, which is how
+RoPE works. The operator equals the identity at initialization and at $c{=}0$, and every
+singular value is 1. Unit tests pin all three properties.
 
 \section{Experiments}
 \label{sec:exp}
 
-\paragraph{Protocol.} Every suite is pre-registered: margins, tests ($N{=}10$ seeds, one-sided
-Mann--Whitney $p\le0.01$, Cliff's $|\delta|\ge0.474$), and single-read OOD splits are fixed
-before each run. All arms share identical backbones. A shared counter enforces conditioning cost
-$\le1.20\times$ FiLM and parameters $\le1.05\times$ the smallest hypernetwork baseline; baselines
-may be larger, and reach $48\times$. We report every verdict as registered, including the
-negatives. Baselines: FiLM, conditional LayerNorm, Concat-MLP, dense hypernetwork
-$I{+}\Delta W(c)$, dynamic low-rank $I{+}A(c)B(c)^{\top}$, plus an MLP-head ablation (identical
-basis, more compute, no linearity).
+\paragraph{Protocol.} Every suite is pre-registered. We fixed the success margins, the tests
+($N{=}10$ seeds, one-sided Mann--Whitney $p\le0.01$, Cliff's $|\delta|\ge0.474$), and the data
+splits before each run, and committed them to version control. Each test split is read once. All
+arms share one backbone and one training recipe. A shared counter enforces the budget: our
+conditioning path stays within $1.20\times$ FiLM's FLOPs and $1.05\times$ the smallest
+hypernetwork baseline's parameters. Baselines may be bigger, and reach $48\times$ our parameter
+count. We report every verdict, including the negatives. Baselines: FiLM, conditional LayerNorm,
+Concat-MLP, a dense hypernetwork $I{+}\Delta W(c)$, a dynamic low-rank map
+$I{+}A(c)B(c)^{\top}$, and an MLP-head ablation of our own method.
 
-\paragraph{Suites.} \textbf{S1/S2 (synthetic):} learn $y=M(c)x$ for multi-hot compositions of 8
-rotation primitives; S2 hides the primitives' planes behind a random basis $B$ and additionally
-tests all 56 never-trained \emph{triples}. \textbf{S3/S3b (dSprites) and S4 (3D~Shapes):}
-conditional image transformation. The model encodes a real image, applies $\T(\Delta)$ on the
-learned latent for a factor-change $\Delta$, and decodes; pixel MSE against the dataset's unique
-ground-truth image scores the result. OOD means never-trained two-factor change types; S3b/S4
-include a categorical (shape) factor encoded as a one-hot difference. \textbf{S5 (content role):}
-a width-128 DiT trained as a factor-conditional diffusion model on dSprites; full conditioning
-determines the target image uniquely, so held-out-combination generation is scored by pixel MSE
-against ground truth. \textbf{S6 (rollout role):} an action-conditioned world model in which the
-conditioning arm is the latent transition, applied recurrently; OOD means unseen action-type
-pairs and rollout horizons 10 and 20 with training capped at 3.
+\paragraph{Suites.} \textbf{S1/S2 (synthetic):} learn $y=M(c)x$, where $c$ selects a combination
+of 8 rotation primitives. S2 hides the primitives behind a random basis and also tests all 56
+never-trained \emph{triples}. \textbf{S3/S3b (dSprites) and S4 (3D~Shapes):} image
+transformation. Encode a real image, apply $\T(\Delta)$ to the latent for a factor change
+$\Delta$, decode, and score pixel error against the true transformed image. OOD means
+never-trained \emph{types} of two-factor changes. S3b and S4 add a categorical shape factor.
+\textbf{S5 (content):} a small diffusion transformer generates dSprites images from full factor
+specifications; held-out combinations have unique ground-truth images, so generation error is
+objective. \textbf{S6 (rollouts):} a world model applies the conditioning arm recurrently, one
+action per step; we test unseen action-type pairs and rollouts of length 10 and 20 after
+training on length 3.
 
 \begin{table}[t]
 \centering
-\caption{Compositional OOD error (mean over 10 seeds). CGA is lowest in every column with
-complete seed separation vs.\ the strongest hypernetwork baseline ($p{=}9.1{\times}10^{-5}$,
-$\delta{=}{-}1.0$). S1--S3b pass the full pre-registered gate; S4 returns a registered negative
-on a separate in-distribution criterion (text).}
+\caption{Error on never-trained condition combinations (mean over 10 seeds). CGA is lowest in
+every column, with complete seed separation against the strongest hypernetwork baseline
+($p{=}9.1{\times}10^{-5}$, $\delta{=}{-}1.0$). S1--S3b pass the full pre-registered gate; S4
+fails a separate fit criterion (text).}
 \label{tab:main}
 \input{tables/main_results}
 \end{table}
@@ -162,85 +154,77 @@ on a separate in-distribution criterion (text).}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figs/f1_ood_all_stages.pdf}
-\caption{OOD error by conditioner (log scale; blue = CGA, orange = MLP-head ablation).}
+\caption{Error on unseen condition combinations, by conditioner (log scale; blue = CGA, orange =
+MLP-head ablation).}
 \label{fig:main}
 \end{figure}
 
-\paragraph{Findings.} \textbf{(1) Group-structured conditions: solved.} On S2, CGA reaches
-$3.3{\times}10^{-8}$ OOD MSE, five orders below the best baseline, and $5.3{\times}10^{-8}$ on
-never-trained triples: error stays flat as composition length grows. Learned angles recover the
-true generators to $2{\times}10^{-4}$ rad. A coordinate-aligned ablation ($P{=}I$) collapses to
-FiLM's error, so basis discovery carries the result. \textbf{(2) The advantage survives learned
-latents.} On dSprites every arm fits in-distribution identically, which isolates composition:
-CGA's OOD/in-dist gap is $1.25\times$ ($1.63\times$ with the categorical factor) vs.\
-$2.1$--$3.3\times$ for every baseline, a $53.8\%$ ($42.9\%$) margin over the strongest baseline
-at $39\times$ fewer conditioning FLOPs. \textbf{(3) Linearity is the mechanism.} The MLP-head
-ablation shares the basis and the orbit and spends more compute; it loses by
-$4.3{\times}10^{4}\times$ on synthetic triples and $1.55\times$ on dSprites. \textbf{(4) Capacity
-inverts.} The two hypernetwork arms can represent any operator, and they post the worst
-compositional gaps on images ($2.7$--$26\times$): the extra expressivity memorizes training
-condition types. \textbf{(5) The registered negatives.} On 3D~Shapes, CGA posts the best OOD
-error ($87.5\%$ margin; gap $1.13\times$ vs.\ $13$--$26\times$) and pays a $1.46\times$
-in-distribution fit penalty that trips the pre-registered no-regression gate ($\le1.10\times$).
-In the content suite (S5), rotation conditioning underfits by $7\times$ when the condition must
-specify image content, and the MLP-head ablation fails identically ($0.31$ vs.\ film's $0.04$):
-the failure sits in the rotation channel itself, which preserves information and therefore
-transforms representations well and injects content poorly. In the rollout suite (S6), every arm
-compounds error identically over never-trained horizons (all reach ${\approx}0.043$ at length
-20), and the mildly contractive dynamic low-rank arm degrades least: rollout error is dominated
-by representation-consistency error, which contraction absorbs at each step and which an isometry
-preserves indefinitely; exact operator composition does not repair an inconsistent latent. We
-report all three suites as negatives, as registered. The protocol prices the guarantees rather
-than assuming they pay everywhere.
+\paragraph{Findings.}
+\textbf{(1) When conditions form a group, composition is solved.} On S2, CGA reaches
+$3.3{\times}10^{-8}$ error on unseen pairs and $5.3{\times}10^{-8}$ on never-trained triples.
+The best baseline sits five orders of magnitude higher, and every baseline gets worse as
+combinations get longer. CGA does not. Its learned angles match the true generators to
+$2{\times}10^{-4}$ rad, so the operator is directly readable.
+\textbf{(2) The advantage survives learned representations.} On dSprites, every arm fits the
+training distribution equally well, so the comparison isolates composition. CGA's error grows
+$1.25\times$ from training to unseen combinations ($1.63\times$ with the categorical factor).
+Every baseline grows $2.1$--$3.3\times$. CGA beats the strongest baseline by $53.8\%$ ($42.9\%$)
+at $39\times$ fewer conditioning FLOPs.
+\textbf{(3) The linear map is the mechanism.} The ablation keeps the basis and the operator
+family, spends more compute, and swaps only the linear map for an MLP. It loses by
+$4.3{\times}10^{4}\times$ on synthetic triples and $1.55\times$ on dSprites.
+\textbf{(4) More capacity makes it worse.} The two hypernetwork arms can express any operator.
+They post the worst generalization gaps on images ($2.7$--$26\times$). Their capacity goes into
+memorizing the training combinations.
+\textbf{(5) Three registered negatives.} On 3D~Shapes, CGA has the best OOD numbers ($87.5\%$
+margin) but fits the training distribution $1.46\times$ worse than the best memorizer, which
+trips our no-regression gate. In the content suite, rotation conditioning fails ($0.31$ vs.\
+film's $0.04$), and the ablation fails identically: a rotation moves information around and
+cannot add any, so it cannot carry ``generate this image.'' In the rollout suite, every arm
+compounds error at the same rate, and the mildly contractive low-rank arm degrades least. Each
+step of a rollout adds a small mismatch between the predicted and true latent. A contraction
+shrinks that mismatch at every step; an isometry carries it forever. Exact operator composition
+cannot repair an inconsistent representation.
 
 \section{Practical guidance: when to use this}
 \label{sec:practical}
 
-In plain terms, for practitioners deciding what to ship:
+Three rules for practitioners, from the eight suites.
 
-\textbf{Use CGA-style (phase) conditioning when your conditions are changes that combine.} Edit
-deltas, attribute offsets, camera or pose adjustments, action-style controls applied once: here
-the evidence says you get the same cost as FiLM (1.11$\times$ FLOPs, fewer parameters), identical
-in-distribution quality, and 43\%--$10^5\times$ better behavior on combinations of conditions
-your training set never contained. The failure FiLM exhibits here is silent (it degrades on
-novel combinations without any training signal warning you), so the guarantee has operational
-value beyond the benchmark numbers.
+\textbf{Use phase conditioning when your conditions are changes that combine.} Edit deltas,
+attribute offsets, pose or camera adjustments, applied once. The cost matches FiLM
+($1.11\times$ FLOPs, fewer parameters), training-distribution quality matches, and behavior on
+never-trained combinations is $43\%$ to $10^5\times$ better. FiLM's failure on new combinations
+is silent: nothing in training warns you. The guarantee removes that failure class.
 
-\textbf{Keep FiLM/adaLN when your conditions specify what to generate.} Class labels, text
-embeddings, content identity: our own registered negative shows rotation conditioning is
-7$\times$ worse there, because a rotation moves information around and cannot add any. This is
-the mainstream use of FiLM, and we recommend against swapping it today.
+\textbf{Keep FiLM or adaLN when your conditions say what to generate.} Class labels, text
+embeddings, identity. Our own registered negative shows rotation conditioning is $7\times$ worse
+there. This is FiLM's main use today, and we recommend against swapping it.
 
-\textbf{Expect no benefit in recurrent rollouts.} In world-model-style repeated application, all
-conditioners compound error at the same rate; the bottleneck is whether the latent stays
-decodable, and a slightly contractive learned transition handles that better than an exact
-isometry. Pair any conditioning choice with a representation-consistency objective before
-worrying about the operator.
+\textbf{In rollouts, buy consistency, not composition.} All conditioners compounded error at the
+same rate in our world-model suite. The bottleneck is whether the latent stays decodable, and a
+slightly contractive transition handles that better than an exact isometry.
 
-\textbf{Scale caveat.} All evidence is from controlled 64$\times$64 benchmarks with known
-factors. Nothing here is validated at production scale; the adaLN-site variant costs less than
-FiLM's marginal class path, so the swap is cheap to \emph{try}, and the rules above say where.
+All evidence comes from controlled $64{\times}64$ benchmarks with known factors. Nothing here is
+validated at production scale. The transformer variant costs less than FiLM's marginal class
+path, so where the first rule applies, trying the swap is cheap.
 
 \section{Discussion}
 
-CGA does for conditioning what RoPE and GRAPE did for position: it moves composition from a
-behavior the network must learn into a law the parametrization guarantees. The evidence here is
-deliberately controlled (64$\times$64 images, known factors); the deployment experiment is the
-adaLN site of diffusion transformers, where the basis-free variant drops in below FiLM's marginal
-cost. Four boundaries are already quantified: categorical factors attenuate the advantage;
-richer scenes price the orthogonality constraint in in-distribution fit; content specification
-defeats a transformation channel; and recurrent rollouts are limited by representation
-consistency, which no operator guarantee repairs. The first three motivate the abelian-algebra
-generalizations of Proposition~\ref{prop:main} beyond the pure torus (torus $\times$ diagonal:
-complex-valued FiLM, with magnitude as the content channel and phase as the composition channel)
-as the next design point; the fourth motivates pairing the operator with a representation
-consistency objective. Adjacent work learns group actions on latents for world
-models \citep{quessard2020,caselles2019}; CGA lives in FiLM's role under budget parity, and its
-composition law holds by construction instead of by training objective.
+CGA does for conditioning what RoPE did for position: it moves composition from a behavior the
+network must learn into a law the parametrization guarantees. Four boundaries are measured.
+Categorical factors shrink the advantage. Rich scenes make orthogonality pay a fit penalty.
+Content specification defeats a transformation channel. Rollouts are limited by representation
+consistency, which no operator guarantee repairs. The first three point at one successor design:
+the algebra torus $\times$ diagonal, which is complex-valued FiLM, with magnitude carrying
+content and phase carrying composition. The fourth calls for a consistency objective on the
+representation. Related work has learned group actions on latents for world models
+\citep{quessard2020,caselles2019}; CGA differs by living in FiLM's role under a matched budget,
+with composition holding by construction rather than by training objective.
 
-\paragraph{Reproducibility.} Every suite is pre-registered; every number regenerates from
-append-only logs; unit tests pin the operator invariants and the fairness counters; the
-repository discloses all amendments and one accounting erratum.
+\paragraph{Reproducibility.} Every suite is pre-registered, and every number in this paper
+regenerates from committed logs. Unit tests pin the operator invariants and the budget counters.
+The repository discloses all amendments and one accounting erratum.
 
 \begin{thebibliography}{9}
 \bibitem[Perez et al.(2018)]{perez2018film} E.~Perez et al. FiLM: Visual reasoning with a general
