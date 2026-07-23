@@ -41,3 +41,8 @@ tables/figures → recompile → commit → push. Verdicts are whatever the regi
 - Power safety: throttle (STAGE*_THROTTLE_MS=60) or `sudo nvidia-smi -pl 300`; PSU trips at
   sustained ~600 W.
 - Every number in papers regenerates from `results/*.json`; never hand-edit tables/figures.
+
+- **2026-07-23 incident:** `git checkout` between branches while a sweep held its results-log fd
+  replaced the file on disk; the writer kept appending to the unlinked inode. Recovered via
+  `/proc/<pid>/fd`. New rule: **no branch switching while any sweep is running**; merges to main
+  wait for chain-idle windows.
