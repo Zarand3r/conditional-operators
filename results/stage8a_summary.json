@@ -1,0 +1,59 @@
+{
+  "stage": "8a",
+  "spec": "docs/specs/STAGE8_SPEC.md",
+  "config": {
+    "n_seeds": 10,
+    "steps": 12000
+  },
+  "final_verdict": "confirmed",
+  "criteria": {
+    "AC-8a1": true,
+    "AC-8a2": true,
+    "AC-8a3": true
+  },
+  "margin_vs_film": 0.36147402020312136,
+  "p_vs_film": 9.133589555476718e-05,
+  "delta_vs_film": -1.0,
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.0030986342229880393,
+      "ood_test_std": 0.00021189074817362104,
+      "indist_mean": 0.0014985927089583128,
+      "params": 50176,
+      "flops": 99456,
+      "flops_vs_film": 1.0
+    },
+    "hypernet": {
+      "ood_test_mean": 0.003783024591393769,
+      "ood_test_std": 0.00022358879038904598,
+      "indist_mean": 0.0013771311292657628,
+      "params": 2147200,
+      "flops": 4293632,
+      "flops_vs_film": 43.171171171171174
+    },
+    "proposed": {
+      "ood_test_mean": 0.0017846797505626454,
+      "ood_test_std": 7.867795068097794e-05,
+      "indist_mean": 0.001427785397390835,
+      "params": 44160,
+      "flops": 110122,
+      "flops_vs_film": 1.107243404118404
+    },
+    "cfilm_lin": {
+      "ood_test_mean": 0.002038948569679633,
+      "ood_test_std": 0.00013835198926343616,
+      "indist_mean": 0.0014361109177116304,
+      "params": 34176,
+      "flops": 68096,
+      "flops_vs_film": 0.6846846846846847
+    },
+    "cfilm_hyb": {
+      "ood_test_mean": 0.0019785584532655775,
+      "ood_test_std": 0.0001505025226266556,
+      "indist_mean": 0.0013983817741973325,
+      "params": 42176,
+      "flops": 83968,
+      "flops_vs_film": 0.8442728442728443
+    }
+  }
+}
