@@ -193,6 +193,34 @@ preserves indefinitely; exact operator composition does not repair an inconsiste
 report all three suites as negatives, as registered. The protocol prices the guarantees rather
 than assuming they pay everywhere.
 
+\section{Practical guidance: when to use this}
+\label{sec:practical}
+
+In plain terms, for practitioners deciding what to ship:
+
+\textbf{Use CGA-style (phase) conditioning when your conditions are changes that combine.} Edit
+deltas, attribute offsets, camera or pose adjustments, action-style controls applied once: here
+the evidence says you get the same cost as FiLM (1.11$\times$ FLOPs, fewer parameters), identical
+in-distribution quality, and 43\%--$10^5\times$ better behavior on combinations of conditions
+your training set never contained. The failure FiLM exhibits here is silent (it degrades on
+novel combinations without any training signal warning you), so the guarantee has operational
+value beyond the benchmark numbers.
+
+\textbf{Keep FiLM/adaLN when your conditions specify what to generate.} Class labels, text
+embeddings, content identity: our own registered negative shows rotation conditioning is
+7$\times$ worse there, because a rotation moves information around and cannot add any. This is
+the mainstream use of FiLM, and we recommend against swapping it today.
+
+\textbf{Expect no benefit in recurrent rollouts.} In world-model-style repeated application, all
+conditioners compound error at the same rate; the bottleneck is whether the latent stays
+decodable, and a slightly contractive learned transition handles that better than an exact
+isometry. Pair any conditioning choice with a representation-consistency objective before
+worrying about the operator.
+
+\textbf{Scale caveat.} All evidence is from controlled 64$\times$64 benchmarks with known
+factors. Nothing here is validated at production scale; the adaLN-site variant costs less than
+FiLM's marginal class path, so the swap is cheap to \emph{try}, and the rules above say where.
+
 \section{Discussion}
 
 CGA does for conditioning what RoPE and GRAPE did for position: it moves composition from a

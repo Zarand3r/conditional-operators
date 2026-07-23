@@ -383,6 +383,23 @@ on images (2.7$\times$ and 3.3$\times$) despite 6--43$\times$ the FLOPs: they sp
 memorizing training condition-types. Compositional conditioning is an inductive-bias problem;
 adding expressivity moves it in the wrong direction.
 
+\section{Practical guidance}
+\label{sec:practical}
+
+For practitioners, the eight suites reduce to three plain rules. \textbf{(1)} If your conditions
+are changes that combine (edit deltas, attribute offsets, pose or camera adjustments, applied
+once), use the Lie operator: same cost class as FiLM, fewer parameters, identical
+in-distribution quality, and far better behavior on combinations your training data never
+contained; FiLM's failure on such combinations is silent, so the structural guarantee has
+operational value. \textbf{(2)} If your conditions specify what to generate (class labels, text,
+identity), keep FiLM/adaLN: our own registered negative shows the rotation channel is 7$\times$
+worse there, because rotations move information and cannot add it. \textbf{(3)} In recurrent
+rollouts, choose the transition for representation consistency, not for operator guarantees;
+every conditioner compounded error at the same rate in our world-model suite, and a mildly
+contractive transition degraded least. All evidence is at controlled 64$\times$64 scale; the
+adaLN-site variant is cheaper than FiLM's marginal class path, so trying the swap is inexpensive
+where rule (1) applies.
+
 \section{Limitations and scope}
 \label{sec:limits}
 Learned latents do not support exact group action: the real-image advantage is a reliable
