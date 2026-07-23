@@ -1,0 +1,54 @@
+{
+  "stage": 6,
+  "task": "mini-DiT conditional diffusion on dSprites; adaLN class-path swap; OOD = generation MSE on held-out factor combinations",
+  "config": {
+    "n_seeds": 10,
+    "steps": 40000,
+    "dim": 128,
+    "blocks": 6,
+    "ddim_steps": 50
+  },
+  "final_verdict": "kill",
+  "criteria": {
+    "AC-1": false,
+    "AC-2": false,
+    "AC-3": false,
+    "AC-4": true
+  },
+  "margin_vs_film": -6.071944854586037,
+  "margin_vs_hypernet": -5.113844153466554,
+  "p_vs_film": 0.9999325785388229,
+  "p_vs_hypernet": 0.9999325785388229,
+  "delta_vs_film": 1.0,
+  "delta_vs_hypernet": 1.0,
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.04180648885667324,
+      "ood_test_std": 0.007145001316503514,
+      "indist_mean": 0.03978662360459566,
+      "class_path_flops": 34560,
+      "params": 1889344
+    },
+    "hypernet": {
+      "ood_test_mean": 0.048357984982430935,
+      "ood_test_std": 0.008304952550148964,
+      "indist_mean": 0.04691454395651817,
+      "class_path_flops": 16811776,
+      "params": 4002880
+    },
+    "proposed": {
+      "ood_test_mean": 0.29565318375825883,
+      "ood_test_std": 0.0287278600582076,
+      "indist_mean": 0.2804606005549431,
+      "class_path_flops": 25472,
+      "params": 1889792
+    },
+    "mlp_gs": {
+      "ood_test_mean": 0.30807786583900454,
+      "ood_test_std": 0.008343818948102606,
+      "indist_mean": 0.29318725764751435,
+      "class_path_flops": 75520,
+      "params": 1897600
+    }
+  }
+}

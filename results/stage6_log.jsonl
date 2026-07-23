@@ -34,3 +34,7 @@
 {"arm": "mlp_gs", "seed": 3, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.2999224066734314, "ood_val": 0.30462074279785156, "ood_test": 0.3158431649208069}
 {"arm": "mlp_gs", "seed": 4, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.2901502847671509, "ood_val": 0.29991215467453003, "ood_test": 0.3033716082572937}
 {"arm": "mlp_gs", "seed": 5, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.2997837960720062, "ood_val": 0.31102561950683594, "ood_test": 0.31384333968162537}
+{"arm": "mlp_gs", "seed": 6, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.28243282437324524, "ood_val": 0.29699933528900146, "ood_test": 0.29656413197517395}
+{"arm": "mlp_gs", "seed": 7, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.30567777156829834, "ood_val": 0.3160253167152405, "ood_test": 0.3244340717792511}
+{"arm": "mlp_gs", "seed": 8, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.2851778566837311, "ood_val": 0.29332175850868225, "ood_test": 0.30215805768966675}
+{"arm": "mlp_gs", "seed": 9, "diverged": false, "class_path_flops": 75520, "params": 1897600, "indist": 0.2961583733558655, "ood_val": 0.3024209141731262, "ood_test": 0.30671942234039307}

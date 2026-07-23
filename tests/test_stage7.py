@@ -90,3 +90,29 @@ class TestSpriteWorld(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(HAVE_TORCH, "torch not installed (run under .venv)")
+class TestComplexFiLM(unittest.TestCase):
+    """Stage-8 arms (registered in stage8.py; tested here to keep one torch-gated module)."""
+
+    def test_budget_and_identity(self):
+        from conditional_operators import stage8  # registers arms
+        from conditional_operators.stage4 import ARM_CLASSES, DC, DZ
+        film = ARM_CLASSES["film"](dc=DC).flops()
+        for name in ("cfilm_lin", "cfilm_hyb"):
+            a = ARM_CLASSES[name](dc=DC)
+            self.assertLessEqual(a.flops(), 1.20 * film)
+            z = torch.randn(4, DZ); d = torch.randn(4, DC)
+            self.assertLess((a(d, z) - z).abs().max().item(), 1e-5)
+
+    def test_lin_composition_exact(self):
+        from conditional_operators import stage8
+        from conditional_operators.stage4 import ARM_CLASSES, DC, DZ
+        a = ARM_CLASSES["cfilm_lin"](dc=DC)
+        with torch.no_grad():
+            a.S.weight.normal_(0, 0.3); a.TH.weight.normal_(0, 0.7)
+        d1, d2, z = torch.randn(1, DC), torch.randn(1, DC), torch.randn(1, DZ)
+        lhs = a.op(None, d1 + d2, z)
+        rhs = a.op(None, d2, a.op(None, d1, z))
+        self.assertLess((lhs - rhs).abs().max().item(), 1e-4)
