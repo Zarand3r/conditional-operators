@@ -1,0 +1,81 @@
+{
+  "config": {
+    "n_seeds": 10,
+    "steps": 4000,
+    "batch": 256,
+    "lr": 0.001,
+    "eval_per_condition": 64
+  },
+  "verdict": "confirmed",
+  "reasons": [
+    "AC-1..AC-5 pass; proposed beats hypernet by 61.5% (p=9.1e-05, delta=-1.00)"
+  ],
+  "criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.6150664384860918,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "divergence_rates": {
+    "film": 0.0,
+    "concat_mlp": 0.0,
+    "cond_layernorm": 0.0,
+    "hypernet": 0.0,
+    "dynamic_linear": 0.0,
+    "proposed": 0.0
+  },
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.012686516903340817,
+      "ood_test_std": 0.0005629278917743707,
+      "indist_mean": 0.012617671024054289,
+      "params": 50688,
+      "flops": 100480,
+      "flops_vs_film": 1.0
+    },
+    "concat_mlp": {
+      "ood_test_mean": 0.014624070655554534,
+      "ood_test_std": 0.002923780435890188,
+      "indist_mean": 2.4640858100610785e-05,
+      "params": 83584,
+      "flops": 166016,
+      "flops_vs_film": 1.6522292993630574
+    },
+    "cond_layernorm": {
+      "ood_test_mean": 0.02444592323154211,
+      "ood_test_std": 0.0006204068445286344,
+      "indist_mean": 0.024180066771805286,
+      "params": 50688,
+      "flops": 100992,
+      "flops_vs_film": 1.0050955414012739
+    },
+    "hypernet": {
+      "ood_test_mean": 0.001926407334394753,
+      "ood_test_std": 0.00034258788099523455,
+      "indist_mean": 2.440717344143195e-05,
+      "params": 2147712,
+      "flops": 4294656,
+      "flops_vs_film": 42.74140127388535
+    },
+    "dynamic_linear": {
+      "ood_test_mean": 0.0057450263295322655,
+      "ood_test_std": 0.00045591920137930825,
+      "indist_mean": 1.7660078719927695e-05,
+      "params": 166272,
+      "flops": 331776,
+      "flops_vs_film": 3.301910828025478
+    },
+    "proposed": {
+      "ood_test_mean": 0.0007415388361550867,
+      "ood_test_std": 0.00020074963526595514,
+      "indist_mean": 6.22126304961057e-07,
+      "params": 43972,
+      "flops": 87424,
+      "flops_vs_film": 0.870063694267516
+    }
+  }
+}

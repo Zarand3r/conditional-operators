@@ -1,0 +1,74 @@
+{
+  "stage": 2,
+  "control": "de-aligned basis (AC-7)",
+  "config": {
+    "n_seeds": 10,
+    "steps": 4000
+  },
+  "verdict": "unfair",
+  "reasons": [
+    "AC-4 fairness violated: params=60356 vs 1.05x166272, flops=152960 vs 1.20x100480"
+  ],
+  "criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.6884722779453284,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "ablation_nobasis_ood_mean": 0.015377980284392833,
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.015527603030204774,
+      "ood_test_std": 0.0004315356178501512,
+      "indist_mean": 0.015708710998296738,
+      "params": 50688,
+      "flops": 100480,
+      "flops_vs_film": 1.0
+    },
+    "concat_mlp": {
+      "ood_test_mean": 0.011181540414690971,
+      "ood_test_std": 0.003646709726724012,
+      "indist_mean": 1.4191287118592299e-05,
+      "params": 83584,
+      "flops": 166016,
+      "flops_vs_film": 1.6522292993630574
+    },
+    "cond_layernorm": {
+      "ood_test_mean": 0.027133658528327942,
+      "ood_test_std": 0.0004897603598481695,
+      "indist_mean": 0.027191406674683095,
+      "params": 50688,
+      "flops": 100992,
+      "flops_vs_film": 1.0050955414012739
+    },
+    "hypernet": {
+      "ood_test_mean": 0.0034394784830510615,
+      "ood_test_std": 0.0008700013871356333,
+      "indist_mean": 5.2320521899673625e-05,
+      "params": 2147712,
+      "flops": 4294656,
+      "flops_vs_film": 42.74140127388535
+    },
+    "dynamic_linear": {
+      "ood_test_mean": 0.006084109097719193,
+      "ood_test_std": 0.00044196786079465765,
+      "indist_mean": 2.1305620157363593e-05,
+      "params": 166272,
+      "flops": 331776,
+      "flops_vs_film": 3.301910828025478
+    },
+    "proposed": {
+      "ood_test_mean": 0.0010714928968809545,
+      "ood_test_std": 0.00019403386782934295,
+      "indist_mean": 6.490951614068763e-06,
+      "params": 60356,
+      "flops": 152960,
+      "flops_vs_film": 1.5222929936305734
+    }
+  },
+  "erratum": "2026-07-21: original run under-counted the dense-P basis FLOPs (2*D*D instead of 4*D*D). Corrected proposed FLOPs = 152960 = 1.522x FiLM, over the pre-registered 1.20x ceiling -> verdict downgraded CONFIRMED -> UNFAIR per the spec's failure semantics. MSE results are unaffected and remain valid; the arm was over-budget, so the comparison is inconclusive at the registered budget. Superseded by Stage-3 (structured-P within true budget)."
+}
