@@ -211,9 +211,11 @@ rotation conditioning fails there ($7\times$ worse; our registered negative). Co
 matches FiLM on content ($0.97\times$) while keeping the composition wins, so it is the
 candidate drop-in at our evidence scale; plain FiLM remains the conservative choice.
 
-\textbf{In rollouts, buy consistency, not composition.} All conditioners compounded error at the
-same rate in our world-model suite. The bottleneck is whether the latent stays decodable, and a
-slightly contractive transition handles that better than an exact isometry.
+\textbf{In rollouts, pair an isometric operator with a consistency loss.} Without that loss,
+all conditioners compounded error at the same rate. With it, the rotation operator's rollout
+error stays flat where FiLM's grows $4.5\times$ and a hypernetwork's $10\times$: train the
+transition to satisfy $\T(a)z_s \approx z_{s+1}$ and the isometry stops carrying old errors
+forward because there are none to carry.
 
 All evidence comes from controlled $64{\times}64$ benchmarks with known factors. Nothing here is
 validated at production scale. The transformer variant costs less than FiLM's marginal class
@@ -227,8 +229,8 @@ Categorical factors shrink the advantage. Rich scenes make orthogonality pay a f
 Content specification defeats a transformation channel. Rollouts are limited by representation
 consistency, which no operator guarantee repairs. The first three pointed at one successor design, the algebra torus $\times$ diagonal, and S7
 validated it: Complex FiLM carries content with its magnitude and composition with its phase.
-The fourth boundary calls for a consistency objective on the representation, which we are
-testing next. Related work has learned group actions on latents for world models
+The fourth boundary falls to a consistency objective on the representation: with it, the
+isometric operator gives flat rollouts where every baseline drifts. Related work has learned group actions on latents for world models
 \citep{quessard2020,caselles2019}; CGA differs by living in FiLM's role under a matched budget,
 with composition holding by construction rather than by training objective.
 

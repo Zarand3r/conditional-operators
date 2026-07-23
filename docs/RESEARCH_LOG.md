@@ -18,6 +18,7 @@ the numbers that matter, and the decision it drove. Detailed per-stage reports l
 | S6 (rollout world model) | Composition prevents drift? | **KILL** | all arms ~0.043 @ h20; contractive arm best | Consistency, not composition, limits rollouts |
 | 8a (Complex FiLM, transform role) | Does magnitude x phase keep the transform wins? | **CONFIRMED** | cfilm_hyb 36.1% over film; fit parity; 0.84x film cost | Half of the improved-FiLM claim |
 | 8b (Complex FiLM, content role) | Does the magnitude channel restore content ability? | **CONFIRMED** | cfilm_hyb 0.97x film (gate <=1.10x); cfilm_lin fails (0.19): expressive magnitude is necessary | **IMPROVED-FILM CONFIRMED**: one operator, both roles |
+| 10 (consistency latents) | Does a consistency loss unlock rollout guarantees? | **KILL (AC-10.2)** | AC-10.1 hit huge: h20 flat at 0.0039, 90% below hypernet (growth 2.0x vs 19.8x); pairs margin (AC-10.2) washed out to 1% | Rollout recipe = isometry + consistency loss; gate reported as registered |
 
 Papers: `docs/paper/paper.pdf` (long), `docs/paper/paper_short.pdf` (CGA, GRAPE-style). Both on
 `main` (github.com/Zarand3r/conditional-operators), plain-language register, mechanical style
@@ -27,8 +28,7 @@ gate clean.
 
 | Order | Stage | Question | Spec | Status |
 |---|---|---|---|---|
-| now | 10 | Consistency loss unlocks operator guarantees in rollouts? | STAGE10_SPEC | queued (chained) |
-| next | 11 | Contraction rate is the rollout-stability knob? | STAGE11_SPEC | queued (chained) |
+| now | 11 | Contraction rate is the rollout-stability knob? | STAGE11_SPEC | queued (chained) |
 | 3 | 9 | Guidance as group power beats CFG scaling? | STAGE9_SPEC | spec'd; implement after 8b verdict (arm-selection rule pre-fixed) |
 
 Loop protocol: each completion notification → fold verdict here + into papers → regenerate
