@@ -21,34 +21,25 @@
 \maketitle
 
 \begin{abstract}
-Networks are usually conditioned by scaling features (FiLM) or by generating weights
-(hypernetworks). Both learn what each condition does. Neither learns what two conditions do
-\emph{together} unless training data shows them together. We condition differently: rotate the
-features, and make the rotation angles a linear function of the condition. Rotations add, so
-combined conditions produce combined effects automatically. The network handles condition
-combinations it never saw. We call the framework \textbf{CGA} (Conditioning as Group Action):
-the condition enters the operator linearly in an abelian Lie algebra,
-$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ holds exactly for any
-weights. Known methods drop out as special cases: a diagonal algebra gives a compositional
-variant of FiLM, and the rotation algebra with scalar position gives RoPE. Our version costs
-$1.11\times$ FiLM's conditioning compute and uses fewer parameters than every baseline. We test
-it under a pre-registered protocol: success margins, statistical tests, and data splits were
-fixed and committed before each run. Across five transformation suites (synthetic operators,
-dSprites, 3D~Shapes), CGA has the lowest error on never-trained condition combinations, with
-complete seed separation ($p{=}9.1{\times}10^{-5}$, $N{=}10$). It extrapolates to longer
-combinations than training ever contained. Replacing its linear map with an MLP, holding
-everything else fixed, raises error by up to $4.3{\times}10^{4}$. The most expressive baselines
-generalize worst. Three pre-registered gates also returned negatives, and we report them: a
-$1.46\times$ fit penalty on rich scenes; a $7\times$ failure when the condition specifies image
-content (a rotation moves information and cannot add it); and no advantage in world-model
-rollouts, where the bottleneck is representation consistency, not operator composition. The
-negatives tell practitioners exactly where the method stops working. They also specify a
-successor, which we built and tested under two further pre-registered gates: \textbf{Complex
-FiLM} treats each feature pair as a complex number, with an expressive magnitude (FiLM's content
-channel) and a linear phase (our composition channel). It beats FiLM by 36\% on unseen change
-combinations and matches FiLM on content generation (0.97$\times$ its error) in the same
-diffusion setting where the pure rotation failed. One operator now covers both roles at
-FiLM-class cost.
+Networks are conditioned by scaling features (FiLM) or by generating weights (hypernetworks).
+Both learn what each condition does. Neither learns what two conditions do together unless
+training data shows them together. We condition by rotating features, with rotation angles a
+linear function of the condition. Rotations add, so combined conditions compose automatically,
+and the network handles combinations it never saw. \textbf{CGA} (Conditioning as Group Action)
+formalizes this: the condition enters the operator linearly in an abelian Lie algebra,
+$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ holds for any weights.
+A diagonal algebra yields a compositional FiLM variant; the rotation algebra with scalar
+position is RoPE. Under a pre-registered protocol (margins, tests, and splits committed before
+every run; conditioning cost within $1.2\times$ FiLM), CGA posts the lowest error on
+never-trained condition combinations across five transformation suites, with complete seed
+separation ($p{=}9.1{\times}10^{-5}$, $N{=}10$) and zero-shot extrapolation to combinations
+longer than any trained. Swapping its linear map for an MLP raises error up to
+$4.3{\times}10^{4}$; the most expressive baselines generalize worst. Three registered gates
+returned negatives that bound the method: a fit penalty on rich scenes, a content-conditioning
+failure (rotations move information and cannot add it), and rollouts limited by representation
+consistency. The negatives specify the successor. \textbf{Complex FiLM}, magnitude for content
+and phase for composition, beats FiLM by 36\% on unseen combinations and matches it on content
+($0.97\times$) under two further pre-registered gates: one operator, both roles, FiLM cost.
 \end{abstract}
 
 \section{The framework}
@@ -148,7 +139,10 @@ objective. \textbf{S6 (rollouts):} a world model applies the conditioning arm re
 action per step; we test unseen action-type pairs and rollouts of length 10 and 20 after
 training on length 3. \textbf{S7 (the successor, two gates):} Complex FiLM, magnitude from
 FiLM's MLP head and phase linear in the condition, rerun through the S3 transformation suite
-and the S5 content suite.
+and the S5 content suite. \textbf{S8 (guidance):} both arms train with condition dropout; we
+sample FiLM with classifier-free guidance at strength $w$ and Complex FiLM by feeding $\alpha c$
+(an exact operator power on the phase channel), then score generation error against the
+deterministic ground truth at each strength.
 
 \begin{table}[t]
 \centering
@@ -260,6 +254,30 @@ disentangled representations and group structure of dynamical environments. \emp
 \bibitem[Caselles-Dupr\'e et al.(2019)]{caselles2019} H.~Caselles-Dupr\'e, M.~Garcia-Ortiz,
 D.~Filliat. Symmetry-based disentangled representation learning requires interaction with
 environments. \emph{NeurIPS}, 2019.
+\bibitem[Worrall et al.(2017)]{worrall2017} D.~Worrall, S.~Garbin, D.~Turmukhambetov,
+G.~Brostow. Interpretable transformations with encoder-decoder networks. \emph{ICCV}, 2017.
+\bibitem[Keurti et al.(2023)]{keurti2023} H.~Keurti, A.~Neitz, S.~Weichwald, B.~Sch\"olkopf,
+et~al. Homomorphism autoencoder: Learning group structured representations from observed
+transitions. \emph{ICML}, 2023.
+\bibitem[Hansen et al.(2022)]{hansen2022tdmpc} N.~Hansen, X.~Wang, H.~Su. Temporal difference
+learning for model predictive control. \emph{ICML}, 2022.
+\bibitem[Chan et al.(2021)]{chan2021pigan} E.~Chan, M.~Monteiro, P.~Kellnhofer, J.~Wu,
+G.~Wetzstein. pi-GAN: Periodic implicit generative adversarial networks. \emph{CVPR}, 2021.
+\bibitem[Sun et al.(2019)]{sun2019rotate} Z.~Sun, Z.~Deng, J.~Nie, J.~Tang. RotatE: Knowledge
+graph embedding by relational rotation in complex space. \emph{ICLR}, 2019.
+\bibitem[Zhu et al.(2021)]{zhu2021clgvae} X.~Zhu, C.~Xu, D.~Tao. Commutative Lie group VAE for
+disentanglement learning. \emph{ICML}, 2021.
+\bibitem[Liu et al.(2022)]{liu2022composable} N.~Liu, S.~Li, Y.~Du, A.~Torralba, J.~Tenenbaum.
+Compositional visual generation with composable diffusion models. \emph{ECCV}, 2022.
+\bibitem[Bradley and Nakkiran(2024)]{bradley2024cfg} A.~Bradley, P.~Nakkiran. Classifier-free
+guidance is a predictor-corrector. \emph{arXiv:2408.09000}, 2024.
+\bibitem[Fu et al.(2025)]{fu2025teefusion} M.~Fu et al. TeEFusion: Blending text embeddings to
+distill classifier-free guidance. \emph{ICCV}, 2025.
+\bibitem[Nagarajan and Grauman(2018)]{nagarajan2018attrop} T.~Nagarajan, K.~Grauman. Attributes
+as operators. \emph{ECCV}, 2018.
+\bibitem[Georgopoulos et al.(2020)]{georgopoulos2020} M.~Georgopoulos, G.~Chrysos, M.~Pantic,
+Y.~Panagakis. Multilinear latent conditioning for generating unseen attribute combinations.
+\emph{ICML}, 2020.
 \end{thebibliography}
 
 \end{document}
