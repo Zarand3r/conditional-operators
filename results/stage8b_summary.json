@@ -1,0 +1,34 @@
+{
+  "stage": "8b",
+  "spec": "docs/specs/STAGE8_SPEC.md",
+  "config": {
+    "n_seeds": 10,
+    "steps": 40000
+  },
+  "final_verdict": "confirmed",
+  "criteria": {
+    "AC-8b1": true,
+    "AC-8b2": true,
+    "AC-8b3": true
+  },
+  "per_arm": {
+    "film": {
+      "ood_test_mean": 0.04180648885667324,
+      "ood_test_std": 0.007145001316503514,
+      "indist_mean": 0.03978662360459566,
+      "class_path_flops": 34560
+    },
+    "cfilm_hyb": {
+      "ood_test_mean": 0.04068271666765213,
+      "ood_test_std": 0.008876181878245027,
+      "indist_mean": 0.03938220981508493,
+      "class_path_flops": 60032
+    },
+    "cfilm_lin": {
+      "ood_test_mean": 0.1856359515339136,
+      "ood_test_std": 0.11498070938652902,
+      "indist_mean": 0.17671383023262024,
+      "class_path_flops": 34560
+    }
+  }
+}

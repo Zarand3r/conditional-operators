@@ -46,8 +46,11 @@ also returned negatives, and we report them: a $1.46\times$ fit penalty on rich 
 $7\times$ failure when the condition specifies image content, because a rotation moves
 information and cannot add it; and no advantage in world-model rollouts, where representation
 consistency, not operator composition, is the bottleneck. Together the suites give practitioners
-a usage rule: use this operator for conditions that are changes to combine, and keep FiLM for
-conditions that say what to generate.
+a usage rule, and the negatives specify a successor, which we built and validated under two
+further pre-registered gates: Complex FiLM, an expressive magnitude channel for content and a
+linear phase channel for composition, beats FiLM by 36\% on unseen change combinations and
+matches it on content generation ($0.97\times$), where the pure rotation had failed by
+$7\times$. One operator covers both roles at FiLM-class cost.
 \end{abstract}
 
 \section{Introduction}
@@ -363,7 +366,28 @@ degrades least (0.015 at length 20). The mechanism: each step introduces a small
 $\T(a)\,z(s)$ and $z(s{+}1)$; a contractive transition reabsorbs that mismatch toward the
 decodable manifold at every step, while an isometry preserves it indefinitely. Exact operator
 composition cannot repair an inconsistent representation. This falsified our own pre-registered
-prediction, and we report it as registered.
+prediction, and we report it as registered. A follow-up suite adds the missing piece: training
+with a latent-consistency loss ($\lambda\,\|\T(a)z_s - z_{s+1}\|^2$, applied to every arm
+equally) inverts the picture. The Lie arm's rollout error goes flat, $0.0039$ at horizon 20
+(growth $2.0\times$) against the hypernetwork's $0.0384$ (growth $19.8\times$) and FiLM's
+$0.0173$: a $90\%$ margin. That suite's registered gate still returns KILL, because its
+second criterion, a single-step pairs margin, fails: consistency training equalizes single
+steps across arms. We report both facts. The working recipe for rollouts is an isometric
+operator plus a consistency objective, and both rotation arms achieve it, so isometry and
+consistency carry this result rather than the linear map. A further registered suite rules out
+the cheap alternative: fixed uniform contraction at rates from 0.003 to 0.1 leaves horizon-20
+error unchanged, so the correction must be adaptive rather than a constant.
+
+\paragraph{S7: the negatives specify the successor, and it passes both gates.}
+Complex FiLM multiplies each feature pair by a complex number: magnitude from FiLM's expressive
+MLP head (the content channel), phase linear in the condition (the composition channel). Two
+pre-registered gates test the two roles. In the S3 transformation harness it beats FiLM by
+36.1\% on unseen change types at fit parity and $0.84\times$ FiLM's conditioning cost. In the
+S5 diffusion harness it generates held-out combinations at $0.97\times$ FiLM's error, restoring
+the content ability the pure rotation lacked by $7\times$. A linear magnitude channel fails
+(error $0.19$ vs.\ film's $0.04$): content needs the expressive head, exactly as the boundary
+map predicted. FiLM is the real part of the working operator; the whole complex number does both
+jobs.
 
 \paragraph{The mechanism is the linearity, and capacity actively hurts.}
 The ablation shares our orthogonal basis and exceeds our compute; it differs \emph{only} in
@@ -384,10 +408,10 @@ in-distribution quality, and far better behavior on combinations your training d
 contained; FiLM's failure on such combinations is silent, so the structural guarantee has
 operational value. \textbf{(2)} If your conditions specify what to generate (class labels, text,
 identity), keep FiLM/adaLN: our own registered negative shows the rotation channel is 7$\times$
-worse there, because rotations move information and cannot add it. \textbf{(3)} In recurrent
-rollouts, choose the transition for representation consistency, not for operator guarantees;
-every conditioner compounded error at the same rate in our world-model suite, and a mildly
-contractive transition degraded least. All evidence is at controlled 64$\times$64 scale; the
+worse there, because rotations move information and cannot add it. \textbf{(3)} In recurrent rollouts, pair an
+isometric operator with a latent-consistency loss; without the loss every conditioner
+compounded error at the same rate, and with it the rotation operator's rollouts stay flat
+($90\%$ below the strongest baseline at horizon 20). All evidence is at controlled 64$\times$64 scale; the
 adaLN-site variant is cheaper than FiLM's marginal class path, so trying the swap is inexpensive
 where rule (1) applies.
 

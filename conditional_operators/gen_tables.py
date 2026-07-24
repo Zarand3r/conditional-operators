@@ -14,11 +14,12 @@ R = ROOT / "results"
 OUT = ROOT / "docs" / "paper" / "tables"
 
 ARMS = ["film", "concat_mlp", "cond_layernorm", "hypernet", "dynamic_linear",
-        "proposed_mlp_gs", "proposed"]
+        "proposed_mlp_gs", "cfilm_lin", "cfilm_hyb", "proposed"]
 LABEL = {
     "film": "FiLM", "concat_mlp": "Concat-MLP", "cond_layernorm": "Cond-LN",
     "hypernet": "Hypernetwork", "dynamic_linear": "Dyn.\\ low-rank",
-    "proposed_mlp_gs": "MLP-head (abl.)", "proposed": "\\textbf{Lie (ours)}",
+    "proposed_mlp_gs": "MLP-head (abl.)", "cfilm_lin": "Complex FiLM (lin.)",
+    "cfilm_hyb": "\\textbf{Complex FiLM}", "proposed": "\\textbf{Lie (ours)}",
 }
 STAGES = [
     ("summary.json", "S1"),
@@ -26,6 +27,7 @@ STAGES = [
     ("stage4_summary.json", "S3"),
     ("stage4b_summary.json", "S3b"),
     ("stage5_summary.json", "S4"),
+    ("stage8a_summary.json", "S7"),
 ]
 
 

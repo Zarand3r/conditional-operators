@@ -171,29 +171,34 @@ def _save(fig, name):
 
 
 def fig_horizon():
-    """F5: rollout horizon curve (stage-7): error vs rollout length per arm."""
-    s = _load("stage7_summary.json")
-    if not s:
+    """F5: rollout horizon curves, without (stage-7) and with (stage-10) consistency loss."""
+    panels = [(_load("stage7_summary.json"), "Without consistency loss"),
+              (_load("stage10_summary.json"), "With consistency loss")]
+    panels = [(s, t) for s, t in panels if s]
+    if not panels:
         return
-    fig, ax = plt.subplots(figsize=(3.6, 2.6))
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.4 * len(panels), 2.6), sharey=True)
+    if len(panels) == 1:
+        axes = [axes]
     xs = [3, 10, 20]
-    for a in ORDER:
-        pa = s["per_arm"].get(a)
-        if not pa:
-            continue
-        ys = [pa["indist"], pa["h10"], pa["h20"]]
-        ax.plot(xs, ys, marker="o", ms=4, lw=1.6 if a == "proposed" else 1.0,
-                color=_color(a), label=ARM_LABEL[a], zorder=3 if a == "proposed" else 2)
-    ax.set_yscale("log")
-    ax.set_xticks(xs, ["3\n(trained)", "10", "20"])
-    ax.set_xlabel("rollout length (actions)")
-    ax.set_ylabel("generation MSE (log)")
-    ax.set_title("World-model rollouts: error compounds for every arm", fontsize=9, loc="left")
-    ax.grid(axis="y", color="#e0e0e0", lw=0.6)
-    ax.set_axisbelow(True)
-    ax.legend(fontsize=6.5, frameon=False, ncol=2)
-    for sp in ("top", "right"):
-        ax.spines[sp].set_visible(False)
+    for ax, (s, title) in zip(axes, panels):
+        for a in ORDER:
+            pa = s["per_arm"].get(a)
+            if not pa:
+                continue
+            ys = [pa["indist"], pa["h10"], pa["h20"]]
+            ax.plot(xs, ys, marker="o", ms=4, lw=1.6 if a == "proposed" else 1.0,
+                    color=_color(a), label=ARM_LABEL[a], zorder=3 if a == "proposed" else 2)
+        ax.set_yscale("log")
+        ax.set_xticks(xs, ["3\n(trained)", "10", "20"])
+        ax.set_xlabel("rollout length (actions)")
+        ax.set_title(title, fontsize=9, loc="left")
+        ax.grid(axis="y", color="#e0e0e0", lw=0.6)
+        ax.set_axisbelow(True)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    axes[0].set_ylabel("generation MSE (log)")
+    axes[-1].legend(fontsize=6.5, frameon=False, ncol=2)
     fig.tight_layout()
     _save(fig, "f5_rollout_horizon")
 

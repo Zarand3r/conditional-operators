@@ -42,7 +42,13 @@ generalize worst. Three pre-registered gates also returned negatives, and we rep
 $1.46\times$ fit penalty on rich scenes; a $7\times$ failure when the condition specifies image
 content (a rotation moves information and cannot add it); and no advantage in world-model
 rollouts, where the bottleneck is representation consistency, not operator composition. The
-negatives tell practitioners exactly where the method stops working.
+negatives tell practitioners exactly where the method stops working. They also specify a
+successor, which we built and tested under two further pre-registered gates: \textbf{Complex
+FiLM} treats each feature pair as a complex number, with an expressive magnitude (FiLM's content
+channel) and a linear phase (our composition channel). It beats FiLM by 36\% on unseen change
+combinations and matches FiLM on content generation (0.97$\times$ its error) in the same
+diffusion setting where the pure rotation failed. One operator now covers both roles at
+FiLM-class cost.
 \end{abstract}
 
 \section{The framework}
@@ -91,6 +97,7 @@ $\mathrm{diag}(\mathbb{R}^d)$ & $c$ & $I$ & \emph{exponential FiLM}: $y=e^{Wc}\o
 $\mathfrak{so}(2)^{d/2}$ & $c=n$ (scalar position) & $I$ & RoPE \citep{su2021rope} \\
 $\mathfrak{so}(2)^{d/2}$ & $c=n$, learned planes & learned & multiplicative GRAPE \citep{grape2025} \\
 $\mathfrak{so}(2)^{d/2}$ & general $c\in\mathbb{R}^k$ & structured & \textbf{this work} (FiLM's role) \\
+$\mathrm{diag} \times \mathfrak{so}(2)^{d/2}$ & general $c$ & canonical & \textbf{Complex FiLM} (the successor; \S\ref{sec:exp}) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -139,7 +146,9 @@ never-trained \emph{types} of two-factor changes. S3b and S4 add a categorical s
 specifications; held-out combinations have unique ground-truth images, so generation error is
 objective. \textbf{S6 (rollouts):} a world model applies the conditioning arm recurrently, one
 action per step; we test unseen action-type pairs and rollouts of length 10 and 20 after
-training on length 3.
+training on length 3. \textbf{S7 (the successor, two gates):} Complex FiLM, magnitude from
+FiLM's MLP head and phase linear in the condition, rerun through the S3 transformation suite
+and the S5 content suite.
 
 \begin{table}[t]
 \centering
@@ -197,13 +206,16 @@ attribute offsets, pose or camera adjustments, applied once. The cost matches Fi
 never-trained combinations is $43\%$ to $10^5\times$ better. FiLM's failure on new combinations
 is silent: nothing in training warns you. The guarantee removes that failure class.
 
-\textbf{Keep FiLM or adaLN when your conditions say what to generate.} Class labels, text
-embeddings, identity. Our own registered negative shows rotation conditioning is $7\times$ worse
-there. This is FiLM's main use today, and we recommend against swapping it.
+\textbf{For conditions that say what to generate, use Complex FiLM or keep FiLM.} Pure
+rotation conditioning fails there ($7\times$ worse; our registered negative). Complex FiLM
+matches FiLM on content ($0.97\times$) while keeping the composition wins, so it is the
+candidate drop-in at our evidence scale; plain FiLM remains the conservative choice.
 
-\textbf{In rollouts, buy consistency, not composition.} All conditioners compounded error at the
-same rate in our world-model suite. The bottleneck is whether the latent stays decodable, and a
-slightly contractive transition handles that better than an exact isometry.
+\textbf{In rollouts, pair an isometric operator with a consistency loss.} Without that loss,
+all conditioners compounded error at the same rate. With it, the rotation operator's rollout
+error stays flat where FiLM's grows $4.5\times$ and a hypernetwork's $10\times$: train the
+transition to satisfy $\T(a)z_s \approx z_{s+1}$ and the isometry stops carrying old errors
+forward because there are none to carry.
 
 All evidence comes from controlled $64{\times}64$ benchmarks with known factors. Nothing here is
 validated at production scale. The transformer variant costs less than FiLM's marginal class
@@ -215,10 +227,10 @@ CGA does for conditioning what RoPE did for position: it moves composition from 
 network must learn into a law the parametrization guarantees. Four boundaries are measured.
 Categorical factors shrink the advantage. Rich scenes make orthogonality pay a fit penalty.
 Content specification defeats a transformation channel. Rollouts are limited by representation
-consistency, which no operator guarantee repairs. The first three point at one successor design:
-the algebra torus $\times$ diagonal, which is complex-valued FiLM, with magnitude carrying
-content and phase carrying composition. The fourth calls for a consistency objective on the
-representation. Related work has learned group actions on latents for world models
+consistency, which no operator guarantee repairs. The first three pointed at one successor design, the algebra torus $\times$ diagonal, and S7
+validated it: Complex FiLM carries content with its magnitude and composition with its phase.
+The fourth boundary falls to a consistency objective on the representation: with it, the
+isometric operator gives flat rollouts where every baseline drifts. Related work has learned group actions on latents for world models
 \citep{quessard2020,caselles2019}; CGA differs by living in FiLM's role under a matched budget,
 with composition holding by construction rather than by training objective.
 
