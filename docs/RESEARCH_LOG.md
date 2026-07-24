@@ -46,3 +46,16 @@ tables/figures → recompile → commit → push. Verdicts are whatever the regi
   replaced the file on disk; the writer kept appending to the unlinked inode. Recovered 43/50 rows via
   `/proc/<pid>/fd`; final 7 rows preserved in `results/stage8a_stdout.log` + `stage8a_summary.json` aggregates. New rule: **no branch switching while any sweep is running**; merges to main
   wait for chain-idle windows.
+
+## Novelty sweep (2026-07-24, three adversarial agents, ~35 works reviewed)
+
+**No fatal collision.** Complex FiLM and guidance-as-group-power are unclaimed; the crowded
+surfaces are rotation-conditioning (Worrall 2017, CLG-VAE, Attributes-as-Operators, the
+2025-26 RoPE-generalization wave) and world models, where the components are prior art
+(HAE/Keurti 2023: rotation transitions + latent prediction loss + long stable rollouts;
+Quessard 2020; TD-MPC consistency losses; bilinear Koopman folklore). Claims narrowed
+accordingly in both papers: we own the combination, the exactness-by-construction contract, the
+consistency-vs-composition decomposition, the contraction null, and the pre-registered
+budget-parity protocol — never the operators or the loss. CFG distortion is established fact
+(Bradley & Nakkiran; APG): Stage-9 must frame it as isolated, not discovered. ~11 citations
+added to both papers.

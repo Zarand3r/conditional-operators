@@ -372,9 +372,11 @@ equally) inverts the picture. The Lie arm's rollout error goes flat, $0.0039$ at
 (growth $2.0\times$) against the hypernetwork's $0.0384$ (growth $19.8\times$) and FiLM's
 $0.0173$: a $90\%$ margin. That suite's registered gate still returns KILL, because its
 second criterion, a single-step pairs margin, fails: consistency training equalizes single
-steps across arms. We report both facts. The working recipe for rollouts is an isometric
-operator plus a consistency objective, and both rotation arms achieve it, so isometry and
-consistency carry this result rather than the linear map. A further registered suite rules out
+steps across arms. We report both facts. The consistency loss is standard practice in model-based RL \citep{hansen2022tdmpc}, and
+rotation transitions with latent-prediction losses appear in the homomorphism autoencoder
+\citep{keurti2023}; what is new here is the controlled decomposition at matched budget: the
+loss flattens rollouts for isometric operators specifically, both rotation arms achieve it, and
+the linear map's contribution washes out at this site. A further registered suite rules out
 the cheap alternative: fixed uniform contraction at rates from 0.003 to 0.1 leaves horizon-20
 error unchanged, so the correction must be adaptive rather than a constant.
 
@@ -527,6 +529,30 @@ C.~Burgess, H.~Kim.
 \newblock 3D Shapes dataset.
 \newblock \url{https://github.com/deepmind/3d-shapes}, 2018.
 
+\bibitem[Worrall et al.(2017)]{worrall2017} D.~Worrall, S.~Garbin, D.~Turmukhambetov,
+G.~Brostow. Interpretable transformations with encoder-decoder networks. \emph{ICCV}, 2017.
+\bibitem[Keurti et al.(2023)]{keurti2023} H.~Keurti, A.~Neitz, S.~Weichwald, B.~Sch\"olkopf,
+et~al. Homomorphism autoencoder: Learning group structured representations from observed
+transitions. \emph{ICML}, 2023.
+\bibitem[Hansen et al.(2022)]{hansen2022tdmpc} N.~Hansen, X.~Wang, H.~Su. Temporal difference
+learning for model predictive control. \emph{ICML}, 2022.
+\bibitem[Chan et al.(2021)]{chan2021pigan} E.~Chan, M.~Monteiro, P.~Kellnhofer, J.~Wu,
+G.~Wetzstein. pi-GAN: Periodic implicit generative adversarial networks. \emph{CVPR}, 2021.
+\bibitem[Sun et al.(2019)]{sun2019rotate} Z.~Sun, Z.~Deng, J.~Nie, J.~Tang. RotatE: Knowledge
+graph embedding by relational rotation in complex space. \emph{ICLR}, 2019.
+\bibitem[Zhu et al.(2021)]{zhu2021clgvae} X.~Zhu, C.~Xu, D.~Tao. Commutative Lie group VAE for
+disentanglement learning. \emph{ICML}, 2021.
+\bibitem[Liu et al.(2022)]{liu2022composable} N.~Liu, S.~Li, Y.~Du, A.~Torralba, J.~Tenenbaum.
+Compositional visual generation with composable diffusion models. \emph{ECCV}, 2022.
+\bibitem[Bradley and Nakkiran(2024)]{bradley2024cfg} A.~Bradley, P.~Nakkiran. Classifier-free
+guidance is a predictor-corrector. \emph{arXiv:2408.09000}, 2024.
+\bibitem[Fu et al.(2025)]{fu2025teefusion} M.~Fu et al. TeEFusion: Blending text embeddings to
+distill classifier-free guidance. \emph{ICCV}, 2025.
+\bibitem[Nagarajan and Grauman(2018)]{nagarajan2018attrop} T.~Nagarajan, K.~Grauman. Attributes
+as operators. \emph{ECCV}, 2018.
+\bibitem[Georgopoulos et al.(2020)]{georgopoulos2020} M.~Georgopoulos, G.~Chrysos, M.~Pantic,
+Y.~Panagakis. Multilinear latent conditioning for generating unseen attribute combinations.
+\emph{ICML}, 2020.
 \end{thebibliography}
 
 \end{document}
