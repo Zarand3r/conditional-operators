@@ -374,7 +374,9 @@ $0.0173$: a $90\%$ margin. That suite's registered gate still returns KILL, beca
 second criterion, a single-step pairs margin, fails: consistency training equalizes single
 steps across arms. We report both facts. The working recipe for rollouts is an isometric
 operator plus a consistency objective, and both rotation arms achieve it, so isometry and
-consistency carry this result rather than the linear map.
+consistency carry this result rather than the linear map. A further registered suite rules out
+the cheap alternative: fixed uniform contraction at rates from 0.003 to 0.1 leaves horizon-20
+error unchanged, so the correction must be adaptive rather than a constant.
 
 \paragraph{S7: the negatives specify the successor, and it passes both gates.}
 Complex FiLM multiplies each feature pair by a complex number: magnitude from FiLM's expressive
