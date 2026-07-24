@@ -20,6 +20,7 @@ the numbers that matter, and the decision it drove. Detailed per-stage reports l
 | 8b (Complex FiLM, content role) | Does the magnitude channel restore content ability? | **CONFIRMED** | cfilm_hyb 0.97x film (gate <=1.10x); cfilm_lin fails (0.19): expressive magnitude is necessary | **IMPROVED-FILM CONFIRMED**: one operator, both roles |
 | 10 (consistency latents) | Does a consistency loss unlock rollout guarantees? | **KILL (AC-10.2)** | AC-10.1 hit huge: h20 flat at 0.0039, 90% below hypernet (growth 2.0x vs 19.8x); pairs margin (AC-10.2) washed out to 1% | Rollout recipe = isometry + consistency loss; gate reported as registered |
 | 11 (contraction sweep) | Is a fixed contraction rate the rollout knob? | **KILL** | h20 flat at the 0.043 plateau for ALL eps; larger eps only hurts h10/in-dist | Correction must be adaptive (consistency loss / learned contraction), not a scalar |
+| 9 (guidance as group power) | Does condition powering beat CFG extrapolation? | **CONFIRMED** | parity at strength 1 (0.96x); growth 23.7x vs CFG 50.7x (p=1.6e-4); 2-5x lower at all strengths >1; no second pass | Guidance lives in the conditioning path when conditioning is a group action |
 
 Papers: `docs/paper/paper.pdf` (long), `docs/paper/paper_short.pdf` (CGA, GRAPE-style). Both on
 `main` (github.com/Zarand3r/conditional-operators), plain-language register, mechanical style
@@ -29,7 +30,7 @@ gate clean.
 
 | Order | Stage | Question | Spec | Status |
 |---|---|---|---|---|
-| now | 9 | Guidance as group power beats CFG scaling? | STAGE9_SPEC | spec'd; implement after 8b verdict (arm-selection rule pre-fixed) |
+| — | — | **Registered queue complete: 13 gates (7 confirmed, 5 killed as registered, 1 unfair/erratum).** | | |
 
 Loop protocol: each completion notification → fold verdict here + into papers → regenerate
 tables/figures → recompile → commit → push. Verdicts are whatever the registered gates say.

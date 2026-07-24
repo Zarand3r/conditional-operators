@@ -139,7 +139,10 @@ objective. \textbf{S6 (rollouts):} a world model applies the conditioning arm re
 action per step; we test unseen action-type pairs and rollouts of length 10 and 20 after
 training on length 3. \textbf{S7 (the successor, two gates):} Complex FiLM, magnitude from
 FiLM's MLP head and phase linear in the condition, rerun through the S3 transformation suite
-and the S5 content suite.
+and the S5 content suite. \textbf{S8 (guidance):} both arms train with condition dropout; we
+sample FiLM with classifier-free guidance at strength $w$ and Complex FiLM by feeding $\alpha c$
+(an exact operator power on the phase channel), then score generation error against the
+deterministic ground truth at each strength.
 
 \begin{table}[t]
 \centering

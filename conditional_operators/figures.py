@@ -203,9 +203,35 @@ def fig_horizon():
     _save(fig, "f5_rollout_horizon")
 
 
+def fig_guidance():
+    """F6: guidance distortion — generation MSE vs strength, CFG vs group power (stage-9)."""
+    s = _load("stage9_summary.json")
+    if not s:
+        return
+    fig, ax = plt.subplots(figsize=(3.6, 2.6))
+    ws = [1.0, 1.5, 2.0, 3.0, 5.0, 8.0]
+    styles = {"film_cfg": (GRAY, "FiLM + CFG"), "cfilm_gp": (ACCENT, "Complex FiLM, group power")}
+    for arm, (col, lab) in styles.items():
+        ys = [s["per_arm"][arm][f"ood_w{w}"] for w in ws]
+        ax.plot(ws, ys, marker="o", ms=4, lw=1.6 if arm == "cfilm_gp" else 1.0,
+                color=col, label=lab)
+    ax.set_yscale("log")
+    ax.set_xlabel("guidance strength")
+    ax.set_ylabel("generation MSE (log)")
+    ax.set_title("Guidance distortion on a deterministic target", fontsize=9, loc="left")
+    ax.grid(axis="y", color="#e0e0e0", lw=0.6)
+    ax.set_axisbelow(True)
+    ax.legend(fontsize=7, frameon=False)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    fig.tight_layout()
+    _save(fig, "f6_guidance_distortion")
+
+
 if __name__ == "__main__":
     fig_main()
     fig_length()
     fig_ratio()
     fig_mechanism()
     fig_horizon()
+    fig_guidance()

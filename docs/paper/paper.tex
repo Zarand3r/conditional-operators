@@ -385,6 +385,18 @@ the content ability the pure rotation lacked by $7\times$. A linear magnitude ch
 map predicted. FiLM is the real part of the working operator; the whole complex number does both
 jobs.
 
+\paragraph{S8: guidance as an operator power.}
+CFG strengthens conditioning by linear extrapolation in noise space, and its distortion at high
+scales is established \citep{bradley2024cfg}. Because dSprites conditioning is deterministic,
+our harness isolates that distortion objectively against an exact alternative: with Complex
+FiLM, feeding $\alpha c$ powers the phase operator exactly, with no unconditional pass and no
+distillation \citep{fu2025teefusion}. Under three pre-registered gates the comparison
+confirms: parity at native strength ($0.96\times$ FiLM+CFG), error growth of $23.7\times$
+from strength 1 to 8 against CFG's $50.7\times$ ($p{=}1.6{\times}10^{-4}$), and 2--5$\times$
+lower error at every strength above 1. Neither method improves over strength 1 on this
+instrument; the target is deterministic, so guidance can only distort, as the suite's
+registered caveat stated in advance.
+
 \paragraph{The mechanism is the linearity, and capacity actively hurts.}
 The ablation shares our orthogonal basis and exceeds our compute; it differs \emph{only} in
 replacing the linear angle map with an MLP. It is 43{,}000$\times$ worse on synthetic triples and
