@@ -188,6 +188,31 @@ compounds error at the same rate, and the mildly contractive low-rank arm degrad
 step of a rollout adds a small mismatch between the predicted and true latent. A contraction
 shrinks that mismatch at every step; an isometry carries it forever. Exact operator composition
 cannot repair an inconsistent representation.
+\textbf{(6) A consistency loss completes the rollout recipe.} Training with
+$\lambda\|\T(a)z_s-z_{s+1}\|^2$, applied to every arm equally, inverts the rollout picture: the
+rotation operator's error at horizon 20 goes flat at $0.0039$ (growth $2.0\times$ from its
+trained range) against the hypernetwork's $0.038$ (growth $19.8\times$) and FiLM's $0.017$. The
+loss is standard in model-based RL \citep{hansen2022tdmpc}, and rotation transitions with
+latent-prediction objectives appear in the homomorphism autoencoder \citep{keurti2023}; our
+contribution is the controlled decomposition at matched budget, plus a null that sharpens it:
+fixed uniform contraction at any rate from $0.003$ to $0.1$ leaves horizon-20 error unchanged,
+so the correction must be adaptive. That suite's registered gate still scores KILL on a separate
+single-step criterion, and we report it so.
+\textbf{(7) The negatives specify the fix, and it works.} Complex FiLM multiplies feature pairs
+by $m\,e^{i\theta}$: magnitude from FiLM's expressive head (content), phase linear in the
+condition (composition). Under two pre-registered gates it beats FiLM by $36\%$ on unseen change
+types at fit parity and $0.84\times$ FiLM's cost, and matches FiLM on content generation at
+$0.97\times$ its error, where the pure rotation failed by $7\times$. A linear magnitude channel
+fails ($0.19$): content needs the expressive head. FiLM is the real part of the working
+operator; the whole complex number does both jobs.
+\textbf{(8) Guidance without the second pass.} CFG's distortion at high scales is established
+\citep{bradley2024cfg}; our deterministic instrument isolates it against an exact alternative.
+CFG's error grows $50.7\times$ from strength 1 to 8; powering the condition through Complex
+FiLM's phase channel grows $23.7\times$ ($p{=}1.6{\times}10^{-4}$), stays 2--5$\times$ lower at
+every strength above 1, matches at native strength ($0.96\times$), and needs no unconditional
+pass and no distillation \citep{fu2025teefusion}. Neither method improves over strength 1 here:
+the target is deterministic, so there is no distribution to sharpen, exactly as the suite's
+registered caveat stated.
 
 \section{Practical guidance: when to use this}
 \label{sec:practical}
@@ -240,7 +265,7 @@ with transformers. \emph{ICCV}, 2023.
 \bibitem[Ha et al.(2017)]{ha2017hypernetworks} D.~Ha, A.~Dai, Q.~Le. Hypernetworks. \emph{ICLR}, 2017.
 \bibitem[Su et al.(2021)]{su2021rope} J.~Su et al. RoFormer: Enhanced transformer with rotary
 position embedding. \emph{arXiv:2104.09864}, 2021.
-\bibitem[GRAPE(2026)]{grape2025} Anonymous. Group representational position encoding.
+\bibitem[GRAPE(2026)]{grape2025} L.~Zhang, K.~Chen, X.~Liu, et~al. Group representational position encoding.
 \emph{ICLR}, 2026. arXiv:2512.07805.
 \bibitem[Hu et al.(2022)]{hu2022lora} E.~Hu et al. LoRA. \emph{ICLR}, 2022.
 \bibitem[Qiu et al.(2023)]{qiu2023oft} Z.~Qiu et al. Orthogonal finetuning. \emph{NeurIPS}, 2023.

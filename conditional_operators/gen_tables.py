@@ -37,12 +37,18 @@ def _load(name):
 
 
 def _sig(x, std=None):
+    """mean (sd) at a shared exponent: $1.3\,(0.1)\times10^{-2}$ — reviewers need variance."""
     if x is None:
         return "--"
-    s = f"{x:.1e}".replace("e-0", "e-").replace("e+0", "e+")
-    mant, exp = s.split("e")
-    cell = f"${mant}\\!\\times\\!10^{{{int(exp)}}}$"
-    return cell
+    import math
+    exp = math.floor(math.log10(abs(x))) if x != 0 else 0
+    mant = x / 10**exp
+    if std is not None and std == std and std > 0:
+        sd = std / 10**exp
+        core = f"{mant:.1f}\\,({sd:.1f})" if sd >= 0.05 else f"{mant:.1f}\\,({sd:.2f})"
+    else:
+        core = f"{mant:.1f}"
+    return f"${core}\\!\\times\\!10^{{{exp}}}$"
 
 
 def main_table() -> str:
@@ -55,7 +61,7 @@ def main_table() -> str:
         cells = []
         for _, _, s in stages:
             pa = s["per_arm"].get(a)
-            cells.append(_sig(pa["ood_test_mean"]) if pa else "--")
+            cells.append(_sig(pa["ood_test_mean"], pa.get("ood_test_std")) if pa else "--")
         rows.append(f"{LABEL[a]} & " + " & ".join(cells) + r" \\")
     body = "\n".join(rows)
     stats = []
