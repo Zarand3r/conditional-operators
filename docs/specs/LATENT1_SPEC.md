@@ -1,5 +1,42 @@
 # Pre-registration: attribute editing in a frozen latent space
 
+## Outcome: KILL (2026-07-27)
+
+> This section was written after the run. Everything below it is the pre-registration, unchanged.
+
+C1 **failed** and C3 **failed**; C2 and C4 passed. Numbers in `results/latent1_summary.json`.
+
+- **C1 (vs best unstructured):** ours is **60.1% worse** than a hypernet on held-out attribute
+  pairs (0.1630 vs 0.1018), against a criterion asking for 20% better.
+- **C2 (vs the deployed mechanism):** ours beats `additive` by **70.8%** (p=9.1e-05). Additive is
+  what latent editing actually ships, so this is not nothing — but it is the easy comparison.
+- **C3 (fit):** ours is **2.43×** the best unstructured arm in distribution, against a 1.10×
+  ceiling. The fit penalty seen on 3D Shapes is larger here, not smaller.
+- **C4 (budget):** passed. Ours uses 44,352 conditioning parameters against the hypernet's
+  2,147,328 — 48× fewer — so the comparison is not close to fair on capacity, and it still loses.
+
+Complex FiLM also failed here (0.4532, no better than plain FiLM), so this is not a limitation of
+the rotation channel alone.
+
+**The paired result is the finding.** Stage 5 ran the same dataset, the same attribute-pair splits,
+the same arms and the same budget counter, differing in one variable: whether the representation was
+trained alongside the operator.
+
+| 3D Shapes, held-out attribute pairs | ours | hypernet | |
+|---|---|---|---|
+| representation co-trained (stage 5) | 0.00116 | 0.00928 | ours **8.0× better** |
+| representation frozen (this run) | 0.16301 | 0.10180 | ours **1.6× worse** |
+
+The operator's advantage is not a property of the operator. It requires the representation to be
+shaped by that operator during training. Bolted onto a frozen general-purpose encoder — the
+InterFaceGAN / GANSpace / frozen-generator pattern, which is how latent editing is actually
+deployed — it loses to an unstructured hypernet with 48× the parameters.
+
+Note the compositional gaps: ours 1.39× against the hypernet's 2.11×. Ours still degrades most
+gracefully from in-distribution to held-out. It simply starts from a much worse fit, and grace
+does not recover a 2.43× handicap.
+
+---
 **Status:** pre-registered 2026-07-27, before the decision sweep.
 **Name:** `latent-edit` · **Hardware:** one RTX PRO 6000.
 

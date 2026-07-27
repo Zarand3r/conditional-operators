@@ -23,6 +23,7 @@ passed. **Kill** means at least one failed, so the hypothesis is rejected for th
 | Complex FiLM (changes) | Complex FiLM, in the transformation role | confirmed | 36.1% over FiLM, fit parity, 0.84× its cost |
 | Complex FiLM (content) | Complex FiLM, in the content role | confirmed | 0.97× FiLM's error; the linear-magnitude variant fails at 0.19, so content needs the expressive head |
 | camera-sliders | Does it beat CameraCtrl's additive mechanism on camera moves? | withdrawn | Abandoned at calibration: gap 1.2x against dSprites' 2.1x, arms within 3%. Test split never read, no verdict claimed |
+| latent-edit | Does it still win when the representation is frozen instead of co-trained? | kill | No. Loses to a hypernet by 60% with 48x fewer parameters, and fits 2.43x worse. Same data and splits as 3D Shapes, where co-training made it 8x better — so the advantage needs the representation, not just the task |
 | Guidance | Does powering the condition beat classifier-free guidance? | confirmed | Parity at strength 1; grows 23.7× to strength 8 against CFG's 50.7× (p=1.6e-4), with no second pass |
 
 Thirteen gates in total: eight passed, four failed, one was inconclusive on budget.

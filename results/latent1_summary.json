@@ -1,0 +1,126 @@
+{
+  "experiment": "latent-edit",
+  "spec": "docs/specs/LATENT1_SPEC.md",
+  "task": "3D Shapes attribute editing in a FROZEN autoencoder latent; scored in latent space; held-out attribute pairs. Companion to stage 5, which is the same task and splits with the representation co-trained.",
+  "config": {
+    "n_seeds": 10,
+    "steps": 4000,
+    "device": "cuda",
+    "dz": 128
+  },
+  "final_verdict": "kill",
+  "criteria": {
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": true
+  },
+  "margin_vs_unstructured": -0.601299124659333,
+  "best_unstructured": "hypernet",
+  "p_vs_unstructured": 0.9999325785388229,
+  "cliffs_delta_vs_unstructured": 1.0,
+  "margin_vs_additive": 0.7084806716208903,
+  "p_vs_additive": 9.133589555476718e-05,
+  "delta_vs_additive": -1.0,
+  "per_arm": {
+    "additive": {
+      "indist": 0.40450829789042475,
+      "val": 0.5936596527695656,
+      "test": 0.5591767698526382,
+      "triples": 0.8498374611139298,
+      "test_std": 0.00012957289820081464,
+      "n_diverged": 0,
+      "params": 50304,
+      "flops": 99712,
+      "flops_vs_film": 1.0
+    },
+    "film": {
+      "indist": 0.3441692017018795,
+      "val": 0.4860644854605198,
+      "test": 0.46272617354989054,
+      "triples": 0.6574614107608795,
+      "test_std": 0.0014272438021137046,
+      "n_diverged": 0,
+      "params": 50304,
+      "flops": 99712,
+      "flops_vs_film": 1.0
+    },
+    "concat_mlp": {
+      "indist": 0.05085988137871027,
+      "val": 0.37166504710912707,
+      "test": 0.3551826044917107,
+      "triples": 0.547309735417366,
+      "test_std": 0.018422371416195914,
+      "n_diverged": 0,
+      "params": 83200,
+      "flops": 165248,
+      "flops_vs_film": 1.6572528883183568
+    },
+    "cond_layernorm": {
+      "indist": 0.35553146302700045,
+      "val": 0.49371951818466187,
+      "test": 0.47053673565387727,
+      "triples": 0.6624280124902725,
+      "test_std": 0.0012070023202676605,
+      "n_diverged": 0,
+      "params": 50304,
+      "flops": 100224,
+      "flops_vs_film": 1.0051347881899872
+    },
+    "hypernet": {
+      "indist": 0.04830735735595226,
+      "val": 0.09192138314247131,
+      "test": 0.1017991166561842,
+      "triples": 0.13286317605525255,
+      "test_std": 0.0033518452533260277,
+      "n_diverged": 0,
+      "params": 2147328,
+      "flops": 4293888,
+      "flops_vs_film": 43.062901155327346
+    },
+    "dynamic_linear": {
+      "indist": 0.09612858425825835,
+      "val": 0.33891217336058616,
+      "test": 0.3513196811079979,
+      "triples": 0.48617541417479515,
+      "test_std": 0.01402603416810131,
+      "n_diverged": 0,
+      "params": 297984,
+      "flops": 595200,
+      "flops_vs_film": 5.969191270860077
+    },
+    "proposed": {
+      "indist": 0.11751110032200814,
+      "val": 0.19001079946756363,
+      "test": 0.16301083639264108,
+      "triples": 0.22396404966711997,
+      "test_std": 0.001156991525714408,
+      "n_diverged": 0,
+      "params": 44352,
+      "flops": 110506,
+      "flops_vs_film": 1.1082517650834403
+    },
+    "cfilm_hyb": {
+      "indist": 0.336919017881155,
+      "val": 0.4803211398422718,
+      "test": 0.45321603268384936,
+      "triples": 0.6377983465790749,
+      "test_std": 0.0009774524876835385,
+      "n_diverged": 0,
+      "params": 42368,
+      "flops": 84352,
+      "flops_vs_film": 0.8459563543003851
+    },
+    "proposed_mlp_gs": {
+      "indist": 0.11485431212931871,
+      "val": 0.19895368181169032,
+      "test": 0.17066961005330086,
+      "triples": 0.23110526464879513,
+      "test_std": 0.002517185423630538,
+      "n_diverged": 0,
+      "params": 52608,
+      "flops": 126250,
+      "flops_vs_film": 1.2661465019255456
+    }
+  }
+}
