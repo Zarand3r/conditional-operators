@@ -318,11 +318,11 @@ combinations lengthen. Learned angles match the true generators to $2{\times}10^
 you which plane each condition rotates, and how fast (Figure~\ref{fig:mech}).
 
 \paragraph{(2) The advantage survives learned representations.} On dSprites every arm fits the
-training distribution equally well, isolating composition. On dSprites, CGA reduces error on unseen
-combinations by $53.8\%$ against the strongest baseline, at $39\times$ fewer conditioning FLOPs;
-on the categorical variant, which adds a categorical shape factor, by $42.9\%$. The same result in a second form:
-going from trained to unseen combinations multiplies CGA's error by $1.25\times$ (dSprites) and
-$1.63\times$ (the categorical variant), and every baseline's by $2.1$--$3.3\times$. We call that multiplier the
+training distribution equally well, which isolates composition. CGA reduces error on unseen
+combinations by $53.8\%$ against the strongest baseline, at $39\times$ fewer conditioning FLOPs,
+and by $42.9\%$ once a categorical shape factor is added. The same result in a second form:
+going from trained to unseen combinations multiplies CGA's error by $1.25\times$, or
+$1.63\times$ with the shape factor, and every baseline's by $2.1$--$3.3\times$. We call that multiplier the
 \emph{compositional gap}.
 
 \paragraph{(3) The linear map is the mechanism.} The ablation keeps the basis and the operator
