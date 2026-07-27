@@ -1,5 +1,33 @@
 # Pre-registration: camera control, phase 1 (synthetic renders)
 
+## Outcome: withdrawn before the decision run (2026-07-27)
+
+> The test split was never read. This experiment was abandoned at the calibration stage because
+> the instrument cannot separate conditioning mechanisms, so no verdict was earned and none is
+> claimed.
+
+Calibration on train and validation only showed every arm landing within 1-3% of every other, and
+a compositional gap of 1.18-1.31x against 2.08x on dSprites. Three explanations were tested and
+all three failed:
+
+- **Move magnitude.** Shrinking moves 3x left the gap at 1.18x.
+- **Axis heterogeneity.** Camera axes score 0.34 mean effect-similarity, dSprites 0.31, nearly
+  identical, so the axes are equally distinguishable.
+- **Scene variety.** Cutting the scene pool from 4096 to 8 changed the gap from 1.25x to 1.30x
+  and left in-distribution error at 0.030, so the model cannot fit even eight scenes well.
+
+The design flaw is structural. Starting poses are drawn uniformly over all four axes, so the model
+already sees frames from every region of the pose manifold during training and only the deltas are
+held out. A held-out two-axis move is then a short trip on a manifold it already covers, which
+interpolation handles. There is no held-out region to generalise into, so no operator can win.
+Making it compositional would require restricting the starting poses too, which is a different
+experiment.
+
+This failure produced `conditional_operators/discriminability.py`, a screen that computes the
+three numbers deciding whether a task can separate conditioning mechanisms at all. It should be
+run before any future harness is pre-registered.
+
+---
 **Status:** pre-registered 2026-07-27, before the harness was written and before any run.
 **Name:** `camera-sliders` · **Hardware:** one RTX PRO 6000.
 
