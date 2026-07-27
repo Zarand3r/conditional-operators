@@ -28,7 +28,7 @@ INK = "#161616"
 ARM_LABEL = {
     "film": "FiLM", "concat_mlp": "Concat-MLP", "cond_layernorm": "Cond-LN",
     "hypernet": "Hypernetwork", "dynamic_linear": "Dynamic low-rank",
-    "proposed": "Lie (ours)", "proposed_mlp_gs": "MLP-head (abl.)",
+    "proposed": "CGA (ours)", "proposed_mlp_gs": "MLP-head (abl.)",
 }
 ORDER = ["film", "concat_mlp", "cond_layernorm", "hypernet", "dynamic_linear",
          "proposed_mlp_gs", "proposed"]

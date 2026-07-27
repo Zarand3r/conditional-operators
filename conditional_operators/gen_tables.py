@@ -18,8 +18,8 @@ ARMS = ["film", "concat_mlp", "cond_layernorm", "hypernet", "dynamic_linear",
 LABEL = {
     "film": "FiLM", "concat_mlp": "Concat-MLP", "cond_layernorm": "Cond-LN",
     "hypernet": "Hypernetwork", "dynamic_linear": "Dyn.\\ low-rank",
-    "proposed_mlp_gs": "MLP-head (abl.)", "cfilm_lin": "Complex FiLM (lin.)",
-    "cfilm_hyb": "\\textbf{Complex FiLM}", "proposed": "\\textbf{Lie (ours)}",
+    "proposed_mlp_gs": "MLP-head (abl.)", "cfilm_lin": "Complex FiLM (linear mag.)",
+    "cfilm_hyb": "\\textbf{Complex FiLM}", "proposed": "\\textbf{CGA (ours)}",
 }
 STAGES = [
     ("summary.json", "S1"),

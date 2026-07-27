@@ -1,8 +1,11 @@
 # Research Log — Conditioning as Group Action program
 
-Append-only program history. One entry per stage: what was registered, what ran, the verdict,
-the numbers that matter, and the decision it drove. Detailed per-stage reports live in
-`docs/RESULTS*.md`; specs in `docs/specs/`; raw logs in `results/`.
+Append-only program history: for each experiment, what success criteria were fixed in advance,
+what ran, how it scored, and what we did next. The pre-registrations are in `docs/specs/`, the
+raw run logs in `results/`, and the write-up in `docs/paper/`. Verdict words below mean:
+**confirmed** (every pre-registered criterion passed), **kill** (at least one failed, so the
+hypothesis is rejected for that setting), **unfair** (the compute-budget rule was violated, so
+the comparison is inconclusive).
 
 ## Completed
 
@@ -22,7 +25,8 @@ the numbers that matter, and the decision it drove. Detailed per-stage reports l
 | 11 (contraction sweep) | Is a fixed contraction rate the rollout knob? | **KILL** | h20 flat at the 0.043 plateau for ALL eps; larger eps only hurts h10/in-dist | Correction must be adaptive (consistency loss / learned contraction), not a scalar |
 | 9 (guidance as group power) | Does condition powering beat CFG extrapolation? | **CONFIRMED** | parity at strength 1 (0.96x); growth 23.7x vs CFG 50.7x (p=1.6e-4); 2-5x lower at all strengths >1; no second pass | Guidance lives in the conditioning path when conditioning is a group action |
 
-Papers: `docs/paper/paper.pdf` (long), `docs/paper/paper_short.pdf` (CGA, GRAPE-style). Both on
+Paper: `docs/paper/paper.pdf` (the two earlier drafts, long and GRAPE-style short, were merged
+into it and remain in git history). On
 `main` (github.com/Zarand3r/conditional-operators), plain-language register, mechanical style
 gate clean.
 
