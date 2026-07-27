@@ -110,8 +110,10 @@ FiLM, and Complex FiLM is the candidate that covers both roles at our evidence s
   title  = {Conditioning as Group Action: Exact Compositional Conditioning at FiLM Cost},
   author = {Bao, Richard},
   year   = {2026},
-  note   = {Code and pre-registrations: https://github.com/Zarand3r/conditional-operators}
+  email  = {richardbao419@gmail.com},
+  url    = {https://github.com/Zarand3r/conditional-operators}
 }
 ```
 
-MIT licensed. Datasets (dSprites, 3D Shapes) are distributed by DeepMind under their own terms.
+Author: Richard Bao (<richardbao419@gmail.com>). MIT licensed; the dSprites and 3D Shapes
+datasets are distributed by DeepMind under their own terms.
