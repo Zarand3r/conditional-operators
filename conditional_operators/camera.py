@@ -156,21 +156,7 @@ class Backbone(nn.Module):
         return self.dec(self.fc(z).view(-1, self.ch * 4, 4, 4))
 
 
-class Additive(CondArm):
-    """z + enc(condition): the mechanism CameraCtrl deploys, with no multiplicative interaction."""
-
-    def __init__(self, dc=DC):
-        super().__init__(dc)
-        self.proj = _zero_(nn.Linear(H, DZ))
-
-    def op(self, h, d, z):
-        return z + self.proj(h)
-
-    def op_flops(self):
-        return _fl(H, DZ) + DZ
-
-
-ARM_CLASSES["additive"] = Additive
+Additive = ARM_CLASSES["additive"]   # the mechanism CameraCtrl deploys; now shared, see stage4
 
 GATE_ARMS = ("additive", "film", "concat_mlp", "cond_layernorm", "hypernet",
              "dynamic_linear", "proposed")

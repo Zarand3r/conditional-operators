@@ -14,10 +14,17 @@ Three numbers decide it:
 * **compositional gap** -- error on held-out condition combinations over error on trained ones.
   If it is near 1.0 the task has no compositional failure for a method to fix, so even a perfect
   operator has nothing to win.
-* **observed separation** -- how far apart two deliberately different conditioners land after a
-  short run. Near zero here, after the first two look healthy, means something subtler is wrong.
+* **observed separation** -- how far apart the best and worst conditioner land after a short run.
+  Near zero, once the first two numbers look healthy, means something subtler is wrong.
 
-Usage: implement the three callables of `Task` for a new benchmark and call `screen(task)`.
+Both the share and the gap are measured on **the arm that fits best**, not on a nominated
+reference arm. They are questions about the task -- is it learnable, are held-out combinations
+harder -- and the strongest available model is the right instrument for both. Reading them off a
+fixed reference gets this backwards exactly when it matters most: a task where the baseline fails
+and a new operator succeeds would be scored as unfittable and thrown away.
+
+Usage: implement the three callables of `Task` for a new benchmark and call `screen(task)`. Pass
+at least one high-capacity arm in `arms`, or the fit check has nothing strong to measure with.
 """
 
 from __future__ import annotations
@@ -49,11 +56,11 @@ class Screen:
     task: str
     identity_mse: float             # predict the input unchanged, ignoring the condition
     mean_mse: float                 # predict the dataset mean, ignoring everything
-    fitted_mse: float               # what a trained model actually reaches in distribution
-    heldout_mse: float
-    conditioning_share: float       # fraction of the identity baseline the model removes
-    compositional_gap: float        # heldout / in-distribution
-    separation: float               # relative gap between the two arms tried
+    fitted_mse: float               # what the best-fitting arm reaches in distribution
+    heldout_mse: float              # ...and on held-out combinations
+    conditioning_share: float       # fraction of the identity baseline that arm removes
+    compositional_gap: float        # heldout / in-distribution, for that arm
+    separation: float               # spread between the best and worst arm on held-out data
 
     @property
     def discriminative(self) -> bool:
@@ -120,12 +127,14 @@ def screen(task: Task, steps: int = 2000, batch: int = 128, lr: float = 1e-3,
     g = torch.Generator().manual_seed(seed)
     identity, mean_img = _baselines(task, 512, g)
     fits = {a: _fit(task, a, steps, batch, lr, seed) for a in task.arms}
-    ref, alt = task.arms[0], task.arms[-1]
-    tr, ho = fits[ref]
+
+    tr, ho = min(fits.values(), key=lambda p: p[0])      # the arm that fits best sets the yardstick
+    held = [h for _, h in fits.values()]
+    worst, best = max(held), min(held)
     return Screen(
         task=task.name, identity_mse=identity, mean_mse=mean_img,
         fitted_mse=tr, heldout_mse=ho,
         conditioning_share=max(0.0, 1.0 - tr / identity) if identity > 0 else 0.0,
         compositional_gap=ho / tr if tr > 0 else float("inf"),
-        separation=(fits[ref][1] - fits[alt][1]) / fits[ref][1] if fits[ref][1] > 0 else 0.0,
+        separation=(worst - best) / worst if worst > 0 else 0.0,
     )

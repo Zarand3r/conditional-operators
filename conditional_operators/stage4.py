@@ -221,6 +221,24 @@ class DynLin4(CondArm):
         return 2 * _fl(H, DZ * LOWRANK) + 4 * DZ * LOWRANK
 
 
+class Additive4(CondArm):
+    """z + enc(c): no multiplicative interaction at all.
+
+    Worth its own arm because real systems deploy it -- CameraCtrl adds an encoded pose to the
+    latent, and latent-space attribute editing adds a scaled direction vector.
+    """
+
+    def __init__(self, dc=DC):
+        super().__init__(dc)
+        self.proj = _zero_(nn.Linear(H, DZ))
+
+    def op(self, h, d, z):
+        return z + self.proj(h)
+
+    def op_flops(self):
+        return _fl(H, DZ) + DZ
+
+
 class Lie4(CondArm):
     """T(d) = P R(W d) P^T: W linear bias-free (exact composition in d), GS-P from Stage-3."""
 
@@ -251,9 +269,9 @@ class MLPGS4(Lie4):
         return _fl(H, DZ // 2) + 3 * DZ + 2 * GSOrthogonal.apply_flops()
 
 
-ARM_CLASSES = {"film": FiLM4, "concat_mlp": ConcatMLP4, "cond_layernorm": CondLN4,
-               "hypernet": Hypernet4, "dynamic_linear": DynLin4, "proposed": Lie4,
-               "proposed_mlp_gs": MLPGS4}
+ARM_CLASSES = {"additive": Additive4, "film": FiLM4, "concat_mlp": ConcatMLP4,
+               "cond_layernorm": CondLN4, "hypernet": Hypernet4, "dynamic_linear": DynLin4,
+               "proposed": Lie4, "proposed_mlp_gs": MLPGS4}
 GATE_ARMS = ("film", "concat_mlp", "cond_layernorm", "hypernet", "dynamic_linear", "proposed")
 
 

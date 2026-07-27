@@ -10,7 +10,7 @@ try:
     import torch
     from torch import nn
 
-    from conditional_operators.discriminability import Screen, Task, screen
+    from conditional_operators.discriminability import Screen, Task, _fit, screen
     HAVE_TORCH = True
 except ImportError:
     HAVE_TORCH = False
@@ -88,6 +88,25 @@ class TestScreen(unittest.TestCase):
         dsprites = Screen("dSprites", 0.0500, 0.0600, 0.0014, 0.0030, 1 - 0.0014 / 0.0500,
                           0.0030 / 0.0014, 0.538)
         self.assertTrue(dsprites.discriminative)         # fits well, 2.1x gap, arms separate
+
+    def test_the_yardstick_is_the_best_arm_not_the_first(self):
+        """The bug this guards against threw away a good task because FiLM could not fit it.
+
+        Frozen-latent editing: FiLM removes 15% of the identity baseline and would be scored as
+        unfittable, while a hypernet removes 88% and shows a 2.1x compositional gap. The task is
+        fine; the reference arm was the wrong instrument. Arms are ordered worst-first here so a
+        regression to "use arms[0]" fails this test.
+        """
+        task = _make_task("frozen-latent", 3.0, arms=("blind", "proposed"))
+        blind_fit, _ = _fit(task, "blind", 300, 128, 1e-3, 0)
+        strong_fit, _ = _fit(task, "proposed", 300, 128, 1e-3, 0)
+        self.assertGreater(blind_fit, strong_fit, "the arm that sees c must fit better")
+        s = screen(task, steps=300)
+        self.assertAlmostEqual(s.fitted_mse, strong_fit, places=6)
+
+    def test_separation_spans_all_arms_tried(self):
+        s = Screen("spread", 0.10, 0.12, 0.01, 0.025, 0.90, 2.5, 0.0)
+        self.assertTrue(s.discriminative)                # separation is reported, never gates
 
 
 if __name__ == "__main__":
