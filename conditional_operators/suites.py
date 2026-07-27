@@ -58,6 +58,9 @@ SUITES: tuple[Suite, ...] = (
           "stage8", "b 10 40000", "stage8b_summary", "STAGE8_SPEC", True),
     Suite("guidance", "Does condition powering beat classifier-free guidance?",
           "stage9", "10 40000", "stage9_summary", "STAGE9_SPEC", True),
+    Suite("camera-sliders",
+          "Does it beat the mechanism CameraCtrl deploys, on camera-slider moves?",
+          "camera", "10 8000", "camera1_summary", "CAMERA1_SPEC", True),
 )
 
 # Suites that inform the paper without being one of its numbered rows.
