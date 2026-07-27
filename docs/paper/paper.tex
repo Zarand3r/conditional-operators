@@ -81,9 +81,10 @@ condition composition exact for any weights (\S\ref{sec:framework}).
 single-read splits committed to version control before every run, with a shared counter
 enforcing parameter and FLOP parity; we report every verdict, including negatives against our
 own predictions (\S\ref{sec:protocol}).
-\textbf{(3) Boundary map.} Five confirmations where conditions are transformations (up to five
-orders of magnitude; capacity inversion in every image suite) and three mechanistic negatives
-(fit, content, rollouts) that state exactly where operator guarantees stop
+\textbf{(3) Where it works, and where it stops.} Five confirmations where conditions are
+transformations, by up to five orders of magnitude, including the finding that more expressive
+conditioners generalize worse in every image suite; and three negatives with mechanisms (fit,
+content, rollouts) that say exactly where the guarantee stops paying
 (\S\ref{sec:results}).
 \textbf{(4) Successor and guidance.} The negatives specify Complex FiLM, validated under two
 further gates as a FiLM replacement covering both conditioning roles, whose phase channel also
@@ -285,8 +286,8 @@ staying $2$--$5\times$ lower throughout.}
 \paragraph{(1) When conditions form a group, composition is solved.} On S2, CGA reaches
 $3.3{\times}10^{-8}$ error on unseen pairs and $5.3{\times}10^{-8}$ on never-trained triples;
 the best baseline sits five orders of magnitude higher and every baseline degrades as
-combinations lengthen. Learned angles match the true generators to $2{\times}10^{-4}$ rad, so
-the operator is directly readable (Figure~\ref{fig:mech}).
+combinations lengthen. Learned angles match the true generators to $2{\times}10^{-4}$ rad: reading the weights tells
+you which plane each condition rotates, and how fast (Figure~\ref{fig:mech}).
 
 \paragraph{(2) The advantage survives learned representations.} On dSprites every arm fits the
 training distribution equally well, isolating composition. CGA's error grows $1.25\times$ from
@@ -302,7 +303,7 @@ $4.3{\times}10^{4}\times$ on synthetic triples and $1.55\times$ on dSprites.
 operator. They post the worst generalization gaps on images ($2.7$--$26\times$); their capacity
 memorizes the training combinations.
 
-\paragraph{(5) Three registered negatives.} On 3D~Shapes, CGA has the best OOD numbers
+\paragraph{(5) Three negatives, scored by the criteria we registered in advance.} On 3D~Shapes, CGA has the best OOD numbers
 ($87.5\%$ margin) but fits training $1.46\times$ worse than the best memorizer, tripping our
 no-regression gate. In the content suite, rotation conditioning fails ($0.31$ vs.\ film's
 $0.04$) and the ablation fails identically: a rotation moves information and cannot add any,
@@ -316,10 +317,10 @@ rotation operator's horizon-20 error goes flat at $0.0039$ (growth $2.0\times$) 
 hypernetwork's $0.038$ (growth $19.8\times$) and FiLM's $0.017$ (Figure~\ref{fig:horizon},
 left). The loss is standard in model-based RL \citep{hansen2022tdmpc}, and rotation transitions
 with latent-prediction objectives appear in the homomorphism autoencoder \citep{keurti2023};
-our contribution is the controlled decomposition at matched budget, plus a null that sharpens
+our contribution is the controlled decomposition at matched budget, plus a null result that sharpens
 it: fixed uniform contraction at any rate from $0.003$ to $0.1$ leaves horizon-20 error
-unchanged, so the correction must be adaptive. That suite's registered gate scores KILL on a
-separate single-step criterion, and we report it so.
+unchanged, so the correction must be adaptive. That suite's gate still returns a negative,
+because a separate single-step criterion fails, and we report the suite that way.
 
 \paragraph{(7) The negatives specify the fix, and it works.} Complex FiLM multiplies feature
 pairs by $m\,e^{i\theta}$. Under two pre-registered gates it beats FiLM by $36\%$ on unseen
@@ -330,8 +331,8 @@ expressive head. FiLM is the real part of the working operator; the whole comple
 both jobs.
 
 \paragraph{(8) Guidance without the second pass.} CFG's distortion at high scales is
-established \citep{bradley2024cfg}; our deterministic instrument isolates it against an exact
-alternative. CFG's error grows $50.7\times$ from strength 1 to 8; powering the condition
+established \citep{bradley2024cfg}; our benchmark isolates it against an exact
+alternative, because the conditioning target is deterministic. CFG's error grows $50.7\times$ from strength 1 to 8; powering the condition
 through the phase channel grows $23.7\times$ ($p{=}1.6{\times}10^{-4}$), stays $2$--$5\times$
 lower at every strength above 1, matches at native strength ($0.96\times$), and needs no
 unconditional pass and no distillation \citep{fu2025teefusion}
@@ -375,9 +376,9 @@ All evidence comes from controlled $64{\times}64$ benchmarks with known factors,
 models, and a single conditioning site; nothing here is validated at production scale, and the
 natural deployment experiment is the adaLN site of a text-conditioned diffusion transformer.
 Learned latents do not support exact group action: the real-image advantage is a reliable
-$2\times$, not the synthetic $10^5\times$. S4 shows orthogonality can price in-distribution fit
-on rich scenes. The guidance instrument isolates distortion and cannot measure the
-distribution-sharpening benefits CFG provides on multimodal targets. Conditions far from any
+$2\times$, not the synthetic $10^5\times$. S4 shows orthogonality can cost in-distribution fit
+on rich scenes. The guidance benchmark measures distortion only, and cannot measure the
+distribution-sharpening benefit CFG provides when the target is multimodal. Conditions far from any
 group action, such as open-ended text, remain untested; the learned-condition-geometry
 extension is future work.
 
