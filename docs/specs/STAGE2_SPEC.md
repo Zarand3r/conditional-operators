@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **aux-erratum** (Dense-basis control; failed the FLOP ceiling (erratum in the paper)) → **unfair**: the budget rule was violated, so the comparison is inconclusive. Numbers in `results/stage2_summary.json`.
+- **dense-basis** (Dense-basis control; failed the FLOP ceiling (erratum in the paper)) → **unfair**: the budget rule was violated, so the comparison is inconclusive. Numbers in `results/stage2_summary.json`.
 
 ---
 

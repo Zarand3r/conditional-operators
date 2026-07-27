@@ -70,8 +70,8 @@ verdicts included.
 uv venv --python 3.12 .venv                                    # torch needs <3.13
 uv pip install --python .venv/bin/python numpy scipy torch matplotlib h5py
 .venv/bin/python -m unittest discover -s tests                 # 83 tests, seconds, no GPU
-.venv/bin/python -m conditional_operators.suites --list        # every suite and its verdict
-.venv/bin/python -m conditional_operators.suites S1 --run      # ~15 min on CPU
+.venv/bin/python -m conditional_operators.suites --list        # every experiment and how it scored
+.venv/bin/python -m conditional_operators.suites aligned --run      # ~15 min on CPU
 ```
 
 The image suites want a GPU and the two datasets:
@@ -79,7 +79,7 @@ The image suites want a GPU and the two datasets:
 ```bash
 curl -L -o datasets/dsprites.npz https://github.com/google-deepmind/dsprites-dataset/raw/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz
 curl -L -o datasets/3dshapes.h5  https://storage.googleapis.com/3d-shapes/3dshapes.h5
-.venv/bin/python -m conditional_operators.suites S3 --run      # ~4 h on an RTX 6000
+.venv/bin/python -m conditional_operators.suites dsprites --run      # ~4 h on an RTX 6000
 ```
 
 Sweeps survive interruption: every run is fsync'd to an append-only log, and restarting picks up
@@ -100,13 +100,13 @@ cd docs/paper && tectonic paper.tex
 conditional_operators/
   verdict.py        the gate: acceptance criteria, Mann-Whitney U, Cliff's δ
   data.py arms.py   synthetic benchmark; the conditioning arms and the shared cost counter
-  train.py sweep.py suite S1
-  stage2..stage11   the remaining suites and controls
-  suites.py         paper label → code → results → verdict, and the way to run any suite
+  train.py sweep.py the aligned synthetic experiment
+  stage2..stage11   the remaining experiments and controls
+  suites.py         experiment name → code → results → verdict, and how to run each one
   gen_tables.py figures.py mechanistic.py   the paper's artifacts
 docs/
   paper/            the paper; its tables and figures are generated, never hand-edited
-  specs/            the pre-registrations, one per suite, each written before its run
+  specs/            the pre-registrations, one per experiment, each written before its run
   RESEARCH_LOG.md   what happened and when, including the amendments and the prior-art sweep
   PROPOSAL.md RESEARCH_NOTES.md   where the idea started, kept for provenance
 results/            the raw run logs and summaries every number comes from
@@ -115,7 +115,7 @@ tests/              operator invariants, gate logic, data splits, registry
 
 ## About the protocol
 
-Every suite has a spec in `docs/specs/` fixing the margin, the test, the seed count, and the
+Every experiment has a spec in `docs/specs/` fixing the margin, the test, the seed count, and the
 splits before the decision run, and `verdict.py` scores the result mechanically afterwards. No
 criteria invented after the fact, no dropped seeds, no moved goalposts. A shared counter keeps
 the conditioning path within 1.20× FiLM's FLOPs while baselines are allowed up to 48× the

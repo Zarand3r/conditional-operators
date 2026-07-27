@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **aux-contraction** (Is a fixed contraction rate the rollout-stability knob?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage11_summary.json`.
+- **contraction** (Is a fixed contraction rate the rollout-stability knob?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage11_summary.json`.
 
 ---
 

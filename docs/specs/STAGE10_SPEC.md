@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S6'** (Does a latent-consistency loss unlock rollout guarantees?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage10_summary.json`.
+- **rollouts+loss** (Does a latent-consistency loss unlock rollout guarantees?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage10_summary.json`.
 
 ---
 

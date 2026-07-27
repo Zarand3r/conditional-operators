@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S2** (Does exact composition survive a hidden basis, within budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage3_summary.json`.
+- **hidden-basis** (Does exact composition survive a hidden basis, within budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage3_summary.json`.
 
 ---
 

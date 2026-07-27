@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S5** (Can rotation conditioning specify image content (diffusion)?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage6_summary.json`.
+- **content** (Can rotation conditioning specify image content (diffusion)?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage6_summary.json`.
 
 ---
 

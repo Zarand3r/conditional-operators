@@ -5,8 +5,8 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S7a** (Complex FiLM in the transformation role) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage8a_summary.json`.
-- **S7b** (Complex FiLM in the content role (non-inferiority)) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage8b_summary.json`.
+- **cfilm-change** (Complex FiLM in the transformation role) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage8a_summary.json`.
+- **cfilm-content** (Complex FiLM in the content role (non-inferiority)) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage8b_summary.json`.
 
 ---
 

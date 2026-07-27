@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S6** (Does exact composition prevent world-model rollout drift?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage7_summary.json`.
+- **rollouts** (Does exact composition prevent world-model rollout drift?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage7_summary.json`.
 
 ---
 

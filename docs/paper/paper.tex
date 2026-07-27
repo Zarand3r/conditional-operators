@@ -88,12 +88,12 @@ single-read splits committed to version control before every run, with a shared 
 enforcing parameter and FLOP parity; we report every verdict, including negatives against our
 own predictions (\S\ref{sec:protocol}).
 \textbf{(3) Where it works, and where it stops.} CGA has the lowest error on unseen condition
-combinations in all five suites where the condition is a transformation (S1, S2, S3, S3b, S4),
-by up to five orders of magnitude, and in every image suite the more expressive the conditioner,
+combinations in all five suites where the condition is a transformation, by up to five orders
+of magnitude, and in every image suite the more expressive the conditioner,
 the worse it generalizes. Three of the eight suites returned pre-registered negatives, and each
-names a setting where the composition law of Proposition~\ref{prop:main} buys nothing: S4, which
-CGA wins on unseen combinations but loses on training fit; S5, content conditioning; and S6,
-multi-step rollouts (\S\ref{sec:results}).
+names a setting where the composition law of Proposition~\ref{prop:main} buys nothing:
+3D~Shapes, which CGA wins on unseen combinations but loses on training fit; content
+conditioning; and multi-step rollouts (\S\ref{sec:results}).
 \textbf{(4) Successor and guidance.} The negatives specify Complex FiLM, validated under two
 further gates as a FiLM replacement covering both conditioning roles, whose phase channel also
 yields guidance as an exact operator power: $2$--$5\times$ less distortion than CFG with no
@@ -252,18 +252,20 @@ $I{+}\Delta W(c)$; a dynamic low-rank map $I{+}A(c)B(c)^{\top}$; the Lie operato
 (both variants); and an MLP-head ablation of our own method (same basis, same operator family,
 more compute, no linearity).
 
-\paragraph{Suites.} \textbf{S1/S2 (synthetic):} learn $y=M(c)x$, where $c$ selects a
-combination of 8 rotation primitives; S2 hides the primitives behind a random basis and tests
-all 56 never-trained \emph{triples}. \textbf{S3/S3b (dSprites) and S4 (3D~Shapes):} image
-transformation: encode a real image, apply $\T(\Delta)$ on the learned latent for a factor
-change $\Delta$, decode, and score pixel error against the true transformed image; OOD means
-never-trained \emph{types} of two-factor changes; S3b/S4 add a categorical shape factor.
-\textbf{S5 (content):} a small diffusion transformer generates dSprites images from full factor
-specifications. \textbf{S6 (rollouts):} a world model applies the conditioning arm recurrently,
-one action per step; horizons 10 and 20 after training on 3. \textbf{S7 (successor):} Complex
-FiLM through the S3 and S5 harnesses. \textbf{S8 (guidance):} condition-dropout training, then
-CFG at strength $w$ for FiLM against condition powering for Complex FiLM, scored against
-deterministic ground truth per strength.
+\paragraph{The experiments.} \textbf{Two synthetic suites.} Learn $y=M(c)x$, where $c$ picks a
+combination of 8 rotation primitives. The second hides the primitives behind a random basis, so
+the operator has to find them, and additionally tests all 56 never-trained triples.
+\textbf{Three image suites} on dSprites and 3D~Shapes. Encode a real image, apply $\T(\Delta)$
+to the learned latent for a factor change $\Delta$, decode, and score pixel error against the
+true transformed image; OOD means never-trained \emph{types} of two-factor change. Two of the
+three add a categorical shape factor. \textbf{Content.} A small diffusion transformer generates
+dSprites images from a full factor specification, so the condition names what to draw rather
+than how to change it. \textbf{Rollouts.} A world model applies the conditioning arm
+recurrently, one action per step, tested at horizons 10 and 20 after training on 3.
+\textbf{The successor.} Complex FiLM, through the dSprites and content setups.
+\textbf{Guidance.} Condition-dropout training, then classifier-free guidance at strength $w$ for
+FiLM against condition powering for Complex FiLM, scored against deterministic ground truth at
+each strength.
 
 \section{Results}
 \label{sec:results}
@@ -272,14 +274,11 @@ deterministic ground truth per strength.
 \centering
 \caption{Error on never-trained condition combinations: mean (seed sd) over 10 seeds. CGA is
 lowest in every column, with complete seed separation against the strongest hypernetwork
-baseline ($p{=}9.1{\times}10^{-5}$, $\delta{=}{-}1.0$). Throughout, OOD means
-out-of-distribution: a condition combination never seen in training. S1--S3b pass their full pre-registered
-gate; S4 fails on a separate training-fit criterion (text). S7 reruns the S3 harness with
-Complex FiLM. \textbf{Columns are not comparable to one another}: S1 and S2 report operator
-MSE, S3--S7 report per-pixel MSE. \textbf{Suites:} S1 synthetic, aligned; S2 synthetic, hidden
-basis; S3 dSprites; S3b dSprites plus a categorical shape factor; S4 3D~Shapes; S5 content
-conditioning in diffusion; S6 world-model rollouts; S6$'$ the same with a latent-consistency
-loss; S7 Complex FiLM; S8 guidance.}
+baseline ($p{=}9.1{\times}10^{-5}$, $\delta{=}{-}1.0$). OOD means out-of-distribution: a
+condition combination never seen in training. Every column except 3D~Shapes passed its full
+pre-registered gate; 3D~Shapes failed on a separate training-fit criterion (text). The last
+column reruns the dSprites setup with Complex FiLM. \textbf{Columns are not comparable to one
+another}: the two synthetic suites report operator MSE, the rest report per-pixel MSE.}
 \label{tab:main}
 \small
 \input{tables/main_results}
@@ -304,27 +303,26 @@ combinations rather than generalising past them.}
 \begin{minipage}[t]{0.42\textwidth}
 \includegraphics[width=\textwidth]{figs/f6_guidance_distortion.pdf}
 \end{minipage}
-\caption{\textbf{Left (S6, S6$'$):} error against rollout length, trained only to length 3.
+\caption{\textbf{Left:} error against rollout length, trained only to length 3.
 Without a consistency loss every conditioner drifts at much the same rate. Adding one separates
-them: the isometric operator flattens out while the baselines keep climbing. \textbf{Right
-(S8):} what turning guidance up does to the generated image. Both distort, since the target here
+them: the isometric operator flattens out while the baselines keep climbing. \textbf{Right:} what turning guidance up does to the generated image. Both distort, since the target here
 is deterministic and there is no distribution to sharpen, but classifier-free guidance distorts
 twice as fast.}
 \label{fig:horizon}
 \end{figure}
 
-\paragraph{(1) When conditions form a group, composition is exact to numerical precision.} On S2, CGA reaches
+\paragraph{(1) When conditions form a group, composition is exact to numerical precision.} On the hidden-basis suite, CGA reaches
 $3.3{\times}10^{-8}$ error on unseen pairs and $5.3{\times}10^{-8}$ on never-trained triples;
 the best baseline sits five orders of magnitude higher and every baseline degrades as
 combinations lengthen. Learned angles match the true generators to $2{\times}10^{-4}$ rad: reading the weights tells
 you which plane each condition rotates, and how fast (Figure~\ref{fig:mech}).
 
 \paragraph{(2) The advantage survives learned representations.} On dSprites every arm fits the
-training distribution equally well, isolating composition. On S3, CGA reduces error on unseen
+training distribution equally well, isolating composition. On dSprites, CGA reduces error on unseen
 combinations by $53.8\%$ against the strongest baseline, at $39\times$ fewer conditioning FLOPs;
-on S3b, which adds a categorical shape factor, by $42.9\%$. The same result in a second form:
-going from trained to unseen combinations multiplies CGA's error by $1.25\times$ (S3) and
-$1.63\times$ (S3b), and every baseline's by $2.1$--$3.3\times$. We call that multiplier the
+on the categorical variant, which adds a categorical shape factor, by $42.9\%$. The same result in a second form:
+going from trained to unseen combinations multiplies CGA's error by $1.25\times$ (dSprites) and
+$1.63\times$ (the categorical variant), and every baseline's by $2.1$--$3.3\times$. We call that multiplier the
 \emph{compositional gap}.
 
 \paragraph{(3) The linear map is the mechanism.} The ablation keeps the basis and the operator
@@ -338,7 +336,7 @@ capacity memorizes the training combinations.
 
 \paragraph{(5) Three negatives, scored by the criteria we registered in advance.} On 3D~Shapes, CGA has the lowest error on unseen
 combinations ($87.5\%$ below the hypernetwork) but its training error is $1.46\times$ the
-hypernetwork's, which trips the pre-registered no-regression criterion. In the content suite (S5), rotation conditioning fails: pixel MSE $0.31$ against FiLM's
+hypernetwork's, which trips the pre-registered no-regression criterion. In the content suite (the content suite), rotation conditioning fails: pixel MSE $0.31$ against FiLM's
 $0.04$, an $8\times$ regression and the ablation fails identically: a rotation moves information and cannot add any,
 so it cannot carry ``generate this image.'' In the rollout suite, every arm compounds error at
 the same rate; each step adds a small mismatch between the predicted and
@@ -356,7 +354,7 @@ same budget shows that neither the loss nor the isometric operator fixes rollout
 that they work only together. A null result sharpens this. We tried the obvious alternative and
 it failed: shrinking the latent by a fixed factor at every step, swept from $0.003$ to $0.1$,
 leaves horizon-20 error unchanged. Whatever removes the accumulated mismatch has to depend on
-the state rather than be a constant. A separate single-step criterion fails, so S6 counts as a
+the state rather than be a constant. A separate single-step criterion fails, so the rollout suite counts as a
 negative in Table~\ref{tab:main} even though its horizon-20 result is favorable.
 
 \paragraph{(7) The negatives specify the fix, and it works.} Complex FiLM multiplies feature
@@ -396,9 +394,9 @@ the basis, while the gap to the next best arm grows to five orders of magnitude.
 \begin{minipage}[t]{0.38\textwidth}
 \includegraphics[width=\textwidth]{figs/f4_angle_recovery.pdf}
 \end{minipage}
-\caption{\textbf{Left (S2):} what happens when a test combination is longer than anything in
+\caption{\textbf{Left:} what happens when a test combination is longer than anything in
 training. Every baseline gets worse; CGA does not move, because composition is a property of its
-parametrization rather than something it had to learn. \textbf{Right (S1):} the angles the model
+parametrization rather than something it had to learn. \textbf{Right:} the angles the model
 learned for each condition, against the true generators of the data. Reading the weights tells
 you which plane a condition rotates, and how fast.}
 \label{fig:mech}
@@ -429,7 +427,7 @@ All evidence comes from controlled $64{\times}64$ benchmarks with known factors,
 models, and a single conditioning site; nothing here is validated at production scale, and the
 natural deployment experiment is the adaLN site of a text-conditioned diffusion transformer.
 Learned latents do not support exact group action, so the advantage on real images is the
-$1.8$--$8\times$ error reduction quoted above, not the $10^5\times$ of the synthetic suites. S4 shows orthogonality can cost in-distribution fit
+$1.8$--$8\times$ error reduction quoted above, not the $10^5\times$ of the synthetic suites. 3D~Shapes shows orthogonality can cost in-distribution fit
 on rich scenes. The guidance benchmark measures distortion only, and cannot measure the
 distribution-sharpening benefit CFG provides when the target is multimodal. Conditions far from any
 group action, such as open-ended text, remain untested; the learned-condition-geometry

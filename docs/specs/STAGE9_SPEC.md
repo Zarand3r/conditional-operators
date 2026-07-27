@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S8** (Does condition powering beat classifier-free guidance?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage9_summary.json`.
+- **guidance** (Does condition powering beat classifier-free guidance?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage9_summary.json`.
 
 ---
 

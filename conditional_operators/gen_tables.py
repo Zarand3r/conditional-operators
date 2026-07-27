@@ -22,12 +22,12 @@ LABEL = {
     "cfilm_hyb": "\\textbf{Complex FiLM}", "proposed": "\\textbf{CGA (ours)}",
 }
 STAGES = [
-    ("summary.json", "S1"),
-    ("stage3_summary.json", "S2"),
-    ("stage4_summary.json", "S3"),
-    ("stage4b_summary.json", "S3b"),
-    ("stage5_summary.json", "S4"),
-    ("stage8a_summary.json", "S7"),
+    ("summary.json", "Aligned"),
+    ("stage3_summary.json", "Hidden basis"),
+    ("stage4_summary.json", "dSprites"),
+    ("stage4b_summary.json", "+shape"),
+    ("stage5_summary.json", "3D Shapes"),
+    ("stage8a_summary.json", "Complex FiLM"),
 ]
 
 

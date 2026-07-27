@@ -5,9 +5,9 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S3** (Does the advantage survive a learned latent on real images?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage4_summary.json`.
-- **S3b** (Does it survive a categorical (non-group) factor?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage4b_summary.json`.
-- **S4** (Does it hold on a second dataset (3D Shapes, RGB)?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage5_summary.json`.
+- **dsprites** (Does the advantage survive a learned latent on real images?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage4_summary.json`.
+- **dsprites+shape** (Does it survive a categorical (non-group) factor?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage4b_summary.json`.
+- **shapes3d** (Does it hold on a second dataset (3D Shapes, RGB)?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage5_summary.json`.
 
 ---
 

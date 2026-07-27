@@ -5,7 +5,7 @@
 > This section was written after the experiment. Everything below it is the
 > pre-registration, unchanged from before the decision run.
 
-- **S1** (Does structure beat unstructured conditioning at equal budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/summary.json`.
+- **aligned** (Does structure beat unstructured conditioning at equal budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/summary.json`.
 
 ---
 
