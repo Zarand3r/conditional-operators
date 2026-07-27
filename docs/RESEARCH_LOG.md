@@ -1,66 +1,77 @@
-# Research Log — Conditioning as Group Action program
+# Research log
 
-Append-only program history: for each experiment, what success criteria were fixed in advance,
-what ran, how it scored, and what we did next. The pre-registrations are in `docs/specs/`, the
-raw run logs in `results/`, and the write-up in `docs/paper/`. Verdict words below mean:
-**confirmed** (every pre-registered criterion passed), **kill** (at least one failed, so the
-hypothesis is rejected for that setting), **unfair** (the compute-budget rule was violated, so
-the comparison is inconclusive).
+What was tried, in the order it was tried, and how each one turned out. The pre-registrations
+live in [`specs/`](specs/), the raw logs in [`../results/`](../results/), and the write-up in
+[`paper/`](paper/).
 
-## Completed
+Three words appear in the table. **Confirmed** means every criterion registered before the run
+passed. **Kill** means at least one failed, so the hypothesis is rejected for that setting.
+**Unfair** means the compute-budget rule was broken, so the comparison proves nothing either way.
 
-| Stage | Question | Verdict | Key numbers | Decision it drove |
-|---|---|---|---|---|
-| S1 (aligned synthetic) | Does structure beat unstructured at equal budget? | **CONFIRMED** | 61.5% vs best hypernet, 0.87× FiLM cost | Proceed |
-| S2-dense (de-aligned, dense P) | Survives hidden basis? | **UNFAIR (erratum)** | true cost 1.52× FiLM | Structured bases required |
-| S2 (Lie + GS basis) | Exact composition within budget? | **CONFIRMED** | 3.3e-8 OOD; triples flat; angles to 2e-4 rad | The mechanism is linearity |
-| S3 (dSprites deltas) | Survives learned latents? | **CONFIRMED** | 53.8% margin; gap 1.25× vs 2.1–3.3× | Real-image evidence |
-| S3b (+categorical) | Survives non-group factors? | **CONFIRMED** | 42.9%; gap 1.63× | Attenuates, holds |
-| S4 (3D Shapes) | Second dataset? | **KILL (AC-5 fit)** | best OOD (87.5%) but 1.46× in-dist | Orthogonality prices fit |
-| S5 (DiT content) | Drop-in adaLN replacement? | **KILL** | 7× underfit; ablation fails identically | Rotation ≠ content channel |
-| S6 (rollout world model) | Composition prevents drift? | **KILL** | all arms ~0.043 @ h20; contractive arm best | Consistency, not composition, limits rollouts |
-| 8a (Complex FiLM, transform role) | Does magnitude x phase keep the transform wins? | **CONFIRMED** | cfilm_hyb 36.1% over film; fit parity; 0.84x film cost | Half of the improved-FiLM claim |
-| 8b (Complex FiLM, content role) | Does the magnitude channel restore content ability? | **CONFIRMED** | cfilm_hyb 0.97x film (gate <=1.10x); cfilm_lin fails (0.19): expressive magnitude is necessary | **IMPROVED-FILM CONFIRMED**: one operator, both roles |
-| 10 (consistency latents) | Does a consistency loss unlock rollout guarantees? | **KILL (AC-10.2)** | AC-10.1 hit huge: h20 flat at 0.0039, 90% below hypernet (growth 2.0x vs 19.8x); pairs margin (AC-10.2) washed out to 1% | Rollout recipe = isometry + consistency loss; gate reported as registered |
-| 11 (contraction sweep) | Is a fixed contraction rate the rollout knob? | **KILL** | h20 flat at the 0.043 plateau for ALL eps; larger eps only hurts h10/in-dist | Correction must be adaptive (consistency loss / learned contraction), not a scalar |
-| 9 (guidance as group power) | Does condition powering beat CFG extrapolation? | **CONFIRMED** | parity at strength 1 (0.96x); growth 23.7x vs CFG 50.7x (p=1.6e-4); 2-5x lower at all strengths >1; no second pass | Guidance lives in the conditioning path when conditioning is a group action |
+| Suite | Question | Verdict | The numbers |
+|---|---|---|---|
+| S1 | Does structure beat unstructured conditioning at equal budget? | confirmed | 61.5% below the best hypernetwork, at 0.87× FiLM's cost |
+| — | Does it survive a hidden basis, using a dense learned basis? | unfair | The basis really cost 1.52× FiLM, over the registered ceiling |
+| S2 | Same question, with a structured basis inside the budget | confirmed | 3.3e-8 error; flat on never-trained triples; angles recovered to 2e-4 rad |
+| S3 | Does it survive a learned latent, on real images? | confirmed | 53.8% below the best baseline; error grows 1.25× on unseen combinations against 2.1–3.3× |
+| S3b | Does it survive a categorical, non-group factor? | confirmed | 42.9%; the advantage shrinks but holds |
+| S4 | Does it hold on a second dataset? | kill | Best on unseen combinations by 87.5%, but 1.46× worse on the training fit |
+| S5 | Can it specify image content, in diffusion? | kill | 7× worse than FiLM, and the ablation fails identically |
+| S6 | Does exact composition stop rollout drift? | kill | Every arm lands near 0.043 at horizon 20; the contractive one does best |
+| S6′ | Does a latent-consistency loss unlock it? | kill | Horizon-20 error goes flat at 0.0039, 90% below the hypernetwork, but a separate single-step criterion fails |
+| — | Is a fixed contraction rate the knob instead? | kill | No rate helps; larger ones only hurt |
+| S7a | Complex FiLM, in the transformation role | confirmed | 36.1% over FiLM, fit parity, 0.84× its cost |
+| S7b | Complex FiLM, in the content role | confirmed | 0.97× FiLM's error; the linear-magnitude variant fails at 0.19, so content needs the expressive head |
+| S8 | Does powering the condition beat classifier-free guidance? | confirmed | Parity at strength 1; grows 23.7× to strength 8 against CFG's 50.7× (p=1.6e-4), with no second pass |
 
-Paper: `docs/paper/paper.pdf` (the two earlier drafts, long and GRAPE-style short, were merged
-into it and remain in git history). On
-`main` (github.com/Zarand3r/conditional-operators), plain-language register, mechanical style
-gate clean.
+Thirteen gates in total: eight passed, four failed, one was inconclusive on budget.
 
-## Running / queued (autonomous chain; sequential GPU, throttled, fsync+resume)
+## Things worth remembering
 
-| Order | Stage | Question | Spec | Status |
-|---|---|---|---|---|
-| — | — | **Registered queue complete: 13 gates (7 confirmed, 5 killed as registered, 1 unfair/erratum).** | | |
+**The erratum.** An audit of the FLOP counters found the dense-basis arm had been undercounted
+by 2×: applying the basis costs `4d²` per sample, not `2d²`, because it is applied twice. The
+true cost was 1.52× FiLM against a registered ceiling of 1.20×, so a result that had read as a
+win became inconclusive. The corrected counter is now pinned by a regression test, and the
+structured basis in S2 is what brought the cost back inside the budget honestly.
 
-Loop protocol: each completion notification → fold verdict here + into papers → regenerate
-tables/figures → recompile → commit → push. Verdicts are whatever the registered gates say.
+**S6 refuted a prediction I had already made in writing.** Exact composition was supposed to
+stop error compounding over rollouts, and it did nothing; every conditioner drifted at the same
+rate. Chasing the reason produced a better result than the prediction would have: rollout error
+is dominated by the latent drifting off the decodable manifold, not by the transition composing
+badly. Adding a latent-consistency loss makes the isometric operator's error flat far past the
+training horizon, while a fixed contraction — the obvious alternative — does nothing at any rate.
+
+**A file-descriptor accident, July 23.** Switching git branches while a sweep was running
+replaced its log file on disk; the writer kept appending to the now-unlinked inode, so the file
+on disk stopped growing. 43 of 50 rows were recovered through `/proc/<pid>/fd`, and the last
+seven survive in `results/stage8a_stdout.log` and the summary aggregates. The rule since: no
+branch switching while a sweep is running.
+
+## Prior-art sweep, July 24
+
+Three independent searches, each told to try to prove the work had already been done, across
+roughly 35 papers. No fatal collision. Complex FiLM and guidance-as-an-operator-power appear to
+be unclaimed.
+
+Two areas are crowded enough to be careful about. Rotation conditioning has Worrall et al. (2017)
+rotating hidden features with exact composition for geometric transformations, the commutative
+Lie group VAE, attributes-as-operators, and the 2025–26 wave of RoPE generalizations. World
+models have more: the homomorphism autoencoder (Keurti et al., 2023) already pairs rotation
+transitions with a latent-prediction loss and shows long stable rollouts, Quessard et al. (2020)
+learn per-action latent rotations, latent-consistency losses are standard in model-based RL, and
+generator-affine dependence on the control input is folklore in bilinear Koopman theory.
+
+The claims were narrowed to match: the combination, the exactness-by-construction contract, the
+consistency-versus-composition decomposition, the contraction null result, and the budget-fair
+pre-registered protocol. Not the operators, and not the loss. CFG's distortion at high guidance
+is established (Bradley and Nakkiran; APG), so S8 isolates it against an exact alternative rather
+than claiming to have found it. About eleven citations were added to the paper as a result.
 
 ## Standing rules
 
-- Pre-register before running; margins never move after data exists; deviations = dated
-  amendments in the spec.
-- Power safety: throttle (STAGE*_THROTTLE_MS=60) or `sudo nvidia-smi -pl 300`; PSU trips at
-  sustained ~600 W.
-- Every number in papers regenerates from `results/*.json`; never hand-edit tables/figures.
-
-- **2026-07-23 incident:** `git checkout` between branches while a sweep held its results-log fd
-  replaced the file on disk; the writer kept appending to the unlinked inode. Recovered 43/50 rows via
-  `/proc/<pid>/fd`; final 7 rows preserved in `results/stage8a_stdout.log` + `stage8a_summary.json` aggregates. New rule: **no branch switching while any sweep is running**; merges to main
-  wait for chain-idle windows.
-
-## Novelty sweep (2026-07-24, three adversarial agents, ~35 works reviewed)
-
-**No fatal collision.** Complex FiLM and guidance-as-group-power are unclaimed; the crowded
-surfaces are rotation-conditioning (Worrall 2017, CLG-VAE, Attributes-as-Operators, the
-2025-26 RoPE-generalization wave) and world models, where the components are prior art
-(HAE/Keurti 2023: rotation transitions + latent prediction loss + long stable rollouts;
-Quessard 2020; TD-MPC consistency losses; bilinear Koopman folklore). Claims narrowed
-accordingly in both papers: we own the combination, the exactness-by-construction contract, the
-consistency-vs-composition decomposition, the contraction null, and the pre-registered
-budget-parity protocol — never the operators or the loss. CFG distortion is established fact
-(Bradley & Nakkiran; APG): Stage-9 must frame it as isolated, not discovered. ~11 citations
-added to both papers.
+- Register the criteria before the run. Margins never move once data exists; deviations become
+  dated amendments inside the spec.
+- Never hand-edit the paper's tables or figures. They regenerate from `results/*.json`.
+- Don't switch branches while a sweep is running.
+- Throttle long GPU runs (`STAGE*_THROTTLE_MS=60`) or cap the card. This machine's power supply
+  trips at a sustained 600 W, which cost one overnight run.

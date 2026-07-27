@@ -1,13 +1,14 @@
 # Pre-registrations
 
-One document per experiment, each written and committed **before** its decision run. Each fixes
-the success criteria, the statistical test, the seed count, and the data splits, so the outcome
-could not be argued after the fact. Every spec now carries an *Outcome* section, added after the
-run, above its unchanged pre-registered content.
+One document per experiment, written and committed before that experiment ran. Each one fixes
+the success margin, the statistical test, the number of seeds, and the data splits in advance,
+so there was nothing left to negotiate once the numbers came in.
 
-Verdicts: **confirmed** = every criterion passed. **kill** = at least one failed, so the
-hypothesis is rejected for that setting. **unfair** = the compute-budget rule was violated, so
-the comparison is inconclusive.
+Each spec now opens with an outcome section, written afterwards, sitting above the original text.
+Nothing below that section was edited after the run.
+
+Confirmed means every criterion passed; kill means at least one didn't; unfair means the budget
+rule was broken, so the comparison settles nothing.
 
 | Spec | Suite | Question | Verdict |
 |---|---|---|---|
@@ -25,8 +26,8 @@ the comparison is inconclusive.
 | [STAGE2_SPEC.md](STAGE2_SPEC.md) | **aux-erratum** | Dense-basis control; failed the FLOP ceiling (erratum in the paper) | unfair |
 | [STAGE11_SPEC.md](STAGE11_SPEC.md) | **aux-contraction** | Is a fixed contraction rate the rollout-stability knob? | kill |
 
-Deviations from a spec are recorded as dated amendments inside it. One accounting erratum, a
-FLOP undercount our own audit caught that downgraded a favorable verdict, is described in
+Where a spec had to change, the change is a dated amendment inside it. One erratum — a FLOP
+undercount that turned a favourable verdict into an inconclusive one — is written up in
 [`../RESEARCH_LOG.md`](../RESEARCH_LOG.md).
 
-`python -m conditional_operators.suites --list` prints this table from the committed results.
+`python -m conditional_operators.suites --list` prints the same table straight from the results.
