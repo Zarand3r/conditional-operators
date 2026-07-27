@@ -1,5 +1,12 @@
 # Research Notes — novelty review & re-scoping
 
+> **Historical document.** This is the original prior-art review, written before any experiment ran. It is
+> kept for provenance and is **not** a description of what the project concluded. Where it
+> disagrees with [`paper/paper.pdf`](paper/paper.pdf), the paper is current. In particular: the
+> staged plan below was revised (the proposed CIFAR-100 stage was dropped as unable to test
+> compositionality), and the operator family ranked most promising here is not the one that won.
+> See [`RESEARCH_LOG.md`](RESEARCH_LOG.md) for what actually happened.
+
 *Produced with the `research-ideation` discipline (ground → Scoop-Check → Pursue/Refine/Kill).
 Read this before investing: it names the nearest prior work and the defensible contribution, so
 we don't reinvent OFT/LoRA under new words ("smart plagiarism").*

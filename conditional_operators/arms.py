@@ -7,7 +7,7 @@ zero-initialized so T(c)=I and beta(c)=0 at step 0 (INV-1: identity init).
 FLOPs are counted analytically (FLOPs = 2*in*out per matmul) with one shared helper so cross-arm
 ratios are apples-to-apples. FiLM is the cheap floor; AC-4 requires proposed FLOPs <= 1.20x FiLM.
 
-Design note on the proposed operator (see STAGE1_ROADMAP.md): Q(c) is block-diagonal orthogonal via
+Design note on the proposed operator: Q(c) is block-diagonal orthogonal via
 closed-form 2x2 rotations (exact orthogonality, no per-sample matrix_exp). The low-rank deformation
 uses a SHARED learned basis U,V with input-conditioned gains s(c) (r outputs) and a bounded scale, so
 it stays input-conditioned yet within budget; a fully per-sample U(c)V(c)^T head emits 2*D*r numbers

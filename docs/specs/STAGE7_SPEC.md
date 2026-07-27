@@ -1,5 +1,14 @@
 # Spec: Stage-7 — Action-Conditioned World Model (sprite-world rollouts)
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S6** (Does exact composition prevent world-model rollout drift?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage7_summary.json`.
+
+---
+
 **Status:** Pre-registered 2026-07-22, before any run.
 **Hardware:** RTX PRO 6000 Blackwell; sweep runs ONLY after Stage-6 completes (sequential GPU use
 after the PSU trip); throttled via `STAGE7_THROTTLE_MS` unless the 300 W cap has been set.

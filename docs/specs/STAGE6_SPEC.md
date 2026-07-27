@@ -1,5 +1,14 @@
 # Spec: Stage-6 — The adaLN Swap: Lie Conditioning Inside a Diffusion Transformer
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S5** (Can rotation conditioning specify image content (diffusion)?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage6_summary.json`.
+
+---
+
 **Status:** Pre-registered 2026-07-21, before any training run.
 **Hardware:** RTX PRO 6000 Blackwell (this box).
 

@@ -1,5 +1,14 @@
 # Spec: Stage-3 — Lie-Algebra Conditioning (GRAPE-inspired), Within the True Budget
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S2** (Does exact composition survive a hidden basis, within budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage3_summary.json`.
+
+---
+
 **Status:** Pre-registered 2026-07-21, **before** any triple-composition evaluation was run.
 **Derived from:** [`STAGE1_SPEC.md`](STAGE1_SPEC.md) (CONFIRMED), [`STAGE2_SPEC.md`](STAGE2_SPEC.md)
 (**UNFAIR after erratum** — dense-P basis cost 1.52× FiLM, over the 1.20× ceiling),
