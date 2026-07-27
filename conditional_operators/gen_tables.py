@@ -37,7 +37,7 @@ def _load(name):
 
 
 def _sig(x, std=None):
-    """mean (sd) at a shared exponent: $1.3\,(0.1)\times10^{-2}$ — reviewers need variance."""
+    r"""mean (sd) at a shared exponent: $1.3\,(0.1)\times10^{-2}$ — reviewers need variance."""
     if x is None:
         return "--"
     import math
