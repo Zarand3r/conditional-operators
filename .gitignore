@@ -25,3 +25,6 @@ venv/
 .vscode/
 datasets/
 docs/paper/project_context.md
+
+# Vendored third-party skill (lives in Zarand3r/claude-skills; kept local, not redistributed here)
+.claude/skills/

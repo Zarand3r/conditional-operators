@@ -1,57 +1,53 @@
 # CLAUDE.md — conditional-operators
 
-Research repo investigating **structured conditional operators** as a generalization of **FiLM**
-(`y = γ(c)⊙x + β(c)`, a diagonal transform) to `y = T(c)x + β(c)` for structured `T(c)`
-(block-diagonal, orthogonal, orthogonal+low-rank, Lie-group, flow), **generated per-sample from a
-conditioning input** and applied to **activations**.
+Research repo for **Conditioning as Group Action (CGA)**: conditioning a network with a
+per-sample structured operator `y = T(c)x + β(c)` where the condition enters linearly in an
+abelian Lie algebra, so `T(c₁+c₂) = T(c₁)T(c₂)` holds for any weights. FiLM and RoPE are special
+cases. The experimental program is **complete**: 11 pre-registered suites, 7 confirmed, 4
+negatives, all folded into the paper.
 
-**Source of truth:** [`docs/PROPOSAL.md`](docs/PROPOSAL.md). **Read [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) first** — it has the prior-art collision check and the re-scoped claim.
+**Start here:** [`README.md`](README.md) for the result and how to reproduce it,
+[`docs/RESEARCH_LOG.md`](docs/RESEARCH_LOG.md) for the full program history (every verdict, every
+amendment, the adversarial novelty sweep), [`docs/paper/paper.tex`](docs/paper/paper.tex) for the
+paper. [`docs/PROPOSAL.md`](docs/PROPOSAL.md) and
+[`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) are the original proposal and prior-art review,
+kept for provenance; where they disagree with the paper, **the paper is current**.
 
-## Non-negotiable research facts (easy to get wrong)
+## Non-negotiable rules
 
-- **We are still generalizing FiLM** — FiLM is the diagonal special case `T(c)=diag(γ(c))`. The
-  generalization is richer *structured* `T(c)`, kept efficient and stable (identity-init, bounded
-  spectrum). That thesis is unchanged.
-- **The novelty is the *setting*, not the operators.** OFT/BOFT/HRA/LoRA already provide block-diag,
-  orthogonal, orthogonal+low-rank, and low-rank transforms — but as **weight fine-tuning** (a fixed
-  transform). Our contribution is those structures as **per-sample, activation-space, input-conditioned**
-  modulation (FiLM's role) for **conditional generation + compositional generalization**. Position
-  every family against its PEFT twin; do **not** claim the operator families as new.
-- **Drop the grand "unify all PEFT" theory** — He et al. (2110.04366) already unified adapters/LoRA/prefix.
-  Keep it to a one-paragraph positioning, not a contribution.
-- **Stage 1 is a cheap kill-test.** On the synthetic analytic-transformation benchmark, if
-  input-conditioned `Q(c)+U(c)V(c)^T` does not beat FiLM on **compositional OOD** at <20% overhead
-  and equal params, **stop** (diagonal-is-enough is a valid negative result). Register the success
-  margin *before* running; never launder a soft win into a Pursue.
-- **The differentiator is mechanistic interpretability** — do learned rotations correspond to
-  interpretable subspace transforms of semantic concepts? Most PEFT papers skip this; we lead with it.
+- **Never fake a result.** State what was run and the real number. If a run failed or was skipped,
+  say so. This repo's value is that its negatives are real.
+- **Pre-register before running.** Every suite gets a spec under `docs/specs/` fixing the success
+  margin, statistical test, seed count, and splits *before* the decision run. Margins never move
+  after data exists; deviations become dated amendments in the spec, never silent edits.
+- **Verdicts come from the gate, not from judgment.** `conditional_operators/verdict.py` scores
+  results mechanically. A KILL is reported as a KILL.
+- **Equal-budget comparisons only.** The shared counter in `arms.py` enforces ≤1.20× FiLM FLOPs
+  and ≤1.05× the smallest unstructured baseline's parameters. An operator that wins by spending
+  more has not won.
+- **Test splits are read once**, after all selection on validation.
+- **Never hand-edit `docs/paper/tables/` or `docs/paper/figs/`.** They regenerate from
+  `results/*.json` via `gen_tables.py` and `figures.py`. Same for any number in the paper.
+- **Claim the combination, not the components.** The operator families (OFT/BOFT/HRA/LoRA), the
+  Lie parametrization (RoPE/GRAPE), and latent-consistency losses (TD-MPC) are prior art; see the
+  novelty sweep in `RESEARCH_LOG.md` for what must be cited and how claims are scoped.
 
-## Skills — use these automatically
+## Operational notes
 
-The `eng-skills` plugin is wired via `.claude/settings.json` (auto-installed + auto-updated; invoked
-namespaced like `/eng-skills:python-style`, and auto-invoked by description). Most relevant here:
+- **Environment:** `.venv` (Python 3.12 via `uv`); the system Python is 3.14 and has no torch.
+- **Suites:** `python -m conditional_operators.suites --list` maps paper labels → code → results.
+- **Sweeps:** fsync per row + resume on restart. **Do not switch git branches while a sweep is
+  running** — it replaces the log file under the writer's file descriptor (this happened once;
+  recovery via `/proc/<pid>/fd` is in the log).
+- **Power:** this box's PSU trips at sustained ~600 W. Throttle with `STAGE*_THROTTLE_MS=60` or
+  cap the GPU (`sudo nvidia-smi -pl 300`), and run sweeps sequentially.
 
-| Skill | Load it when… |
-|---|---|
-| **research-ideation** | Deciding/refining *what's worth doing* and whether it's novel — prior-art collision check (Scoop-Check) + Pursue/Refine/Kill. Already applied in `RESEARCH_NOTES.md`; re-run before adding a new sub-direction. |
-| **karpathy-guidelines** | Always, for any writing/reviewing/refactoring. Surgical changes, surface assumptions, verifiable success criteria. |
-| **principal-production-engineer** | Implementing/reviewing the operator layers, benchmark harness, training loops. Single entry point — simple design, explicit ownership, visible failure, honest verification. |
-| **strategic-engineering-planner** | *Before* a nontrivial build (the benchmark suite, a DiT integration). Produces a written roadmap first. |
-| **test-driven-verification** | Every operator implementation — derive tests from the math (identity-init `T(c)=I`, orthogonality `T^T T=I`, bounded spectrum, compositionality) first; red→green→refactor; capture re-runnable evidence. |
-| **auto-research** | The **Stage-1 sweep** — optimizing *one number* (compositional-OOD error) on a *fixed* synthetic harness, unattended. Append-only results log, keep-on-improvement / reset-on-regression. A near-perfect fit. |
-| **data-oriented-design** | Performance in the training/eval hot loops, batched operator application, vectorized synthetic-data generation. |
-| **python-style** | Writing/reviewing Python — flat control flow, enums over magic strings, fail-fast, no optional imports/redundancy. |
-| **elves** | Executing a multi-stage plan unattended/overnight (Stage 1 → 2 → 3 sweeps). Sprint-sized batches, tests + PR review. Requires `git` + `gh`. |
+## Skills
 
-**Default flow** for a nontrivial change: `research-ideation` (is this sub-direction novel/worth it?)
-→ `strategic-engineering-planner` (roadmap) → `principal-production-engineer` (implement, routing into
-`python-style` / `data-oriented-design`), with `test-driven-verification` gating and
-`karpathy-guidelines` throughout. For the Stage-1 metric sweep: **`auto-research`**.
-
-## Conventions
-
-- **Never fake a result.** State what was run and the real number; if a run failed or was skipped,
-  say so. Register success criteria before the experiment.
-- **Equal-parameter, equal-FLOP comparisons only** — any operator that beats FiLM by spending more
-  compute is not a fair win; hold budget constant.
-- Keep changes surgical and reversible; large checkpoints/datasets stay out of git.
+The `eng-skills` plugin is wired via `.claude/settings.json`. Most relevant here:
+`test-driven-verification` (operator invariants derive directly from the math),
+`principal-production-engineer` / `python-style` (implementation),
+`spec-driven-development` (new pre-registrations), `research-ideation` (before any new
+direction), `karpathy-guidelines` (throughout). The `paper-writing` skill is installed locally
+under `.claude/skills/` but is **not tracked here** — it is third-party (MIT, SNL-UCSB) and lives
+in the `claude-skills` marketplace repo.
