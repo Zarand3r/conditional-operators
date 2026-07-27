@@ -1,4 +1,4 @@
-"""Verdict decision-logic tests — one per acceptance criterion (STAGE1_TEST_PLAN.md)."""
+"""Verdict decision-logic tests — one per acceptance criterion in docs/specs/STAGE1_SPEC.md."""
 
 import unittest
 

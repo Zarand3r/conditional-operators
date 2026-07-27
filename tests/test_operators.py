@@ -1,6 +1,6 @@
 """Operator invariant property tests (INV-1..4) + AC-4 structural budget checks.
 
-Requires the torch stack (see .venv). These are the property layer of STAGE1_TEST_PLAN.md.
+Requires the torch stack (see .venv). Invariants are derived from the operator math.
 """
 
 import unittest

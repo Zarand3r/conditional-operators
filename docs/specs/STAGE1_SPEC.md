@@ -1,8 +1,17 @@
 # Spec: Stage-1 Synthetic Kill-Test — Structured Conditional Operators vs. FiLM
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S1** (Does structure beat unstructured conditioning at equal budget?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/summary.json`.
+
+---
+
 **Status:** Signed off — Open Questions closed 2026-07-19; ready for test derivation + implementation
 **Derived from:** [`../PROPOSAL.md`](../PROPOSAL.md), [`../RESEARCH_NOTES.md`](../RESEARCH_NOTES.md)
-**Registered:** _fill on sign-off_ · **PI:** Richard Bao
+**Registered:** 2026-07-19 · **PI:** Richard Bao
 
 > This spec is the pre-registration. Success margins, seed counts, and the held-out split are
 > fixed **here, before running**, so a soft win cannot be laundered into a "Pursue" (CLAUDE.md

@@ -1,5 +1,14 @@
 # Spec: Stage-9 — Guidance as Group Power (follow-up, pre-registered)
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S8** (Does condition powering beat classifier-free guidance?) → **confirmed**: every pre-registered criterion passed. Numbers in `results/stage9_summary.json`.
+
+---
+
 **Status:** Pre-registered 2026-07-23 (margins fixed now, before any run). Implementation and
 launch follow Stage-8b's verdict; the only 8b-dependence is the arm-selection rule below, which
 is itself fixed here.

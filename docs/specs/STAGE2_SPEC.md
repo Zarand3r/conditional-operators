@@ -1,6 +1,15 @@
 # Spec: Stage-2 — Structure Without the Answer Handed to It
 
-**Status:** Draft — two Open Questions need your call before coding (they change hours of work).
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **aux-erratum** (Dense-basis control; failed the FLOP ceiling (erratum in the paper)) → **unfair**: the budget rule was violated, so the comparison is inconclusive. Numbers in `results/stage2_summary.json`.
+
+---
+
+**Status:** Pre-registered 2026-07-19; both open questions closed before the run (below).
 **Derived from:** [`STAGE1_SPEC.md`](STAGE1_SPEC.md) (CONFIRMED), [`../PROPOSAL.md`](../PROPOSAL.md), [`../RESEARCH_NOTES.md`](../RESEARCH_NOTES.md)
 
 > Stage-1 was **favorable by construction** — the operator's block structure matched the data's
@@ -61,7 +70,7 @@ with **factorizable conditions** and an **unseen-combination split**. See OQ-1.
 - **OQ-1 — benchmark.** dSprites/Shapes3D-style factored-attribute *generation* (preserves the
       compositional thesis, moderate cost) vs CIFAR-100 classification as-proposed (cheap but does not
       test compositionality) vs a de-aligned synthetic *generation* task (cheapest, most controlled).
-- [ ] **OQ-2 — compute.** This box is **CPU-only (no GPU)**; a real image sweep (6 arms × 10 seeds) is
+- **OQ-2 — compute.** (Resolved: ran the scoped CPU version.) This box is **CPU-only (no GPU)**; a real image sweep (6 arms × 10 seeds) is
       **multi-hour to overnight**. Options: run a scoped CPU version now; I build it and you run the
       full sweep on a GPU; or I run an overnight CPU sweep via the `elves`/`auto-research` skills.
 

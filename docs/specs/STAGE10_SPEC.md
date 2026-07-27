@@ -1,5 +1,14 @@
 # Spec: Stage-10 — Consistency-Trained Latents (the Stage-7 redemption experiment)
 
+## Outcome (added after the run)
+
+> This section was written after the experiment. Everything below it is the
+> pre-registration, unchanged from before the decision run.
+
+- **S6'** (Does a latent-consistency loss unlock rollout guarantees?) → **kill**: at least one criterion failed, so the hypothesis is rejected for this setting. Numbers in `results/stage10_summary.json`.
+
+---
+
 **Status:** Pre-registered 2026-07-23, before any run. Queued after Stage-8b.
 
 ## Hypothesis
