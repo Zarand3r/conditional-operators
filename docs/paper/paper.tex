@@ -287,9 +287,12 @@ loss; S7 Complex FiLM; S8 guidance.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figs/f1_ood_all_stages.pdf}
-\caption{Error on unseen condition combinations by conditioner (log scale; blue = ours, orange
-= MLP-head ablation), across the five transformation suites.}
+\includegraphics[width=\textwidth]{figs/f1_compositional_gap.pdf}
+\caption{How much worse each conditioner gets when conditions are combined in ways it never
+saw, as a multiple of its own error on trained combinations. A value of 1.0, the dashed line,
+would mean no degradation at all. CGA sits closest to it on all three image suites, and the two
+most expressive conditioners sit furthest: their capacity goes into memorising the training
+combinations rather than generalising past them.}
 \label{fig:main}
 \end{figure}
 
@@ -301,11 +304,12 @@ loss; S7 Complex FiLM; S8 guidance.}
 \begin{minipage}[t]{0.42\textwidth}
 \includegraphics[width=\textwidth]{figs/f6_guidance_distortion.pdf}
 \end{minipage}
-\caption{\textbf{Left (S6/S6$'$):} rollout error versus horizon, without and with the
-latent-consistency loss; with it, the isometric operator stays flat where every baseline
-drifts. \textbf{Right (S8):} generation error versus guidance strength; CFG's linear
-extrapolation distorts $50.7\times$ from strength 1 to 8, condition powering $23.7\times$,
-staying $2$--$5\times$ lower throughout.}
+\caption{\textbf{Left (S6, S6$'$):} error against rollout length, trained only to length 3.
+Without a consistency loss every conditioner drifts at much the same rate. Adding one separates
+them: the isometric operator flattens out while the baselines keep climbing. \textbf{Right
+(S8):} what turning guidance up does to the generated image. Both distort, since the target here
+is deterministic and there is no distribution to sharpen, but classifier-free guidance distorts
+twice as fast.}
 \label{fig:horizon}
 \end{figure}
 
@@ -376,15 +380,27 @@ stated.
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.5\textwidth}
-\includegraphics[width=\textwidth]{figs/f2_length_extrapolation.pdf}
+\includegraphics[width=\textwidth]{figs/f2_synthetic_error.pdf}
+\caption{On the synthetic suites, where the conditions form a group exactly, the gap is not a
+matter of percentages. Each dot is one conditioner's error on unseen combinations; note the log
+axis. Hiding the conditions behind a random basis (right) costs CGA nothing, because it learns
+the basis, while the gap to the next best arm grows to five orders of magnitude.}
+\label{fig:synthetic}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.52\textwidth}
+\includegraphics[width=\textwidth]{figs/f3_length_extrapolation.pdf}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.4\textwidth}
+\begin{minipage}[t]{0.38\textwidth}
 \includegraphics[width=\textwidth]{figs/f4_angle_recovery.pdf}
 \end{minipage}
-\caption{\textbf{Left (S2):} extrapolation to composition length 3, never trained; ours is
-flat at $10^{-8}$ and every baseline degrades. \textbf{Right (S1):} learned singleton angles
-recover the true generators to $2\times10^{-4}$ rad.}
+\caption{\textbf{Left (S2):} what happens when a test combination is longer than anything in
+training. Every baseline gets worse; CGA does not move, because composition is a property of its
+parametrization rather than something it had to learn. \textbf{Right (S1):} the angles the model
+learned for each condition, against the true generators of the data. Reading the weights tells
+you which plane a condition rotates, and how fast.}
 \label{fig:mech}
 \end{figure}
 
