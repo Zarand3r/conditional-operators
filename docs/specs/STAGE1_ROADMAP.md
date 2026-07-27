@@ -14,7 +14,7 @@ Architecture for the harness that produces the `ArmResult` rows consumed by
 3. **Invariants (INV-1…4)** — `tests/test_operators.py`: property tests on the proposed operator.
 4. **Train/eval + sweep (R3/R4/R9)** — `train.py`, `sweep.py`: identical optimizer/schedule/seeds;
    OOD-VAL for selection, single OOD-TEST read; append-only JSONL log → `verdict.decide()`.
-5. **Run + report** — `RESULTS.md`: real numbers + verdict.
+5. **Run + report** — `results/summary.json`: real numbers + verdict.
 
 ## The two rigor-critical decisions
 

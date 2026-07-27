@@ -54,7 +54,7 @@ with **factorizable conditions** and an **unseen-combination split**. See OQ-1.
       `M(c)=B·R(c)·Bᵀ` (`B` fixed random orthonormal), so the operator is not handed the structure.
       Cheapest, most controlled attack on the Stage-1 caveat. (dSprites/CIFAR deferred to Stage 3+.)
 - [x] **OQ-2 — compute.** Run the scoped CPU version now (minutes on 32 cores). Implemented in
-      `conditional_operators/stage2.py`; results in [`../RESULTS_STAGE2.md`](../RESULTS_STAGE2.md).
+      `conditional_operators/stage2.py`; results in `results/stage2_summary.json`.
 
 ## Original open questions (for the record)
 

@@ -17,15 +17,17 @@ than a behavior learned from data. FiLM and RoPE are special cases of the same f
 
 ## Results at a glance
 
-Eleven pre-registered experiments; success criteria, statistical tests, and data splits were
-committed to version control **before** each run, and every verdict is reported as the gate
-scored it, including the negatives.
+Eleven experiments. For each one, the success criteria, the statistical test, and the data
+splits were committed to version control **before** the run, and the result is reported however
+it scored: **confirmed** means every criterion passed, **kill** means at least one failed. Four
+came back negative, including one that refuted our own prediction. Those are reported here as
+prominently as the wins, because they are what tell you when to use the method.
 
 | | Question | Verdict |
 |---|---|---|
 | **S1–S3b** | Does structure beat unstructured conditioning on unseen condition combinations, at equal budget? | **confirmed** (up to 5 orders of magnitude; 42.9–53.8% on real images) |
-| **S4** | Does it hold on a second image dataset? | **kill** — best OOD numbers, but a 1.46× in-distribution fit penalty trips our no-regression gate |
-| **S5** | Can rotation conditioning specify image *content*? | **kill** — 7× worse; a rotation moves information and cannot add it |
+| **S4** | Does it hold on a second image dataset? | **kill** — best error on unseen combinations, but it fits the *training* combinations 1.46× worse than the best baseline, which our pre-registered criteria forbid |
+| **S5** | Can rotation conditioning specify image *content*? | **kill** — 7× worse than FiLM; a rotation moves information around and cannot add any |
 | **S6 / S6′** | Does exact composition prevent world-model rollout drift? | **kill**, then the mechanism: with a latent-consistency loss, rollout error goes *flat* 7× beyond the training horizon |
 | **S7** | **Complex FiLM**: magnitude for content, phase for composition | **confirmed** — beats FiLM 36% on unseen combinations, matches it on content (0.97×), at FiLM cost |
 | **S8** | Guidance by powering the condition instead of classifier-free extrapolation | **confirmed** — 2–5× less distortion at every strength, with no second forward pass |
