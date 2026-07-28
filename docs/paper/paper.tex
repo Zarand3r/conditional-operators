@@ -42,12 +42,15 @@ separation ($p{=}9.1{\times}10^{-5}$, $N{=}10$) and zero-shot extrapolation to c
 longer than any combination seen in training. Swapping its linear map for an MLP raises error
 by up to $4.3{\times}10^{4}\times$; the most expressive baselines generalize worst. Three registered gates
 returned negatives that bound the method: a fit penalty on rich scenes, a content-conditioning
-failure (rotations move information and cannot add it), and multi-step rollouts, where every
-conditioner compounds error equally unless a latent-consistency loss is added. The negatives specify the successor. \textbf{Complex FiLM}, magnitude for content
-and phase for composition, beats FiLM by 36\% on unseen combinations and matches it on content
-($0.97\times$) under two further pre-registered gates. The same structure yields guidance
-without classifier-free guidance (CFG) and its second forward pass: raising the operator to a
-power distorts $2$--$5\times$ less than CFG at every strength. One operator, both roles, FiLM cost.
+failure (rotations move information and cannot add it), multi-step rollouts, where every
+conditioner compounds error equally unless a latent-consistency loss is added, and --- the sharpest
+bound --- a frozen representation, where the same task CGA wins by $8\times$ when the
+representation is co-trained is lost by $1.6\times$ when it is not. The negatives specify the
+successor. \textbf{Complex FiLM}, magnitude for content and phase for composition, beats FiLM by
+36\% on unseen combinations and matches it on content ($0.97\times$) under two further
+pre-registered gates. The same structure yields a guidance knob needing no second forward pass,
+which distorts $2$--$5\times$ less than classifier-free guidance on a deterministic target,
+though not on a multimodal one. One operator, both roles, FiLM cost.
 \end{abstract}
 
 \section{Introduction}
@@ -343,6 +346,23 @@ the same rate; each step adds a small mismatch between the predicted and
 the true latent. A contracting operator shrinks past mismatches; an isometry preserves them, so
 they accumulate.
 
+\paragraph{(5b) The advantage requires a co-trained representation.} The sharpest bound comes
+from a controlled pair. The same dataset, the same held-out attribute pairs, the same arms and
+the same budget counter were run twice, differing in one variable: whether the representation is
+trained alongside the operator. Co-trained, CGA's error on unseen combinations is $87.5\%$ below
+the hypernetwork's. Frozen --- a plain autoencoder trained once for reconstruction, then shared
+unchanged by every arm, with scoring in its latent space so the decoder cannot flatter anyone ---
+CGA is $60.1\%$ \emph{worse} than that hypernetwork, while using $48\times$ fewer conditioning
+parameters, and fits $2.43\times$ worse in distribution against a $1.10\times$ ceiling. Complex
+FiLM fails there too, so this is not the rotation channel alone.
+
+The reading is that the operator's advantage is not a property of the operator. It requires the
+representation to be shaped by that operator during training. Bolted onto a frozen
+general-purpose encoder --- the pattern latent-space editing actually deploys --- it loses. CGA
+still has the smallest compositional gap of any arm that fits ($1.39\times$ against the
+hypernetwork's $2.11\times$): it degrades most gracefully and still loses, because grace does not
+recover a fit handicap.
+
 \paragraph{(6) A consistency loss completes the rollout recipe.} Training with
 $\lambda\|\T(a)z_s-z_{s+1}\|^2$, applied to every arm equally, inverts the picture: the
 rotation operator's horizon-20 error goes flat at $0.0039$ (growth $2.0\times$) against the
@@ -428,10 +448,24 @@ models, and a single conditioning site; nothing here is validated at production 
 natural deployment experiment is the adaLN site of a text-conditioned diffusion transformer.
 Learned latents do not support exact group action, so the advantage on real images is the
 $1.8$--$8\times$ error reduction quoted above, not the $10^5\times$ of the synthetic suites. 3D~Shapes shows orthogonality can cost in-distribution fit
-on rich scenes. The guidance benchmark measures distortion only, and cannot measure the
-distribution-sharpening benefit CFG provides when the target is multimodal. Conditions far from any
-group action, such as open-ended text, remain untested; the learned-condition-geometry
-extension is future work.
+on rich scenes. Conditions far from any group action, such as open-ended text, remain untested;
+the learned-condition-geometry extension is future work.
+
+\paragraph{The guidance result does not transfer to a multimodal target.} Our guidance benchmark
+measures distortion against a deterministic target, so it cannot see the distribution-sharpening
+CFG exists to provide. We built a second harness to check: condition on shape, scale and
+orientation and leave position free, making $p(x\mid c)$ uniform over $64$ cells exactly, so
+fidelity and diversity are separately measurable against a target known in closed form. An
+unregistered single-seed pilot on it --- no gate, no verdict claimed --- points against the
+method on all three axes we could measure. At matched fidelity CFG retains \emph{more} diversity
+(coverage $0.946$ at fidelity $0.919$, against ours $0.920$ at a better $0.828$), so CFG dominates
+the frontier. The strength knob is not monotone: fidelity runs $0.139$, $1.979$, $1.300$, $0.828$,
+$0.733$, $0.800$ as $\alpha$ goes $1$ to $8$, which is the rotation channel wrapping, since
+$\T(c)^\alpha$ turns by $\alpha\theta$ and turning further is not the same as conditioning harder.
+And the base model fits $33\%$ worse before any guidance is applied. We therefore claim the
+guidance result only as stated --- less distortion at equal cost on a deterministic target --- and
+not as a general replacement for CFG. Establishing that would need the frontier comparison to come
+out the other way, and in our pilot it does not.
 
 \paragraph{Reproducibility statement.} We release the code, the pre-registrations, and the raw
 logs. Every suite has a specification committed before its decision run; a registry maps each
