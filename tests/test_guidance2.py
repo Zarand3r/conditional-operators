@@ -102,6 +102,25 @@ class TestMetrics(unittest.TestCase):
         self.assertAlmostEqual(s["coverage"], 1.0 / G.N_FREE, places=5)
         self.assertAlmostEqual(s["entropy"], 0.0, places=5)
 
+    def test_a_perfect_sampler_scores_as_perfect_relative_to_ideal(self):
+        """The bug this guards against: with K=N=64 a flawless uniform sampler covers only 63.5%
+        of the cells, so measuring collapse against 1.0 leaves almost no headroom and a saturated
+        number gets compared against a threshold. Metrics are reported against `ideal_stats`."""
+        for k in (64, 512):
+            ideal = G.ideal_stats(k, G.N_FREE)
+            self.assertAlmostEqual(ideal["coverage"], 1 - (1 - 1 / G.N_FREE) ** k, places=2)
+            g = torch.Generator().manual_seed(11)
+            which = torch.randint(G.N_FREE, (k,), generator=g)
+            samples = self.bank[which]
+            s = G.score(samples, self.bank)
+            self.assertAlmostEqual(s["coverage"] / ideal["coverage"], 1.0, delta=0.1)
+
+    def test_a_collapsed_sampler_scores_far_below_ideal(self):
+        for k in (64, 512):
+            ideal = G.ideal_stats(k, G.N_FREE)
+            s = G.score(self.bank[0:1].repeat(k, 1, 1, 1), self.bank)
+            self.assertLess(s["coverage"] / ideal["coverage"], 0.1)
+
     def test_the_two_axes_are_independent(self):
         """Fidelity measures distance to the support, diversity measures spread across it."""
         noisy = self.bank + torch.randn_like(self.bank) * 0.5

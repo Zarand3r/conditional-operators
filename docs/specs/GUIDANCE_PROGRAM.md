@@ -1,5 +1,50 @@
 # Review: what has to be run for the guidance hypothesis
 
+## Status: stopped at E0 (2026-07-27)
+
+> E0 is a screen, not a decision run — one seed, no test split, no verdict earned or claimed. Its
+> job is to stop the line cheaply, and it did. Numbers in `results/guidance2_e0.json`.
+
+**The screen fails on its own gate.** CFG's coverage falls only to 0.90× its baseline at w=8,
+against a gate of 0.70×. On this task CFG barely trades diversity for adherence, so there is no
+contrast for group power to win.
+
+**Worse, the preliminary signal points against the hypothesis rather than merely being silent.**
+The comparison that matters is at matched fidelity, not matched strength:
+
+| | fidelity | coverage (of ideal) |
+|---|---|---|
+| CFG, w=5 | 0.919 | **0.946** |
+| group power, α=3 | 0.827 | 0.920 |
+
+Group power sits at *better* fidelity and still keeps *less* diversity. CFG dominates the
+fidelity/diversity frontier at every setting measured. H predicted the opposite.
+
+Three separate problems, any one of which would be disqualifying:
+
+1. **The frontier is the wrong way round.** Group power gives up more diversity per unit of
+   adherence than CFG does.
+2. **The knob is not monotone.** Fidelity runs 0.139 → 1.979 → 1.300 → 0.827 → 0.733 → 0.800 as α
+   goes 1 → 8. It gets 14× worse, then partly recovers. This is the rotation channel wrapping:
+   `T(c)^α` turns by αθ, and turning further is not the same as conditioning harder. A strength
+   control that is worse at α=1.5 than at α=5 cannot be shipped.
+3. **The base model fits 33% worse** before any guidance is applied (0.139 vs 0.104 at strength 1)
+   — the same fit penalty that killed stage 5 and `latent-edit`, now in the diffusion setting.
+
+**A measurement error found and fixed mid-screen.** The first run's diversity metric was saturated
+by sample size: drawing K=64 samples over N=64 cells touches only `1-(63/64)^64 = 63.5%` of them
+even when the sampler is flawless, so a baseline reading of 0.619 was already at the ceiling with no
+headroom to show collapse. Metrics are now reported against `ideal_stats`, a reference sampler at
+the same K, and a test pins it. The corrected numbers point the same way as the biased ones, more
+clearly — so the conclusion does not rest on the error.
+
+**What this means for the program.** E1 does not run: its instrument cannot show the effect and its
+hypothesis is contradicted by the pilot. E2 is moot without E1. E4 was already deferred. **E3 is
+untouched** — it tests a different proposition (constant-cost multi-condition guidance, a scaling
+claim) which none of this evidence bears on, and it remains the strongest live idea.
+
+
+
 **Written 2026-07-27, before any code for it exists.** This is a scoping document, not a
 pre-registration. Each experiment that survives review gets its own spec with margins fixed before
 its decision run, as always.

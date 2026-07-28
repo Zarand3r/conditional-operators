@@ -193,8 +193,30 @@ def score(samples: torch.Tensor, bank: torch.Tensor) -> dict:
     }
 
 
+def ideal_stats(k: int, n: int, seed: int = 4242, reps: int = 400) -> dict:
+    """What a perfect sampler scores at this sample size.
+
+    Coverage, entropy and total variation are all biased by finite K: drawing K samples uniformly
+    over N cells touches only 1-(1-1/N)^K of them, so with K=N=64 even a flawless sampler covers
+    63.5%. Measuring collapse against 1.0 therefore leaves almost no headroom, which is how E0's
+    first run came to compare a saturated number against a threshold. Every diversity metric is
+    reported relative to this reference instead.
+    """
+    g = torch.Generator().manual_seed(seed)
+    cov, ent, tv = [], [], []
+    for _ in range(reps):
+        which = torch.randint(n, (k,), generator=g)
+        counts = torch.bincount(which, minlength=n).float()
+        p = counts / counts.sum()
+        nz = p[p > 0]
+        cov.append(float((counts > 0).sum()) / min(k, n))
+        ent.append(float(-(nz * nz.log()).sum() / math.log(n)))
+        tv.append(float(0.5 * (p - 1.0 / n).abs().sum()))
+    return {"coverage": _mean(cov), "entropy": _mean(ent), "tv_from_uniform": _mean(tv)}
+
+
 @torch.no_grad()
-def evaluate(model, data, arm, strength, *, n_cond=16, k=64, steps=None, seed=777):
+def evaluate(model, data, arm, strength, *, n_cond=8, k=512, steps=None, seed=777):
     """Average the metrics over a fixed set of conditions, identical across arms and strengths."""
     g = torch.Generator().manual_seed(seed)
     pick = torch.randperm(len(CONDITIONS), generator=g)[:n_cond].tolist()
@@ -212,6 +234,10 @@ def evaluate(model, data, arm, strength, *, n_cond=16, k=64, steps=None, seed=77
         acc.append(score(s, bank))
     out = {k2: _mean([a[k2] for a in acc]) for k2 in acc[0]}
     out["nfe_per_sample"] = nfe_total / len(pick)
+    ideal = ideal_stats(k, N_FREE)
+    out["coverage_vs_ideal"] = out["coverage"] / ideal["coverage"]
+    out["entropy_vs_ideal"] = out["entropy"] / ideal["entropy"]
+    out["ideal"] = ideal
     return out
 
 
@@ -272,15 +298,16 @@ def screen(steps=15000, seed=0):
         t0 = time.time()
         m = train_one(arm, seed, data, steps)
         print(f"  trained {arm} [{(time.time()-t0)/60:.0f} min]", flush=True)
-        rows[arm] = {s: evaluate(m, data, arm, s) for s in STRENGTHS}
+        rows[arm] = {}
         for s in STRENGTHS:
-            r = rows[arm][s]
+            r = rows[arm][s] = evaluate(m, data, arm, s)
             print(f"  {arm:9} strength={s:<4} fidelity={r['fidelity']:.5f} "
-                  f"coverage={r['coverage']:.3f} entropy={r['entropy']:.3f} "
-                  f"nfe={r['nfe_per_sample']:.0f}", flush=True)
+                  f"coverage={r['coverage_vs_ideal']:.3f} entropy={r['entropy_vs_ideal']:.3f} "
+                  f"(of ideal)  nfe={r['nfe_per_sample']:.0f}", flush=True)
 
     cfg = rows["film_cfg"]
-    ratio = cfg[8.0]["coverage"] / cfg[1.0]["coverage"] if cfg[1.0]["coverage"] else float("nan")
+    base = cfg[1.0]["coverage_vs_ideal"]
+    ratio = cfg[8.0]["coverage_vs_ideal"] / base if base else float("nan")
     ok = ratio <= MAX_COVERAGE_RATIO
     print(f"\nE0 instrument check: CFG coverage {cfg[1.0]['coverage']:.3f} -> "
           f"{cfg[8.0]['coverage']:.3f} (ratio {ratio:.2f}, need <= {MAX_COVERAGE_RATIO})")

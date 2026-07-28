@@ -1,0 +1,182 @@
+{
+  "experiment": "E0-instrument-check",
+  "steps": 15000,
+  "seed": 0,
+  "coverage_ratio": 0.898238747553816,
+  "threshold": 0.7,
+  "usable": false,
+  "rows": {
+    "film_cfg": {
+      "1.0": {
+        "fidelity": 0.10428638150915504,
+        "coverage": 0.998046875,
+        "entropy": 0.9749406203627586,
+        "tv_from_uniform": 0.177734375,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.9983198530848278,
+        "entropy_vs_ideal": 0.9899169795952174,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "1.5": {
+        "fidelity": 0.11649781838059425,
+        "coverage": 0.998046875,
+        "entropy": 0.9747841581702232,
+        "tv_from_uniform": 0.1787109375,
+        "nfe_per_sample": 100.0,
+        "coverage_vs_ideal": 0.9983198530848278,
+        "entropy_vs_ideal": 0.989758113939381,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "2.0": {
+        "fidelity": 0.15156126115471125,
+        "coverage": 1.0,
+        "entropy": 0.972210168838501,
+        "tv_from_uniform": 0.18798828125,
+        "nfe_per_sample": 100.0,
+        "coverage_vs_ideal": 1.0002735122885165,
+        "entropy_vs_ideal": 0.9871445847750913,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "3.0": {
+        "fidelity": 0.31682732328772545,
+        "coverage": 1.0,
+        "entropy": 0.9668749943375587,
+        "tv_from_uniform": 0.20458984375,
+        "nfe_per_sample": 100.0,
+        "coverage_vs_ideal": 1.0002735122885165,
+        "entropy_vs_ideal": 0.9817274550368503,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "5.0": {
+        "fidelity": 0.9185758680105209,
+        "coverage": 0.9453125,
+        "entropy": 0.9033241420984268,
+        "tv_from_uniform": 0.33203125,
+        "nfe_per_sample": 100.0,
+        "coverage_vs_ideal": 0.9455710545852382,
+        "entropy_vs_ideal": 0.9172003788382448,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "8.0": {
+        "fidelity": 1.4256377518177032,
+        "coverage": 0.896484375,
+        "entropy": 0.8560331016778946,
+        "tv_from_uniform": 0.42041015625,
+        "nfe_per_sample": 100.0,
+        "coverage_vs_ideal": 0.8967295744930254,
+        "entropy_vs_ideal": 0.8691828863702524,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      }
+    },
+    "psi_gp": {
+      "1.0": {
+        "fidelity": 0.13857954926788807,
+        "coverage": 0.994140625,
+        "entropy": 0.965508833527565,
+        "tv_from_uniform": 0.2119140625,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.9944125346774508,
+        "entropy_vs_ideal": 0.9803403082153678,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "1.5": {
+        "fidelity": 1.9789978861808777,
+        "coverage": 0.984375,
+        "entropy": 0.9521084055304527,
+        "tv_from_uniform": 0.239013671875,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.9846442386590083,
+        "entropy_vs_ideal": 0.9667340321703213,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "2.0": {
+        "fidelity": 1.300352081656456,
+        "coverage": 0.98046875,
+        "entropy": 0.9567593410611153,
+        "tv_from_uniform": 0.228515625,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.9807369202516313,
+        "entropy_vs_ideal": 0.9714564121354646,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "3.0": {
+        "fidelity": 0.8275002762675285,
+        "coverage": 0.919921875,
+        "entropy": 0.9059958234429359,
+        "tv_from_uniform": 0.3505859375,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.9201734849372876,
+        "entropy_vs_ideal": 0.9199131006920263,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "5.0": {
+        "fidelity": 0.7333778440952301,
+        "coverage": 0.888671875,
+        "entropy": 0.868820920586586,
+        "tv_from_uniform": 0.416259765625,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.8889149376782713,
+        "entropy_vs_ideal": 0.8821671428524495,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      },
+      "8.0": {
+        "fidelity": 0.8000152111053467,
+        "coverage": 0.82421875,
+        "entropy": 0.8189765885472298,
+        "tv_from_uniform": 0.488037109375,
+        "nfe_per_sample": 50.0,
+        "coverage_vs_ideal": 0.8244441839565506,
+        "entropy_vs_ideal": 0.8315571368769251,
+        "ideal": {
+          "coverage": 0.9997265625,
+          "entropy": 0.9848710957169533,
+          "tv_from_uniform": 0.1384619140625
+        }
+      }
+    }
+  }
+}
