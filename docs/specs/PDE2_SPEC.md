@@ -1,5 +1,44 @@
 # Pre-registration: does relaxing the isometry fix the fit criterion?
 
+## Outcome: KILL (2026-07-29)
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/pde_conj_summary.json`.
+
+**AC-5 failed by 0.065 percentage points.** Fit ratio $1.1007\times$ against a $1.10\times$
+ceiling. Every other criterion passed, AC-2 by $+58.6\%$ at $p=9.1\times10^{-5}$ and
+$\delta=-1.00$.
+
+| arm | in-dist | fit ratio | test |
+|---|---|---|---|
+| `proposed` (from `pde-params`) | 0.003662 | $1.1179\times$ | 0.01521 |
+| **`proposed_conj`** (gated here) | 0.003606 | **$1.1007\times$** | 0.01482 |
+| `proposed_scaled_conj` (reported) | 0.003781 | $1.1542\times$ | **0.01361** |
+| `dynamic_linear` (best unstructured) | 0.003276 | — | 0.03580 |
+
+**The validation result did not survive, and the gap is the point.** Validation over 5 seeds put
+`proposed_conj` at $0.962\times$ — comfortably inside the ceiling and apparently a clean fix. Over
+10 seeds on held-out data it is $1.1007\times$. The improvement over `proposed` is real but tiny
+($1.1179 \to 1.1007$), nothing like what validation advertised.
+
+The spec anticipated exactly this and said so before the run: *"seed noise on this quantity is
+comparable to the margin being tested."* It was. Had the relaxations been selected on the test
+split, this would have been recorded as a $0.96\times$ fit and a fix; selecting on validation and
+confirming on test caught it. That is the whole reason the exploratory pass refused to store a test
+number.
+
+**What it means for the diagnosis.** The claim that the fit penalty is an artifact of the
+orthogonal basis is **not supported**. Conjugating the basis buys about 1.5% of fit, not the 14%
+validation suggested. Two independently registered runs now fail the same criterion on this task,
+and the penalty has appeared in all five settings measured. It is a real cost of the operator, not
+a design accident, and the relaxations do not remove it.
+
+One thing did move: `proposed_scaled_conj` posts the best held-out error of any arm in either run
+(0.01361, $11\%$ below `proposed`) while fitting *worse* ($1.1542\times$). Freedom in the magnitude
+channel appears to buy compositional accuracy at the cost of fit, which is the opposite of the
+trade the relaxations were built to make. Reported, not gated, and not a claim.
+
+
 **Status:** pre-registered 2026-07-29, before the confirmatory run and before its test split is read.
 **Name:** `pde-conj` · **Hardware:** one RTX PRO 6000.
 

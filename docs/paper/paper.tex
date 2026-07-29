@@ -346,6 +346,24 @@ the same rate; each step adds a small mismatch between the predicted and
 the true latent. A contracting operator shrinks past mismatches; an isometry preserves them, so
 they accumulate.
 
+\paragraph{(5a) It transfers to physics, and the fit criterion is what stops it.} All the evidence
+above comes from benchmarks built for studying disentanglement. On a 2D Navier-Stokes surrogate
+conditioned on physical parameters --- viscosity, drag, forcing, background advection, with the
+initial vorticity field supplying the content and the parameters only modulating the evolution ---
+CGA's error on unseen parameter pairs is $57.5\%$ below the best unstructured arm at
+$\delta=-1.00$: every seed beat every seed, using $7\times$ fewer conditioning parameters and
+$1.11\times$ FiLM's cost. It is nonetheless a KILL, on in-distribution fit at $1.118\times$ against
+a $1.10\times$ ceiling.
+
+The fit penalty shrinks as the task moves away from asking the operator to supply content
+($1.46\times$ on 3D~Shapes, $2.43\times$ on a frozen latent, $1.118\times$ here), but it does not
+vanish. Two relaxations that keep exact composition were pre-registered against it: giving the
+algebra a scaling generator, and conjugating the orthogonal basis by a learned diagonal so the
+rotation acts in a stretched metric. On validation the conjugated operator appeared to remove the
+penalty entirely ($0.962\times$); on the held-out split over ten seeds it reached $1.1007\times$
+and failed the same criterion by $0.065$ percentage points. The penalty is a property of the
+operator, not of the basis.
+
 \paragraph{(5b) The advantage requires a co-trained representation.} The sharpest bound comes
 from a controlled pair. The same dataset, the same held-out attribute pairs, the same arms and
 the same budget counter were run twice, differing in one variable: whether the representation is

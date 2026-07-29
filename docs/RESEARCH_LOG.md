@@ -26,9 +26,10 @@ passed. **Kill** means at least one failed, so the hypothesis is rejected for th
 | latent-edit | Does it still win when the representation is frozen instead of co-trained? | kill | No. Loses to a hypernet by 60% with 48x fewer parameters, and fits 2.43x worse. Same data and splits as 3D Shapes, where co-training made it 8x better — so the advantage needs the representation, not just the task |
 | guidance-diversity (E0) | Does group power hold sample diversity where CFG collapses it? | screen failed | No, and the pilot points the other way: at matched fidelity CFG keeps more diversity, the knob is non-monotone (14x worse at a=1.5 than at a=1, then recovers), and the base model fits 33% worse. One seed, no test split read, no verdict claimed |
 | pde-params | Does it hold on a real physics task, conditioned on physical parameters? | kill | AC-5 only, by 1.8 points (fit 1.118x vs a 1.10x ceiling). Composition passed hugely: 57.5% below the best unstructured arm, delta=-1.00 (every seed beat every seed), at 1.11x FiLM cost with 7x fewer parameters. Smallest fit penalty in the program |
+| pde-conj | Does relaxing the isometry fix the fit criterion? | kill | AC-5 again, by 0.065 points (1.1007x vs 1.10x). Validation over 5 seeds said 0.962x; 10 seeds on held-out data said 1.1007x. Conjugation buys ~1.5% of fit, not the 14% validation advertised, so the fit penalty is a real cost of the operator rather than an artifact of the orthogonal basis |
 | Guidance | Does powering the condition beat classifier-free guidance? | confirmed | Parity at strength 1; grows 23.7× to strength 8 against CFG's 50.7× (p=1.6e-4), with no second pass |
 
-Thirteen gates in total: eight passed, four failed, one was inconclusive on budget.
+Sixteen gates in total: eight passed, seven failed, one was inconclusive on budget.
 
 ## Things worth remembering
 
