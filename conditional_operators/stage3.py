@@ -70,9 +70,14 @@ class GSOrthogonal(nn.Module):
         eye = torch.eye(B_BLK, device=a.device, dtype=a.dtype).expand_as(a)
         return torch.linalg.solve(eye + a, eye - a)           # [L, N_BLK, b, b], orthogonal
 
-    def apply(self, x: torch.Tensor) -> torch.Tensor:
-        """x @ P (rows transformed by P^T ... i.e. this is the 'into learned basis' map)."""
-        q = self._blocks()
+    def apply(self, x: torch.Tensor, q: torch.Tensor | None = None) -> torch.Tensor:
+        """x @ P (rows transformed by P^T ... i.e. this is the 'into learned basis' map).
+
+        `q` lets a caller reuse one Cayley solve across the forward and inverse maps. The solve
+        is small in FLOPs but launch-bound, and it dominated wall-clock when the operator is
+        applied at every spatial location of an FNO. Passing it changes nothing numerically.
+        """
+        q = self._blocks() if q is None else q
         n = x.shape[0]
         for l in range(GS_LAYERS):
             x = torch.einsum("nbi,bij->nbj", x.view(n, N_BLK, B_BLK), q[l]).reshape(n, D)
@@ -80,9 +85,9 @@ class GSOrthogonal(nn.Module):
                 x = x[:, self.perms[l]]
         return x
 
-    def apply_t(self, x: torch.Tensor) -> torch.Tensor:
+    def apply_t(self, x: torch.Tensor, q: torch.Tensor | None = None) -> torch.Tensor:
         """x @ P^T (inverse map: reversed layers, inverse shuffles, transposed blocks)."""
-        q = self._blocks()
+        q = self._blocks() if q is None else q
         n = x.shape[0]
         for l in reversed(range(GS_LAYERS)):
             if l < GS_LAYERS - 1:

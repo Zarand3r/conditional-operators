@@ -249,7 +249,8 @@ class Lie4(CondArm):
         self.P = GSOrthogonal()
 
     def op(self, h, d, z):
-        return self.P.apply_t(_rotate(self.W(d), self.P.apply(z)))
+        q = self.P._blocks()                      # one solve, both directions
+        return self.P.apply_t(_rotate(self.W(d), self.P.apply(z, q)), q)
 
     def op_flops(self):
         return _fl(self.dc, DZ // 2) + 3 * DZ + 2 * GSOrthogonal.apply_flops()
@@ -263,7 +264,8 @@ class MLPGS4(Lie4):
         self.head = _zero_(nn.Linear(H, DZ // 2))
 
     def op(self, h, d, z):
-        return self.P.apply_t(_rotate(self.head(h), self.P.apply(z)))
+        q = self.P._blocks()
+        return self.P.apply_t(_rotate(self.head(h), self.P.apply(z, q)), q)
 
     def op_flops(self):
         return _fl(H, DZ // 2) + 3 * DZ + 2 * GSOrthogonal.apply_flops()
