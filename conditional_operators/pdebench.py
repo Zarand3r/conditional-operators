@@ -280,7 +280,80 @@ def summarize(runs, n_seeds, steps):
     return summary
 
 
+def run_split(gated="split_cga", reported=("hybrid_concat",), n_seeds=10, steps=8000, seed0=10):
+    """Confirmatory run for docs/specs/PDEBENCH2_SPEC.md. Reads the test split once.
+
+    Baselines come from `pdebench-reacdiff` under an identical protocol; re-running them would add
+    noise and nothing else.
+    """
+    from .verdict import Arm, ArmResult, decide
+    data = Data()
+    base = {}
+    for line in (RESULTS_DIR / "pdebench_log.jsonl").read_text().splitlines():
+        r = json.loads(line)
+        base.setdefault(r["arm"], []).append(r)
+
+    log_path = RESULTS_DIR / "pdebench_split_log.jsonl"
+    runs, done = {}, set()
+    if log_path.exists():
+        for line in log_path.read_text().splitlines():
+            r = json.loads(line)
+            runs.setdefault(r["arm"], []).append(r); done.add((r["arm"], r["seed"]))
+    with log_path.open("a") as log:
+        for arm in (gated,) + tuple(reported):
+            for seed in range(seed0, seed0 + n_seeds):
+                if (arm, seed) in done:
+                    continue
+                t0 = time.time()
+                r = train_one(arm, seed, data, steps)
+                runs.setdefault(arm, []).append(r)
+                log.write(json.dumps(r) + "\n"); log.flush(); os.fsync(log.fileno())
+                print(f"{arm:16} seed={seed} test={r['test']:.5f} indist={r['indist']:.5f} "
+                      f"[{time.time()-t0:.0f}s]", flush=True)
+
+    def arr(rows, k):
+        return tuple(r[k] for r in rows if not r["diverged"])
+
+    src = {a: base[a] for a in ("film", "concat_mlp", "cond_layernorm", "hypernet",
+                                "dynamic_linear")}
+    src["proposed"] = runs[gated]
+    results = {Arm(a): ArmResult(Arm(a), arr(rows, "test"), arr(rows, "indist"),
+                                 sum(1 for r in rows if r["diverged"]),
+                                 rows[0]["params"], rows[0]["flops"], 1)
+               for a, rows in src.items()}
+    gate = decide(results, n_required=n_seeds)
+    cm = _mean(arr(base["concat_mlp"], "test"))
+    summary = {
+        "experiment": "pdebench-split", "spec": "docs/specs/PDEBENCH2_SPEC.md",
+        "gated_arm": gated, "seed_range": [seed0, seed0 + n_seeds - 1],
+        "baselines_reused_from": "pdebench-reacdiff (seeds 0-9, identical protocol)",
+        "final_verdict": gate.verdict.value, "gate_criteria": gate.criteria,
+        "best_unstructured": gate.best_unstructured.value if gate.best_unstructured else None,
+        "margin_observed": gate.margin_observed, "p_value": gate.p_value,
+        "cliffs_delta": gate.cliffs_delta,
+        "margin_vs_concat_mlp": 1 - _mean(arr(runs[gated], "test")) / cm,
+        "per_arm": {a: {"indist": _mean(arr(rows, "indist")), "test": _mean(arr(rows, "test")),
+                        "test_std": _std(arr(rows, "test")), "params": rows[0]["params"],
+                        "flops": rows[0]["flops"]}
+                    for a, rows in (base | runs).items()},
+    }
+    (RESULTS_DIR / "pdebench_split_summary.json").write_text(json.dumps(summary, indent=2))
+    print("\n" + "=" * 64)
+    print(f"PDEBENCH-SPLIT VERDICT ({gated}): {summary['final_verdict'].upper()}")
+    for k, v in gate.criteria.items():
+        print(f"  {k}: {'pass' if v else 'FAIL'}")
+    print(f"  vs {summary['best_unstructured']}: {gate.margin_observed:+.1%} p={gate.p_value:.2g}")
+    print(f"  vs concat_mlp (the number that matters): {summary['margin_vs_concat_mlp']:+.1%}")
+    for a in (gated,) + tuple(reported):
+        v = summary["per_arm"][a]
+        print(f"  {a:16} indist {v['indist']:.5f}  test {v['test']:.5f}")
+    return summary
+
+
 def main():
+    if "--split" in sys.argv:
+        run_split(steps=int(os.environ.get("PDEBENCH_STEPS", "8000")))
+        return
     if "--run" in sys.argv:
         n = int(os.environ.get("PDEBENCH_SEEDS", "10"))
         steps = int(os.environ.get("PDEBENCH_STEPS", "8000"))

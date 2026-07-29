@@ -1,0 +1,38 @@
+{
+  "concat_mlp": {
+    "arm": "concat_mlp",
+    "seed": 0,
+    "diverged": false,
+    "params": 82816,
+    "flops": 164480,
+    "indist": 0.00021227539036772214,
+    "val": 0.029066496063023806
+  },
+  "hybrid_concat": {
+    "arm": "hybrid_concat",
+    "seed": 0,
+    "diverged": false,
+    "params": 93185,
+    "flops": 207786,
+    "indist": 0.0002317403714187094,
+    "val": 0.020117432344704866
+  },
+  "split_cga": {
+    "arm": "split_cga",
+    "seed": 0,
+    "diverged": false,
+    "params": 49984,
+    "flops": 99328,
+    "indist": 0.00030566260693376535,
+    "val": 0.022855198942124844
+  },
+  "proposed": {
+    "arm": "proposed",
+    "seed": 0,
+    "diverged": false,
+    "params": 43776,
+    "flops": 109354,
+    "indist": 0.00030636009341833415,
+    "val": 0.06773468991741538
+  }
+}
