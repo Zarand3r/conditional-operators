@@ -450,7 +450,8 @@ def run_improved(n_seeds=5, steps=8000):
     return out
 
 
-def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_seeds=10, steps=8000):
+def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_seeds=10,
+                steps=8000, seed0=0, tag="conj"):
     """Confirmatory run for docs/specs/PDE2_SPEC.md. Reads the test split exactly once.
 
     The six baseline arms are reused from `pde-params`: identical solver, fields, splits, backbone,
@@ -465,7 +466,7 @@ def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_see
         r = json.loads(line)
         base.setdefault(r["arm"], []).append(r)
 
-    log_path = RESULTS_DIR / "pde_confirm_log.jsonl"
+    log_path = RESULTS_DIR / f"pde_{tag}_log.jsonl"
     runs, done = {}, set()
     if log_path.exists():
         for line in log_path.read_text().splitlines():
@@ -473,7 +474,7 @@ def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_see
             runs.setdefault(r["arm"], []).append(r); done.add((r["arm"], r["seed"]))
     with log_path.open("a") as log:
         for arm in (gated,) + tuple(reported):
-            for seed in range(n_seeds):
+            for seed in range(seed0, seed0 + n_seeds):
                 if (arm, seed) in done:
                     continue
                 t0 = time.time()
@@ -496,7 +497,7 @@ def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_see
                for a, rows in src.items()}
     gate = decide(results, n_required=n_seeds)
     summary = {
-        "experiment": "pde-conj", "spec": "docs/specs/PDE2_SPEC.md", "gated_arm": gated,
+        "experiment": f"pde-{tag}", "gated_arm": gated, "seed_range": [seed0, seed0 + n_seeds - 1],
         "baselines_reused_from": "pde-params (identical protocol, seeds and data)",
         "config": {"n_seeds": n_seeds, "steps": steps},
         "final_verdict": gate.verdict.value, "reasons": list(gate.reasons),
@@ -509,9 +510,9 @@ def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_see
                         "flops": rows[0]["flops"]}
                     for a, rows in (base | runs).items()},
     }
-    (RESULTS_DIR / "pde_conj_summary.json").write_text(json.dumps(summary, indent=2))
+    (RESULTS_DIR / f"pde_{tag}_summary.json").write_text(json.dumps(summary, indent=2))
     print("\n" + "=" * 64)
-    print(f"PDE-CONJ VERDICT ({gated}): {summary['final_verdict'].upper()}")
+    print(f"PDE-{tag.upper()} VERDICT ({gated}): {summary['final_verdict'].upper()}")
     for k, v in gate.criteria.items():
         print(f"  {k}: {'pass' if v else 'FAIL'}")
     bu = summary["per_arm"][summary["best_unstructured"]]
@@ -529,6 +530,11 @@ def main():
         raise SystemExit(0 if check() else 1)
     if "--confirm" in sys.argv:
         run_confirm(steps=int(os.environ.get("PDE_STEPS", "8000")))
+        return
+    if "--cfilm" in sys.argv:
+        run_confirm(gated="cfilm_hyb", reported=("proposed_scaled_conj",),
+                    steps=int(os.environ.get("PDE_STEPS", "8000")),
+                    seed0=10, tag="cfilm")
         return
     if "--improved" in sys.argv:
         run_improved(n_seeds=int(os.environ.get("PDE_IMPROVED_SEEDS", "5")),
