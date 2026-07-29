@@ -49,6 +49,10 @@ class Task:
     sample_heldout: Callable        # (n, generator) -> same, with held-out condition combinations
     build: Callable                 # (arm_name) -> nn.Module mapping (x_in, condition) -> logits
     arms: tuple = ("film", "proposed")
+    # Image tasks predict values in [0,1] through a sigmoid. Fields that take both signs (a
+    # vorticity field, a latent) must pass `activation=None` or the squashing makes the target
+    # unreachable and every arm looks equally bad.
+    activation: Callable | None = torch.sigmoid
 
 
 @dataclass
@@ -105,9 +109,10 @@ def _fit(task: Task, arm: str, steps: int, batch: int, lr: float, seed: int):
     m = task.build(arm)
     opt = torch.optim.Adam(m.parameters(), lr=lr)
     g = torch.Generator().manual_seed(seed)
+    act = task.activation if task.activation is not None else (lambda z: z)
     for _ in range(steps):
         x1, c, x2 = task.sample_train(batch, g)
-        loss = torch.mean((torch.sigmoid(m(x1, c)) - x2) ** 2)
+        loss = torch.mean((act(m(x1, c)) - x2) ** 2)
         if not math.isfinite(loss.item()):
             raise RuntimeError(f"{task.name}/{arm} diverged during screening")
         opt.zero_grad(); loss.backward(); opt.step()
@@ -116,7 +121,7 @@ def _fit(task: Task, arm: str, steps: int, batch: int, lr: float, seed: int):
     def ev(sampler):
         eg = torch.Generator().manual_seed(9_999)
         x1, c, x2 = sampler(512, eg)
-        return torch.mean((torch.sigmoid(m(x1, c)) - x2) ** 2).item()
+        return torch.mean((act(m(x1, c)) - x2) ** 2).item()
 
     return ev(task.sample_train), ev(task.sample_heldout)
 
