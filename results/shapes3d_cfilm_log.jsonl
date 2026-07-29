@@ -1,0 +1,1 @@
+{"arm": "cfilm_hyb", "seed": 10, "diverged": false, "params": 43136, "flops": 85888, "indist": 0.0011869775771629065, "ood_val": 0.001421349385054782, "ood_test": 0.0015312790346797556, "triples": 0.0020216689445078373}
