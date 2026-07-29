@@ -16,6 +16,20 @@ Three numbers decide it:
   operator has nothing to win.
 * **observed separation** -- how far apart the best and worst conditioner land after a short run.
   Near zero, once the first two numbers look healthy, means something subtler is wrong.
+* **bias match** -- how well the *structured* arm fits in distribution relative to the best arm.
+  This is the check with the best track record, and it was discovered late. Across the seven
+  completed comparisons in this project it separates every win from every loss with no overlap:
+
+      dSprites            0.986x   won        3D Shapes        1.457x   lost
+      dSprites+shape      1.005x   won        PDEBench         2.381x   lost
+      synthetic PDE       0.938x   won        latent-edit      2.433x   lost
+                                              synthetic PDE    1.118x   lost (fit criterion only)
+
+  The reading is that in-distribution fit measures whether the operator's inductive bias matches
+  the task at all. The operator's reachable family is only `dc`-dimensional -- its algebra
+  coordinates are a linear image of the condition -- so where a task needs a richer conditional
+  map it simply cannot fit, and no compositional advantage rescues it. A short training run tells
+  you this before any held-out evaluation.
 
 Both the share and the gap are measured on **the arm that fits best**, not on a nominated
 reference arm. They are questions about the task -- is it learnable, are held-out combinations
@@ -40,7 +54,9 @@ import torch
 MIN_CONDITIONING_SHARE = 0.60
 MIN_COMPOSITIONAL_GAP = 1.50
 
-# The third check, and the one with the best track record. See `bias_match` below.
+# Threshold calibrated on seven observations, whose nearest neighbours are 1.005 (a win) and
+# 1.118 (a loss); 1.05 sits in that gap. Seven points is not many, so it is reported as guidance
+# rather than used to reject a task outright.
 MAX_BIAS_MISMATCH = 1.05
 
 
@@ -68,6 +84,7 @@ class Screen:
     conditioning_share: float       # fraction of the identity baseline that arm removes
     compositional_gap: float        # heldout / in-distribution, for that arm
     separation: float               # spread between the best and worst arm on held-out data
+    bias_match: float = float("nan")   # structured arm's in-dist fit / best arm's
 
     @property
     def discriminative(self) -> bool:
@@ -95,6 +112,13 @@ class Screen:
             f"(want >= {MIN_COMPOSITIONAL_GAP:.2f}x)",
             f"  separation between two arms    : {self.separation:+.1%}",
         ]
+        if self.bias_match == self.bias_match:
+            verdict_b = "matches" if self.bias_match <= MAX_BIAS_MISMATCH else "MISMATCH"
+            lines.append(f"  structured arm's fit ratio     : {self.bias_match:.3f}x "
+                         f"(want <= {MAX_BIAS_MISMATCH:.2f}x)  -> inductive bias {verdict_b}")
+            if self.bias_match > MAX_BIAS_MISMATCH:
+                lines.append("    every task in this project with a ratio this high was lost, "
+                             "whatever its compositional gap")
         if why:
             lines.append("  why not: " + "; ".join(why) + ".")
         return "\n".join(lines)
@@ -139,10 +163,14 @@ def screen(task: Task, steps: int = 2000, batch: int = 128, lr: float = 1e-3,
     tr, ho = min(fits.values(), key=lambda p: p[0])      # the arm that fits best sets the yardstick
     held = [h for _, h in fits.values()]
     worst, best = max(held), min(held)
+    structured = next((a for a in task.arms if a.startswith("proposed") or a.startswith("cfilm")),
+                      None)
+    bias = fits[structured][0] / tr if structured and tr > 0 else float("nan")
     return Screen(
         task=task.name, identity_mse=identity, mean_mse=mean_img,
         fitted_mse=tr, heldout_mse=ho,
         conditioning_share=max(0.0, 1.0 - tr / identity) if identity > 0 else 0.0,
         compositional_gap=ho / tr if tr > 0 else float("inf"),
         separation=(worst - best) / worst if worst > 0 else 0.0,
+        bias_match=bias,
     )

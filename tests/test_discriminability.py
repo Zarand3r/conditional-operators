@@ -109,5 +109,43 @@ class TestScreen(unittest.TestCase):
         self.assertTrue(s.discriminative)                # separation is reported, never gates
 
 
+
+@unittest.skipUnless(HAVE_TORCH, "torch not installed (run under .venv)")
+class TestBiasMatch(unittest.TestCase):
+    """The check with the best track record: does the structured arm's in-distribution fit
+    predict the outcome? Across seven completed comparisons it separated every win from every
+    loss with no overlap, so these observed values are pinned as a regression."""
+
+    OBSERVED = [
+        ("dSprites", 0.986, True), ("dSprites+shape", 1.005, True),
+        ("synthetic PDE (cfilm)", 0.938, True),
+        ("synthetic PDE (proposed)", 1.118, False), ("3D Shapes", 1.457, False),
+        ("PDEBench", 2.381, False), ("latent-edit", 2.433, False),
+    ]
+
+    def test_the_threshold_reproduces_every_observed_outcome(self):
+        from conditional_operators.discriminability import MAX_BIAS_MISMATCH
+        for name, ratio, won in self.OBSERVED:
+            predicted = ratio <= MAX_BIAS_MISMATCH
+            self.assertEqual(predicted, won,
+                             f"{name}: fit ratio {ratio} predicts "
+                             f"{'win' if predicted else 'loss'}, but it was "
+                             f"{'won' if won else 'lost'}")
+
+    def test_the_wins_and_losses_do_not_overlap(self):
+        wins = [r for _, r, w in self.OBSERVED if w]
+        losses = [r for _, r, w in self.OBSERVED if not w]
+        self.assertLess(max(wins), min(losses),
+                        "the separation this check rests on has gone; revisit the threshold")
+
+    def test_report_flags_a_mismatch(self):
+        s = Screen("mismatched", 0.10, 0.12, 0.01, 0.03, 0.90, 3.0, 0.4, bias_match=2.4)
+        self.assertIn("MISMATCH", s.report())
+        self.assertIn("every task in this project with a ratio this high was lost", s.report())
+
+    def test_report_omits_the_line_when_unmeasured(self):
+        s = Screen("nostructured", 0.10, 0.12, 0.01, 0.03, 0.90, 3.0, 0.4)
+        self.assertNotIn("inductive bias", s.report())
+
 if __name__ == "__main__":
     unittest.main()

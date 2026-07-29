@@ -8,3 +8,4 @@
 {"arm": "film", "seed": 7, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.9922198652675434e-05, "val": 0.14481561910361052, "test": 0.3401787132024765}
 {"arm": "film", "seed": 8, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.919898290405399e-05, "val": 0.36808332428336143, "test": 0.46918754279613495}
 {"arm": "film", "seed": 9, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.264883707743138e-05, "val": 0.08901570923626423, "test": 0.2988254576921463}
+{"arm": "concat_mlp", "seed": 0, "diverged": false, "params": 82816, "flops": 164480, "indist": 5.20805301675864e-05, "val": 0.02676864550448954, "test": 0.2442512046545744}
