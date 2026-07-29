@@ -1,0 +1,5 @@
+{"arm": "film", "seed": 0, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.499507556625758e-05, "val": 0.09622681140899658, "test": 0.3599076643586159}
+{"arm": "film", "seed": 1, "diverged": false, "params": 49920, "flops": 98944, "indist": 4.325920576775388e-05, "val": 0.2549069710075855, "test": 0.3979864753782749}
+{"arm": "film", "seed": 2, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.391752716197516e-05, "val": 0.04960491042584181, "test": 0.28274635039269924}
+{"arm": "film", "seed": 3, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.750832900095702e-05, "val": 0.25161839462816715, "test": 0.44846491143107414}
+{"arm": "film", "seed": 4, "diverged": false, "params": 49920, "flops": 98944, "indist": 3.664117116386478e-05, "val": 0.03105055307969451, "test": 0.2654254622757435}

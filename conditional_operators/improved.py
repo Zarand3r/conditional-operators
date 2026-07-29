@@ -46,7 +46,7 @@ import torch
 from torch import nn
 
 from .stage3 import GSOrthogonal, _rotate
-from .stage4 import ARM_CLASSES, DC, DZ, CondArm, _fl
+from .stage4 import ARM_CLASSES, DC, DZ, H, CondArm, _fl, _zero_
 from .stage8 import _cmul
 
 SCLAMP = 4.0            # |log magnitude| ceiling, as in Complex FiLM; active only far off-support
@@ -166,6 +166,81 @@ def check() -> bool:
     print("\nRELAXATIONS:", "VALID" if ok else "BROKEN")
     return ok
 
+
+
+# ---------------------------------------------------------------- built for benchmark wins
+
+class HybridConcat(CondArm):
+    """An expressive path with the structured operator added as a zero-initialised residual.
+
+    Every loss in this programme is predicted by one number: how well the arm fits in
+    distribution. The operator is a *subset* of the linear maps -- its reachable family is only
+    `dc`-dimensional, since the algebra coordinates are a linear image of the condition -- so on a
+    task needing a richer conditional map it simply cannot fit, and no relaxation of the geometry
+    repairs a dimensional shortfall.
+
+    Replacing the expressive path with the operator is therefore the wrong move. Containing it is
+    the right one: this arm *is* concat-MLP plus `T(c)z`, with the operator zero-initialised so
+    training starts exactly at the baseline and picks up structure only where structure pays. Fit
+    can then never be worse than the baseline's, which is the failure mode that has killed every
+    attempt so far.
+
+    Exact composition is given up -- the sum of a group action and an MLP is not a group action.
+    That guarantee has not won a benchmark, and this arm is aimed at one.
+    """
+
+    def __init__(self, dc=DC):
+        super().__init__(dc)
+        self.w1 = nn.Linear(DZ + H, H)                 # the expressive path (concat-MLP)
+        self.w2 = _zero_(nn.Linear(H, DZ))
+        self.W = nn.Linear(dc, DZ // 2, bias=False)    # the structured residual
+        nn.init.zeros_(self.W.weight)
+        self.P = GSOrthogonal()
+        self.gate = nn.Parameter(torch.zeros(1))       # starts at exactly the baseline
+
+    def op(self, h, d, z):
+        expressive = self.w2(torch.relu(self.w1(torch.cat([z, h], 1))))
+        q = self.P._blocks()
+        structured = self.P.apply_t(_rotate(self.W(d), self.P.apply(z, q)), q) - z
+        return z + expressive + torch.tanh(self.gate) * structured
+
+    def op_flops(self):
+        return (_fl(DZ + H, H) + _fl(H, DZ) + _fl(self.dc, DZ // 2)
+                + 4 * DZ + 2 * GSOrthogonal.apply_flops())
+
+
+class SplitCGA(CondArm):
+    """Budget-neutral hybrid: half the channels get the expressive path, half get the operator.
+
+    `HybridConcat` runs both mechanisms over the full latent and so costs about the sum of the two.
+    This splits the latent instead, so the total is roughly one arm's worth and the shared budget
+    rule still bites. The bet is that a conditional map needs some directions fitted freely and
+    others composed exactly, rather than one treatment for all of them.
+    """
+
+    HALF = DZ // 2
+
+    def __init__(self, dc=DC):
+        super().__init__(dc)
+        self.w1 = nn.Linear(self.HALF + H, H // 2)
+        self.w2 = _zero_(nn.Linear(H // 2, self.HALF))
+        self.W = nn.Linear(dc, self.HALF // 2, bias=False)
+        nn.init.zeros_(self.W.weight)
+
+    def op(self, h, d, z):
+        za, zb = z[:, :self.HALF], z[:, self.HALF:]
+        ya = za + self.w2(torch.relu(self.w1(torch.cat([za, h], 1))))
+        yb = _rotate(self.W(d), zb)                    # structured half, no basis: cheap
+        return torch.cat([ya, yb], dim=1)
+
+    def op_flops(self):
+        return (_fl(self.HALF + H, H // 2) + _fl(H // 2, self.HALF)
+                + _fl(self.dc, self.HALF // 2) + 3 * DZ)
+
+
+ARM_CLASSES["hybrid_concat"] = HybridConcat
+ARM_CLASSES["split_cga"] = SplitCGA
+HYBRID_ARMS = ("hybrid_concat", "split_cga")
 
 if __name__ == "__main__":
     raise SystemExit(0 if check() else 1)

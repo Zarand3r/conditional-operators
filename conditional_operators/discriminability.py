@@ -40,6 +40,9 @@ import torch
 MIN_CONDITIONING_SHARE = 0.60
 MIN_COMPOSITIONAL_GAP = 1.50
 
+# The third check, and the one with the best track record. See `bias_match` below.
+MAX_BIAS_MISMATCH = 1.05
+
 
 @dataclass
 class Task:
