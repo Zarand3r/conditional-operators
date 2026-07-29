@@ -450,9 +450,86 @@ def run_improved(n_seeds=5, steps=8000):
     return out
 
 
+def run_confirm(gated="proposed_conj", reported=("proposed_scaled_conj",), n_seeds=10, steps=8000):
+    """Confirmatory run for docs/specs/PDE2_SPEC.md. Reads the test split exactly once.
+
+    The six baseline arms are reused from `pde-params`: identical solver, fields, splits, backbone,
+    optimizer, steps and seeds, so re-running them would add noise and nothing else.
+    """
+    from . import improved                                      # noqa: F401
+    from .verdict import Arm, ArmResult, decide
+
+    task = Task()
+    base = {}
+    for line in (RESULTS_DIR / "pde_log.jsonl").read_text().splitlines():
+        r = json.loads(line)
+        base.setdefault(r["arm"], []).append(r)
+
+    log_path = RESULTS_DIR / "pde_confirm_log.jsonl"
+    runs, done = {}, set()
+    if log_path.exists():
+        for line in log_path.read_text().splitlines():
+            r = json.loads(line)
+            runs.setdefault(r["arm"], []).append(r); done.add((r["arm"], r["seed"]))
+    with log_path.open("a") as log:
+        for arm in (gated,) + tuple(reported):
+            for seed in range(n_seeds):
+                if (arm, seed) in done:
+                    continue
+                t0 = time.time()
+                r = train_one(arm, seed, task, steps)
+                runs.setdefault(arm, []).append(r)
+                log.write(json.dumps(r) + "\n"); log.flush(); os.fsync(log.fileno())
+                print(f"{arm:22} seed={seed} test={r['test']:.5f} indist={r['indist']:.5f} "
+                      f"[{time.time()-t0:.0f}s]", flush=True)
+
+    def arr(rows, k):
+        return tuple(r[k] for r in rows if not r["diverged"])
+
+    # The gate needs the six standard slots; the candidate occupies `proposed`.
+    src = {a: base[a] for a in ("film", "concat_mlp", "cond_layernorm", "hypernet",
+                                "dynamic_linear")}
+    src["proposed"] = runs[gated]
+    results = {Arm(a): ArmResult(Arm(a), arr(rows, "test"), arr(rows, "indist"),
+                                 sum(1 for r in rows if r["diverged"]),
+                                 rows[0]["params"], rows[0]["flops"], 1)
+               for a, rows in src.items()}
+    gate = decide(results, n_required=n_seeds)
+    summary = {
+        "experiment": "pde-conj", "spec": "docs/specs/PDE2_SPEC.md", "gated_arm": gated,
+        "baselines_reused_from": "pde-params (identical protocol, seeds and data)",
+        "config": {"n_seeds": n_seeds, "steps": steps},
+        "final_verdict": gate.verdict.value, "reasons": list(gate.reasons),
+        "gate_criteria": gate.criteria,
+        "best_unstructured": gate.best_unstructured.value if gate.best_unstructured else None,
+        "margin_observed": gate.margin_observed, "p_value": gate.p_value,
+        "cliffs_delta": gate.cliffs_delta,
+        "per_arm": {a: {"indist": _mean(arr(rows, "indist")), "test": _mean(arr(rows, "test")),
+                        "test_std": _std(arr(rows, "test")), "params": rows[0]["params"],
+                        "flops": rows[0]["flops"]}
+                    for a, rows in (base | runs).items()},
+    }
+    (RESULTS_DIR / "pde_conj_summary.json").write_text(json.dumps(summary, indent=2))
+    print("\n" + "=" * 64)
+    print(f"PDE-CONJ VERDICT ({gated}): {summary['final_verdict'].upper()}")
+    for k, v in gate.criteria.items():
+        print(f"  {k}: {'pass' if v else 'FAIL'}")
+    bu = summary["per_arm"][summary["best_unstructured"]]
+    print(f"  vs {summary['best_unstructured']}: margin {gate.margin_observed:+.1%} "
+          f"p={gate.p_value:.2g} delta={gate.cliffs_delta:.2f}")
+    print(f"  fit ratio: {summary['per_arm'][gated]['indist'] / bu['indist']:.4f}x (ceiling 1.10)")
+    for a in (gated,) + tuple(reported):
+        v = summary["per_arm"][a]
+        print(f"  {a:22} indist {v['indist']:.5f}  test {v['test']:.5f}")
+    return summary
+
+
 def main():
     if "--check" in sys.argv:
         raise SystemExit(0 if check() else 1)
+    if "--confirm" in sys.argv:
+        run_confirm(steps=int(os.environ.get("PDE_STEPS", "8000")))
+        return
     if "--improved" in sys.argv:
         run_improved(n_seeds=int(os.environ.get("PDE_IMPROVED_SEEDS", "5")),
                      steps=int(os.environ.get("PDE_STEPS", "8000")))

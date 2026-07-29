@@ -1,0 +1,35 @@
+{
+  "note": "exploratory; validation only; no test split read; no verdict claimed",
+  "n_seeds": 5,
+  "steps": 8000,
+  "per_arm": {
+    "proposed": {
+      "val": 0.014606940001249314,
+      "val_std": 0.0018532748830968676,
+      "indist": 0.003519508137833327,
+      "params": 44160,
+      "flops": 110122
+    },
+    "proposed_scaled": {
+      "val": 0.014873880380764603,
+      "val_std": 0.0022511054064081933,
+      "indist": 0.0037608746672049163,
+      "params": 44416,
+      "flops": 110890
+    },
+    "proposed_conj": {
+      "val": 0.014676171774044632,
+      "val_std": 0.0020273398491601623,
+      "indist": 0.00315213828580454,
+      "params": 44288,
+      "flops": 110378
+    },
+    "proposed_scaled_conj": {
+      "val": 0.014469985896721483,
+      "val_std": 0.001970626635903245,
+      "indist": 0.00298893500585109,
+      "params": 44544,
+      "flops": 111146
+    }
+  }
+}
