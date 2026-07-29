@@ -1,0 +1,102 @@
+{
+  "experiment": "shapes3d-cfilm",
+  "spec": "docs/specs/SHAPES3D_CFILM_SPEC.md",
+  "gated_arm": "cfilm_hyb",
+  "seed_range": [
+    10,
+    19
+  ],
+  "baselines_reused_from": "shapes3d (seeds 0-9, identical protocol)",
+  "config": {
+    "n_seeds": 10,
+    "steps": 12000
+  },
+  "final_verdict": "kill",
+  "reasons": [
+    "AC-5 failed"
+  ],
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": false
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.8449471289608157,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "per_arm": {
+    "film": {
+      "indist": 0.0008865536598023027,
+      "ood_test": 0.004499747999943793,
+      "ood_test_std": 0.0009580811526469125,
+      "triples": 0.00702123565133661,
+      "params": 50816,
+      "flops": 100736
+    },
+    "concat_mlp": {
+      "indist": 0.0028258154314244168,
+      "ood_test": 0.005395451805088669,
+      "ood_test_std": 0.005219594143590108,
+      "triples": 0.007127355027478188,
+      "params": 83712,
+      "flops": 166272
+    },
+    "cond_layernorm": {
+      "indist": 0.005096062373195309,
+      "ood_test": 0.008555017743492498,
+      "ood_test_std": 0.013057436547145375,
+      "triples": 0.011469881306402386,
+      "params": 50816,
+      "flops": 101248
+    },
+    "hypernet": {
+      "indist": 0.000708140357164666,
+      "ood_test": 0.009283804020378738,
+      "ood_test_std": 0.002267819245333965,
+      "triples": 0.015392508474178612,
+      "params": 2147840,
+      "flops": 4294912
+    },
+    "dynamic_linear": {
+      "indist": 0.0007577860887977295,
+      "ood_test": 0.01977865961380303,
+      "ood_test_std": 0.004167503188120095,
+      "triples": 0.03245798726566136,
+      "params": 298496,
+      "flops": 596224
+    },
+    "proposed": {
+      "indist": 0.001031816884642467,
+      "ood_test": 0.0011625185477896593,
+      "ood_test_std": 0.00023531334141873501,
+      "triples": 0.001325708626245614,
+      "params": 45120,
+      "flops": 112042
+    },
+    "proposed_mlp_gs": {
+      "indist": 0.0007522225503635127,
+      "ood_test": 0.0032777504820842296,
+      "ood_test_std": 0.0007546112342710274,
+      "triples": 0.004511934699257836,
+      "params": 53376,
+      "flops": 127274
+    },
+    "cfilm_hyb": {
+      "indist": 0.0010922114612185395,
+      "ood_test": 0.0014394804675248452,
+      "ood_test_std": 0.0006448326161377218,
+      "triples": 0.0018150415766285733,
+      "params": 43136,
+      "flops": 85888
+    },
+    "proposed_scaled_conj": {
+      "indist": 0.0009913165835314431,
+      "ood_test": 0.0011271252951701172,
+      "ood_test_std": 0.00016541146959589496,
+      "triples": 0.001280016274540685,
+      "params": 45824,
+      "flops": 113706
+    }
+  }
+}

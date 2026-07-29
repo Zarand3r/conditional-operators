@@ -1,5 +1,55 @@
 # Pre-registration: Complex FiLM on 3D Shapes, the one kill worth revisiting
 
+## Outcome: KILL (2026-07-29) — and it falsifies the diagnosis
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/shapes3d_cfilm_summary.json`.
+
+**AC-5 failed, and worse than before.** Complex FiLM's in-distribution fit ratio is
+$1.542\times$ against a $1.10\times$ ceiling — *higher* than the $1.457\times$ that killed
+`proposed` on this task. AC-1, AC-2 and AC-3 passed, AC-2 by $+84.5\%$ at $\delta=-1.00$.
+
+| arm | in-dist | fit ratio | OOD test |
+|---|---|---|---|
+| `hypernet` (best unstructured) | 0.000708 | — | 0.009284 |
+| `proposed` (original run) | 0.001032 | $1.457\times$ | 0.001163 |
+| **`cfilm_hyb`** (gated here) | 0.001092 | **$1.542\times$** | 0.001439 |
+| `proposed_scaled_conj` (reported) | 0.000991 | $1.400\times$ | **0.001127** |
+
+**The spec predicted this outcome and named the reason, before the run.** It said: *"3D Shapes
+differs from the PDE task in the way that matters most: its condition includes a categorical shape
+swap, so the conditioning is partly asked to supply content... If Complex FiLM fails AC-5 here, the
+reading is that the fit penalty tracks content demand rather than the isometry, and the PDE result
+is narrower than it looks."*
+
+That is what happened, and the contrast is clean because only one thing differs:
+
+| task | content in the condition? | Complex FiLM fit ratio |
+|---|---|---|
+| PDE parameters | no — the initial field carries it | $\mathbf{0.938\times}$ pass |
+| 3D Shapes | yes — a categorical shape swap | $\mathbf{1.542\times}$ fail |
+
+**So the diagnosis written into `PDE2_SPEC.md` was wrong.** I had attributed the fit penalty to the
+isometry: a rotation cannot rescale features, so give it a magnitude channel. On the PDE task that
+reading worked ($1.118\times \to 0.938\times$) and looked like confirmation. It was not. The
+penalty tracks **how much content the conditioning is asked to supply**, and a magnitude channel
+does not fix that — here it made things marginally worse.
+
+The isometry does cost something: on the PDE task, where content demand is zero, the magnitude
+channel still bought $1.118 \to 0.938$. But that is the smaller of the two effects, and it is
+visible only once the larger one is absent.
+
+**Consequences, applied rather than noted.** The PDE confirmation is a result about a task with no
+content in its condition, not a general fix, and the paper must say so. `shapes3d` remains a KILL
+and its verdict is untouched. Complex FiLM is *not* a universal successor to the pure operator: it
+wins where content demand is zero and does not help where it is not.
+
+One thing worth recording without claiming it: `proposed_scaled_conj` posted the best OOD error of
+any arm ever run on this task (0.001127, below `proposed`'s 0.001163) *and* the best fit of the
+structured arms ($1.400\times$). It still fails AC-5. It was reported, not gated, and it is not a
+result.
+
+
 **Status:** pre-registered 2026-07-29, before the run.
 **Name:** `shapes3d-cfilm` · **Hardware:** one RTX PRO 6000.
 

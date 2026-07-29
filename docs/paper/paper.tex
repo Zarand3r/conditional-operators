@@ -50,7 +50,10 @@ successor. \textbf{Complex FiLM}, magnitude for content and phase for compositio
 36\% on unseen combinations and matches it on content ($0.97\times$) under two further
 pre-registered gates, and on a 2D Navier-Stokes surrogate conditioned on physical parameters it
 passes every criterion at once: $64.6\%$ below the best unstructured arm, every seed beating every
-seed, while fitting \emph{better} in distribution ($0.938\times$) at $0.84\times$ FiLM's cost. The same structure yields a guidance knob needing no second forward pass,
+seed, while fitting \emph{better} in distribution ($0.938\times$) at $0.84\times$ FiLM's cost. A
+further gate bounds that: the fit penalty tracks how much content the condition must supply, not
+the operator's geometry, and no variant we tested repairs it when the condition supplies content
+itself. The same structure yields a guidance knob needing no second forward pass,
 which distorts $2$--$5\times$ less than classifier-free guidance on a deterministic target,
 though not on a multimodal one. One operator, both roles, FiLM cost.
 \end{abstract}
@@ -375,11 +378,28 @@ replicates across independent seed sets ($+65.3\%$ and $1.030\times$ on the firs
 $0.938\times$ on the second), which matters because the conjugated operator looked like a fix on
 validation and was not.
 
-So the penalty was the isometry, and the remedy is a magnitude channel rather than a stretched
-metric. This is a claim about Complex FiLM and not about the pure group operator: its magnitude
-head is nonlinear in $c$, so composition is exact on the phase channel only. It buys
-in-distribution fit by spending half the exactness guarantee, and the arm that keeps the guarantee
-on both channels is the one that failed this criterion twice.
+This is a claim about Complex FiLM and not about the pure group operator: its magnitude head is
+nonlinear in $c$, so composition is exact on the phase channel only. It buys in-distribution fit by
+spending half the exactness guarantee, and the arm that keeps the guarantee on both channels is the
+one that failed this criterion twice.
+
+\paragraph{(5a$''$) The fit penalty tracks content demand, not the isometry.} The obvious reading
+of (5a$'$) is that a magnitude channel repairs the fit penalty in general. A pre-registered test on
+3D~Shapes says otherwise. That suite failed on the same criterion at $1.457\times$, and Complex
+FiLM --- gated there on fresh seeds --- reached $1.542\times$, slightly \emph{worse}, while still
+passing the compositional criteria by $84.5\%$ at $\delta=-1.00$.
+
+The two tasks differ in one respect that matters. The physics condition is four physical
+parameters, and the initial vorticity field supplies all of the content; the 3D~Shapes condition
+includes a categorical shape swap, so the conditioning is asked to produce content directly. Fit
+penalty $0.938\times$ in the first case, $1.542\times$ in the second.
+
+So the penalty is governed by how much content the conditioning must supply, and a magnitude
+channel does not repair it. The isometry costs something too --- on the physics task, where content
+demand is zero, the magnitude channel still moved $1.118\times$ to $0.938\times$ --- but that is
+the smaller effect and it is visible only once the larger one is absent. The practical form of the
+rule: this family of operators is for conditions that \emph{transform} content supplied elsewhere,
+and no variant we tested rescues it when the condition must supply the content itself.
 
 \paragraph{(5b) The advantage requires a co-trained representation.} The sharpest bound comes
 from a controlled pair. The same dataset, the same held-out attribute pairs, the same arms and
