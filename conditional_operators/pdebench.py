@@ -226,7 +226,77 @@ def screen(steps=2000):
     return rows
 
 
+def run(n_seeds=10, steps=8000):
+    data = Data()
+    RESULTS_DIR.mkdir(exist_ok=True)
+    log_path = RESULTS_DIR / "pdebench_log.jsonl"
+    runs, done = {a: [] for a in ALL_ARMS}, set()
+    if log_path.exists():
+        for line in log_path.read_text().splitlines():
+            r = json.loads(line)
+            runs[r["arm"]].append(r); done.add((r["arm"], r["seed"]))
+        print(f"resuming: {len(done)} runs already done", flush=True)
+    with log_path.open("a") as log:
+        for arm in ALL_ARMS:
+            for seed in range(n_seeds):
+                if (arm, seed) in done:
+                    continue
+                t0 = time.time()
+                r = train_one(arm, seed, data, steps)
+                runs[arm].append(r)
+                log.write(json.dumps(r) + "\n"); log.flush(); os.fsync(log.fileno())
+                print(f"{arm:22} seed={seed} test={r['test']:.5f} indist={r['indist']:.5f} "
+                      f"[{time.time()-t0:.0f}s]", flush=True)
+    return runs
+
+
+def summarize(runs, n_seeds, steps):
+    from .verdict import Arm, ArmResult, decide
+
+    def arr(a, k):
+        return tuple(r[k] for r in runs[a] if not r["diverged"])
+
+    results = {Arm(a): ArmResult(Arm(a), arr(a, "test"), arr(a, "indist"),
+                                 sum(1 for r in runs[a] if r["diverged"]),
+                                 runs[a][0]["params"], runs[a][0]["flops"], 1)
+               for a in GATE}
+    gate = decide(results, n_required=n_seeds)
+    summary = {
+        "experiment": "pdebench-reacdiff", "spec": "docs/specs/PDEBENCH_SPEC.md",
+        "task": "PDEBench 1D reaction-diffusion, FNO backbone, conditioned on (nu, rho); "
+                "OOD = grid cells where both parameters leave the baseline",
+        "config": {"n_seeds": n_seeds, "steps": steps, "modes": MODES, "width": WIDTH},
+        "final_verdict": gate.verdict.value, "reasons": list(gate.reasons),
+        "gate_criteria": gate.criteria,
+        "best_unstructured": gate.best_unstructured.value if gate.best_unstructured else None,
+        "margin_observed": gate.margin_observed, "p_value": gate.p_value,
+        "cliffs_delta": gate.cliffs_delta,
+        "per_arm": {a: {k: _mean(arr(a, k)) for k in ("indist", "val", "test")}
+                       | {"test_std": _std(arr(a, "test")),
+                          "params": runs[a][0]["params"], "flops": runs[a][0]["flops"]}
+                    for a in ALL_ARMS},
+    }
+    (RESULTS_DIR / "pdebench_summary.json").write_text(json.dumps(summary, indent=2))
+    return summary
+
+
 def main():
+    if "--run" in sys.argv:
+        n = int(os.environ.get("PDEBENCH_SEEDS", "10"))
+        steps = int(os.environ.get("PDEBENCH_STEPS", "8000"))
+        t0 = time.time()
+        s = summarize(run(n, steps), n, steps)
+        print("\n" + "=" * 64)
+        print(f"PDEBENCH VERDICT: {s['final_verdict'].upper()}  [{(time.time()-t0)/60:.0f} min]")
+        for k, v in s["gate_criteria"].items():
+            print(f"  {k}: {'pass' if v else 'FAIL'}")
+        print(f"  vs {s['best_unstructured']}: margin {s['margin_observed']:+.1%} "
+              f"p={s['p_value']:.2g} delta={s['cliffs_delta']:.2f}")
+        cm = s["per_arm"]["concat_mlp"]["test"]
+        print(f"\n  {'arm':22} {'indist':>9} {'test':>9} {'vs concat_mlp':>14}")
+        for a, v in s["per_arm"].items():
+            print(f"  {a:22} {v['indist']:9.5f} {v['test']:9.5f} {1 - v['test']/cm:+13.1%}")
+        return
     if "--inspect" in sys.argv:
         inspect()
         return

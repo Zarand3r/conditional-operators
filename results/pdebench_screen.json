@@ -1,0 +1,51 @@
+{
+  "note": "validation only; no test split read; no verdict claimed",
+  "steps": 2000,
+  "rows": {
+    "film": {
+      "arm": "film",
+      "seed": 0,
+      "diverged": false,
+      "params": 49920,
+      "flops": 98944,
+      "indist": 0.00018962810190714663,
+      "val": 0.0856759836897254
+    },
+    "concat_mlp": {
+      "arm": "concat_mlp",
+      "seed": 0,
+      "diverged": false,
+      "params": 82816,
+      "flops": 164480,
+      "indist": 0.00021227539036772214,
+      "val": 0.029066496063023806
+    },
+    "hypernet": {
+      "arm": "hypernet",
+      "seed": 0,
+      "diverged": false,
+      "params": 2146944,
+      "flops": 4293120,
+      "indist": 0.0001286955302930437,
+      "val": 0.3622795566916466
+    },
+    "proposed": {
+      "arm": "proposed",
+      "seed": 0,
+      "diverged": false,
+      "params": 43776,
+      "flops": 109354,
+      "indist": 0.00030636009341833415,
+      "val": 0.06773468991741538
+    },
+    "cfilm_hyb": {
+      "arm": "cfilm_hyb",
+      "seed": 0,
+      "diverged": false,
+      "params": 41792,
+      "flops": 83200,
+      "indist": 0.00014575610475731082,
+      "val": 0.08756556920707226
+    }
+  }
+}
