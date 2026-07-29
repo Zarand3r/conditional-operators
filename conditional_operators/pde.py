@@ -401,9 +401,61 @@ def summarize(runs, n_seeds, steps):
     return summary
 
 
+def run_improved(n_seeds=5, steps=8000):
+    """Exploratory pass over the relaxed operators, scored on VALIDATION only.
+
+    These arms are a new method, not part of the registered gate. Selecting among them on the test
+    split would be a second read of it and would turn the registered result into a shopping trip.
+    They are compared on validation here; if one is worth a verdict it gets its own
+    pre-registration and reads test exactly once, afterwards.
+    """
+    from . import improved                                      # registers the relaxed arms
+    task = Task()
+    arms = ("proposed",) + improved.NEW_ARMS
+    log_path = RESULTS_DIR / "pde_improved_log.jsonl"
+    runs = {a: [] for a in arms}
+    done = set()
+    if log_path.exists():
+        for line in log_path.read_text().splitlines():
+            r = json.loads(line)
+            if r["arm"] in runs:
+                runs[r["arm"]].append(r); done.add((r["arm"], r["seed"]))
+    with log_path.open("a") as log:
+        for arm in arms:
+            for seed in range(n_seeds):
+                if (arm, seed) in done:
+                    continue
+                t0 = time.time()
+                r = train_one(arm, seed, task, steps)
+                r.pop("test", None)                             # not read, not stored, not tempted
+                runs[arm].append(r)
+                log.write(json.dumps(r) + "\n"); log.flush(); os.fsync(log.fileno())
+                print(f"{arm:22} seed={seed} val={r['val']:.5f} indist={r['indist']:.5f} "
+                      f"[{time.time()-t0:.0f}s]", flush=True)
+
+    base_val = _mean([r["val"] for r in runs["proposed"] if not r["diverged"]])
+    base_ind = _mean([r["indist"] for r in runs["proposed"] if not r["diverged"]])
+    print(f"\n  {'arm':22} {'indist':>9} {'val':>9} {'vs proposed':>12} {'fit vs proposed':>16}")
+    out = {}
+    for a in arms:
+        ok = [r for r in runs[a] if not r["diverged"]]
+        v, i = _mean([r["val"] for r in ok]), _mean([r["indist"] for r in ok])
+        out[a] = {"val": v, "val_std": _std([r["val"] for r in ok]), "indist": i,
+                  "params": runs[a][0]["params"], "flops": runs[a][0]["flops"]}
+        print(f"  {a:22} {i:9.5f} {v:9.5f} {1 - v / base_val:+11.1%} {i / base_ind:15.2f}x")
+    (RESULTS_DIR / "pde_improved.json").write_text(json.dumps(
+        {"note": "exploratory; validation only; no test split read; no verdict claimed",
+         "n_seeds": n_seeds, "steps": steps, "per_arm": out}, indent=2))
+    return out
+
+
 def main():
     if "--check" in sys.argv:
         raise SystemExit(0 if check() else 1)
+    if "--improved" in sys.argv:
+        run_improved(n_seeds=int(os.environ.get("PDE_IMPROVED_SEEDS", "5")),
+                     steps=int(os.environ.get("PDE_STEPS", "8000")))
+        return
     if "--run" in sys.argv:
         n = int(sys.argv[sys.argv.index("--run") + 1]) if len(sys.argv) > sys.argv.index("--run") + 1 else 10
         steps = int(os.environ.get("PDE_STEPS", "8000"))
