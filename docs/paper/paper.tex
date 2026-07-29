@@ -48,7 +48,9 @@ bound --- a frozen representation, where the same task CGA wins by $8\times$ whe
 representation is co-trained is lost by $1.6\times$ when it is not. The negatives specify the
 successor. \textbf{Complex FiLM}, magnitude for content and phase for composition, beats FiLM by
 36\% on unseen combinations and matches it on content ($0.97\times$) under two further
-pre-registered gates. The same structure yields a guidance knob needing no second forward pass,
+pre-registered gates, and on a 2D Navier-Stokes surrogate conditioned on physical parameters it
+passes every criterion at once: $64.6\%$ below the best unstructured arm, every seed beating every
+seed, while fitting \emph{better} in distribution ($0.938\times$) at $0.84\times$ FiLM's cost. The same structure yields a guidance knob needing no second forward pass,
 which distorts $2$--$5\times$ less than classifier-free guidance on a deterministic target,
 though not on a multimodal one. One operator, both roles, FiLM cost.
 \end{abstract}
@@ -361,8 +363,23 @@ vanish. Two relaxations that keep exact composition were pre-registered against 
 algebra a scaling generator, and conjugating the orthogonal basis by a learned diagonal so the
 rotation acts in a stretched metric. On validation the conjugated operator appeared to remove the
 penalty entirely ($0.962\times$); on the held-out split over ten seeds it reached $1.1007\times$
-and failed the same criterion by $0.065$ percentage points. The penalty is a property of the
-operator, not of the basis.
+and failed the same criterion by $0.065$ percentage points. Relaxing the \emph{metric} is not the
+fix.
+
+\paragraph{(5a$'$) Complex FiLM removes the fit penalty, and passes the same gate.} Gated on fresh
+seeds that had never been trained, Complex FiLM passes every criterion on the physics task: $45.4\%$
+below FiLM and $64.6\%$ below the best unstructured arm at $\delta=-1.00$, with an in-distribution
+fit ratio of $\mathbf{0.938\times}$ --- the first arm in this program to fit \emph{better} than the
+unstructured baseline rather than merely close to it --- at $0.84\times$ FiLM's cost. The margin
+replicates across independent seed sets ($+65.3\%$ and $1.030\times$ on the first, $+64.6\%$ and
+$0.938\times$ on the second), which matters because the conjugated operator looked like a fix on
+validation and was not.
+
+So the penalty was the isometry, and the remedy is a magnitude channel rather than a stretched
+metric. This is a claim about Complex FiLM and not about the pure group operator: its magnitude
+head is nonlinear in $c$, so composition is exact on the phase channel only. It buys
+in-distribution fit by spending half the exactness guarantee, and the arm that keeps the guarantee
+on both channels is the one that failed this criterion twice.
 
 \paragraph{(5b) The advantage requires a co-trained representation.} The sharpest bound comes
 from a controlled pair. The same dataset, the same held-out attribute pairs, the same arms and

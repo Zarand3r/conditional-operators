@@ -1,5 +1,62 @@
 # Pre-registration: Complex FiLM as the gated arm on the physics task
 
+## Outcome: CONFIRMED (2026-07-29)
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/pde_cfilm_summary.json`.
+
+**Every criterion passed, on seeds 10-19, which had never been trained.**
+
+| criterion | result | |
+|---|---|---|
+| AC-1, vs FiLM | $+45.4\%$ | pass |
+| AC-2, vs best unstructured (`dynamic_linear`) | $+64.6\%$, $p=9.1\times10^{-5}$, $\delta=-1.00$ | pass |
+| AC-3, divergence | 0 of 10 seeds | pass |
+| AC-4, budget | $0.84\times$ FiLM FLOPs, 42{,}176 params vs 297{,}856 | pass |
+| **AC-5, in-distribution fit** | **$0.938\times$** against a $1.10\times$ ceiling | pass |
+
+$\delta=-1.00$: every seed beat every seed of every unstructured arm, while costing **less than
+the FiLM baseline** it improves on by $45\%$.
+
+**It replicated across independent seed sets.** The observation that motivated this run came from
+seeds 0-9, where `cfilm_hyb` was a reported arm; the gated run used seeds 10-19:
+
+| | margin vs best unstructured | fit ratio |
+|---|---|---|
+| seeds 0-9 (reported) | $+65.3\%$ | $1.030\times$ |
+| seeds 10-19 (gated) | $+64.6\%$ | $0.938\times$ |
+
+That matters because the previous follow-up, `pde-conj`, looked like a fix on validation
+($0.962\times$) and was not ($1.1007\times$). This one holds.
+
+**The fit penalty is gone, and the diagnosis was right.** It has shadowed every experiment in this
+program and this is the first time any arm has gone *below* $1.0$ — better in distribution than the
+best unstructured baseline, not merely close to it:
+
+| setting | fit ratio |
+|---|---|
+| 3D Shapes | $1.46\times$ |
+| frozen latents | $2.43\times$ |
+| diffusion pilot | $1.33\times$ |
+| PDE, `proposed` | $1.118\times$ |
+| PDE, `proposed_conj` | $1.1007\times$ |
+| **PDE, `cfilm_hyb`** | **$0.938\times$** |
+
+The penalty was the isometry: a rotation can turn features but never rescale them, and
+in-distribution accuracy paid for it. Conjugating the basis to relax the *metric* bought almost
+nothing ($1.5\%$). Giving the operator a *magnitude channel* removed the penalty entirely. Both
+relaxations were pre-registered against the same diagnosis and only one of them was the right
+reading of it.
+
+**What is and is not claimed.** This is a result about Complex FiLM, exactly as the spec said before
+the run. Its magnitude head is nonlinear in $c$, so composition is exact on the phase channel only —
+it buys fit by spending half the exactness guarantee. The pure group operator, which composes
+exactly on both channels, is the arm that failed AC-5 twice on this task.
+
+`proposed_scaled_conj` (reported, not gated) reached 0.01366 test at a $1.14\times$ fit ratio,
+reproducing the same trade seen before: magnitude freedom buys composition and costs fit.
+
+
 **Status:** pre-registered 2026-07-29, before the confirmatory run.
 **Name:** `pde-cfilm` · **Hardware:** one RTX PRO 6000.
 

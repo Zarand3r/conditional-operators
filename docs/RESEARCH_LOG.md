@@ -27,9 +27,10 @@ passed. **Kill** means at least one failed, so the hypothesis is rejected for th
 | guidance-diversity (E0) | Does group power hold sample diversity where CFG collapses it? | screen failed | No, and the pilot points the other way: at matched fidelity CFG keeps more diversity, the knob is non-monotone (14x worse at a=1.5 than at a=1, then recovers), and the base model fits 33% worse. One seed, no test split read, no verdict claimed |
 | pde-params | Does it hold on a real physics task, conditioned on physical parameters? | kill | AC-5 only, by 1.8 points (fit 1.118x vs a 1.10x ceiling). Composition passed hugely: 57.5% below the best unstructured arm, delta=-1.00 (every seed beat every seed), at 1.11x FiLM cost with 7x fewer parameters. Smallest fit penalty in the program |
 | pde-conj | Does relaxing the isometry fix the fit criterion? | kill | AC-5 again, by 0.065 points (1.1007x vs 1.10x). Validation over 5 seeds said 0.962x; 10 seeds on held-out data said 1.1007x. Conjugation buys ~1.5% of fit, not the 14% validation advertised, so the fit penalty is a real cost of the operator rather than an artifact of the orthogonal basis |
+| pde-cfilm | Does Complex FiLM carry the win without the fit penalty? | confirmed | Yes, on fresh seeds 10-19. 64.6% below the best unstructured arm, delta=-1.00, and fit 0.938x -- the first arm in the program to fit BETTER than the unstructured baseline, at 0.84x FiLM's cost. Replicates the seeds 0-9 observation (65.3%, 1.030x) |
 | Guidance | Does powering the condition beat classifier-free guidance? | confirmed | Parity at strength 1; grows 23.7× to strength 8 against CFG's 50.7× (p=1.6e-4), with no second pass |
 
-Sixteen gates in total: eight passed, seven failed, one was inconclusive on budget.
+Seventeen gates in total: nine passed, seven failed, one was inconclusive on budget.
 
 ## Things worth remembering
 

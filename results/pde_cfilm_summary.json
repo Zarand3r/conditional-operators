@@ -1,0 +1,99 @@
+{
+  "experiment": "pde-cfilm",
+  "gated_arm": "cfilm_hyb",
+  "seed_range": [
+    10,
+    19
+  ],
+  "baselines_reused_from": "pde-params (identical protocol, seeds and data)",
+  "config": {
+    "n_seeds": 10,
+    "steps": 8000
+  },
+  "final_verdict": "confirmed",
+  "reasons": [
+    "AC-1..AC-5 pass; proposed beats dynamic_linear by 64.6% (p=9.1e-05, delta=-1.00)"
+  ],
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "dynamic_linear",
+  "margin_observed": 0.6458613741313042,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "per_arm": {
+    "film": {
+      "indist": 0.005675559601513669,
+      "test": 0.023227656446397304,
+      "test_std": 0.0077030867617779285,
+      "params": 50176,
+      "flops": 99456
+    },
+    "concat_mlp": {
+      "indist": 0.003960497176740319,
+      "test": 0.017840306158177555,
+      "test_std": 0.0038410355382739584,
+      "params": 83072,
+      "flops": 164992
+    },
+    "cond_layernorm": {
+      "indist": 0.002738970040809363,
+      "test": 0.018459161417558788,
+      "test_std": 0.003641716800964316,
+      "params": 50176,
+      "flops": 99968
+    },
+    "hypernet": {
+      "indist": 0.005388409725856036,
+      "test": 0.04270687690004706,
+      "test_std": 0.008482961454441836,
+      "params": 2147200,
+      "flops": 4293632
+    },
+    "dynamic_linear": {
+      "indist": 0.0032761687005404385,
+      "test": 0.035796000808477405,
+      "test_std": 0.007580614123104654,
+      "params": 297856,
+      "flops": 594944
+    },
+    "proposed": {
+      "indist": 0.0036624344531446694,
+      "test": 0.015207715099677444,
+      "test_std": 0.0023789245108512326,
+      "params": 44160,
+      "flops": 110122
+    },
+    "additive": {
+      "indist": 0.0038952232745941727,
+      "test": 0.020064423605799676,
+      "test_std": 0.0025140397088590687,
+      "params": 50176,
+      "flops": 99456
+    },
+    "cfilm_hyb": {
+      "indist": 0.0030736760701984165,
+      "test": 0.012676746537908911,
+      "test_std": 0.0012870951903248774,
+      "params": 42176,
+      "flops": 83968
+    },
+    "proposed_mlp_gs": {
+      "indist": 0.003812123480020091,
+      "test": 0.019559072656556965,
+      "test_std": 0.003100779973699267,
+      "params": 52416,
+      "flops": 125994
+    },
+    "proposed_scaled_conj": {
+      "indist": 0.0037325497309211642,
+      "test": 0.01365859976503998,
+      "test_std": 0.0028128838186926974,
+      "params": 44544,
+      "flops": 111146
+    }
+  }
+}
