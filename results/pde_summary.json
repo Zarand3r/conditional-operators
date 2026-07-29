@@ -1,0 +1,118 @@
+{
+  "experiment": "pde-params",
+  "spec": "docs/specs/PDE1_SPEC.md",
+  "task": "2D Navier-Stokes surrogate conditioned on physical-parameter deltas (viscosity, drag, forcing, background advection); OOD = unseen parameter pairs",
+  "config": {
+    "n_seeds": 10,
+    "steps": 8000,
+    "grid": 64,
+    "horizon_T": 2.0,
+    "device": "cuda"
+  },
+  "final_verdict": "kill",
+  "reasons": [
+    "AC-5 failed"
+  ],
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": false
+  },
+  "best_unstructured": "dynamic_linear",
+  "margin_observed": 0.5751560298301293,
+  "p_value": 9.133589555476718e-05,
+  "cliffs_delta": -1.0,
+  "per_arm": {
+    "film": {
+      "indist": 0.005675559601513669,
+      "val": 0.033504966692999,
+      "test": 0.023227656446397304,
+      "test_std": 0.0077030867617779285,
+      "n_diverged": 0,
+      "params": 50176,
+      "flops": 99456,
+      "flops_vs_film": 1.0
+    },
+    "concat_mlp": {
+      "indist": 0.003960497176740319,
+      "val": 0.02221398246474564,
+      "test": 0.017840306158177555,
+      "test_std": 0.0038410355382739584,
+      "n_diverged": 0,
+      "params": 83072,
+      "flops": 164992,
+      "flops_vs_film": 1.658944658944659
+    },
+    "cond_layernorm": {
+      "indist": 0.002738970040809363,
+      "val": 0.02460778462700546,
+      "test": 0.018459161417558788,
+      "test_std": 0.003641716800964316,
+      "n_diverged": 0,
+      "params": 50176,
+      "flops": 99968,
+      "flops_vs_film": 1.005148005148005
+    },
+    "hypernet": {
+      "indist": 0.005388409725856036,
+      "val": 0.04408652503043413,
+      "test": 0.04270687690004706,
+      "test_std": 0.008482961454441836,
+      "n_diverged": 0,
+      "params": 2147200,
+      "flops": 4293632,
+      "flops_vs_film": 43.171171171171174
+    },
+    "dynamic_linear": {
+      "indist": 0.0032761687005404385,
+      "val": 0.04227283825166524,
+      "test": 0.035796000808477405,
+      "test_std": 0.007580614123104654,
+      "n_diverged": 0,
+      "params": 297856,
+      "flops": 594944,
+      "flops_vs_film": 5.981981981981982
+    },
+    "proposed": {
+      "indist": 0.0036624344531446694,
+      "val": 0.015489649376831949,
+      "test": 0.015207715099677444,
+      "test_std": 0.0023789245108512326,
+      "n_diverged": 0,
+      "params": 44160,
+      "flops": 110122,
+      "flops_vs_film": 1.107243404118404
+    },
+    "additive": {
+      "indist": 0.0038952232745941727,
+      "val": 0.025882796058431266,
+      "test": 0.020064423605799676,
+      "test_std": 0.0025140397088590687,
+      "n_diverged": 0,
+      "params": 50176,
+      "flops": 99456,
+      "flops_vs_film": 1.0
+    },
+    "cfilm_hyb": {
+      "indist": 0.0033744549320545046,
+      "val": 0.01588261576835066,
+      "test": 0.012414449732750655,
+      "test_std": 0.0019231201866271555,
+      "n_diverged": 0,
+      "params": 42176,
+      "flops": 83968,
+      "flops_vs_film": 0.8442728442728443
+    },
+    "proposed_mlp_gs": {
+      "indist": 0.003812123480020091,
+      "val": 0.0220565686468035,
+      "test": 0.019559072656556965,
+      "test_std": 0.003100779973699267,
+      "n_diverged": 0,
+      "params": 52416,
+      "flops": 125994,
+      "flops_vs_film": 1.2668315637065637
+    }
+  }
+}

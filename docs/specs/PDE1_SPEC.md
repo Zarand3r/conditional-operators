@@ -1,5 +1,55 @@
 # Pre-registration: 2D Navier-Stokes surrogate, conditioned on physical parameters
 
+## Outcome: KILL (2026-07-29)
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/pde_summary.json`.
+
+**AC-5 failed and everything else passed.** The spec predicted this criterion would be the one to
+fail, and named the reason, before the run.
+
+| | result | |
+|---|---|---|
+| AC-1, vs FiLM | $+34.5\%$ | pass |
+| AC-2, vs best unstructured (`dynamic_linear`) | $+57.5\%$, $p=9.1\times10^{-5}$, $\delta=-1.00$ | pass |
+| AC-3, divergence | 0 of 10 seeds | pass |
+| AC-4, budget | $1.11\times$ FiLM FLOPs, 44{,}160 params | pass |
+| **AC-5, in-distribution fit** | **$1.118\times$ against a $1.10\times$ ceiling** | **FAIL** |
+
+The compositional result is the strongest in the program on a task with genuine scientific
+standing: $57.5\%$ below the best unstructured arm with $\delta=-1.00$, meaning **every seed of
+CGA beat every seed of every unstructured arm**, using $7\times$ fewer conditioning parameters than
+`dynamic_linear` and $49\times$ fewer than `hypernet`.
+
+And it is a KILL, by 1.8 percentage points on a fit criterion. That is the gate doing its job. The
+margin was fixed before the data existed and does not move now.
+
+**The fit penalty is the smallest we have measured**, which is the useful part:
+
+| setting | fit penalty |
+|---|---|
+| 3D Shapes | $1.46\times$ |
+| frozen latents | $2.43\times$ |
+| diffusion (guidance pilot) | $1.33\times$ |
+| **this task** | **$1.118\times$** |
+
+Choosing a task where content comes from the initial field rather than the condition shrank the
+penalty by most of the way to the ceiling without touching the operator. What remains is the
+isometry: the operator still cannot rescale features.
+
+**A reported arm outperformed the gated one.** `cfilm_hyb`, registered as reported-not-gated, beat
+`proposed` by $18.4\%$ on held-out pairs, reached a fit ratio of $1.030\times$ (inside AC-5), and
+did it at $0.84\times$ FiLM's FLOPs --- cheaper than the baseline. It would have passed every
+criterion. It was not the gated arm, so it does not carry the verdict, and promoting it after the
+fact would be exactly the selection this protocol exists to prevent. It is recorded here as what it
+is: the strongest arm in the run, and the obvious subject of a fresh pre-registration.
+
+**Follow-up.** The relaxed operators in `conditional_operators/improved.py` target precisely the
+isometry that AC-5 failed on. They are compared on **validation only**, and the test split is not
+read again for them, because a 1.8-point gap is exactly the size of gap that selection pressure
+invents. Any winner needs its own pre-registration.
+
+
 **Status:** pre-registered 2026-07-28, before the decision run.
 **Name:** `pde-params` · **Hardware:** one RTX PRO 6000.
 

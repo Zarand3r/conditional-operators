@@ -31,6 +31,7 @@ import time
 
 import torch
 
+from . import stage8  # noqa: F401  (registers cfilm_hyb in ARM_CLASSES)
 from .stage4 import DEVICE, RESULTS_DIR, _mean, _std
 
 N = 64                       # grid points per side
