@@ -1,0 +1,57 @@
+{
+  "note": "validation only; no test split read; no verdict claimed",
+  "steps": 3000,
+  "identity": 0.033282727003097534,
+  "conditioning_share": 0.7791101063277288,
+  "compositional_gap": 1.1310806263197994,
+  "fit_ratio_cfilm": 1.038150355017459,
+  "fit_ratio_proposed": 1.0,
+  "worth_a_sweep": false,
+  "rows": {
+    "film": {
+      "arm": "film",
+      "seed": 0,
+      "diverged": false,
+      "params": 50176,
+      "flops": 99456,
+      "indist": 0.007627022918313742,
+      "val": 0.008999390294775367
+    },
+    "concat_mlp": {
+      "arm": "concat_mlp",
+      "seed": 0,
+      "diverged": false,
+      "params": 83072,
+      "flops": 164992,
+      "indist": 0.007356681395322084,
+      "val": 0.008455942462508878
+    },
+    "hypernet": {
+      "arm": "hypernet",
+      "seed": 0,
+      "diverged": false,
+      "params": 2147200,
+      "flops": 4293632,
+      "indist": 0.009772697929292917,
+      "val": 0.011044768306116262
+    },
+    "proposed": {
+      "arm": "proposed",
+      "seed": 0,
+      "diverged": false,
+      "params": 44160,
+      "flops": 110122,
+      "indist": 0.007351818028837442,
+      "val": 0.008315498940646648
+    },
+    "cfilm_hyb": {
+      "arm": "cfilm_hyb",
+      "seed": 0,
+      "diverged": false,
+      "params": 42176,
+      "flops": 83968,
+      "indist": 0.0076322924966613455,
+      "val": 0.008896279148757458
+    }
+  }
+}
