@@ -1,0 +1,99 @@
+{
+  "experiment": "pdebench-reacdiff",
+  "spec": "docs/specs/PDEBENCH_SPEC.md",
+  "task": "PDEBench 1D reaction-diffusion, FNO backbone, conditioned on (nu, rho); OOD = grid cells where both parameters leave the baseline",
+  "config": {
+    "n_seeds": 10,
+    "steps": 8000,
+    "modes": 16,
+    "width": 128
+  },
+  "final_verdict": "confirmed",
+  "reasons": [
+    "AC-1..AC-5 pass; proposed beats hypernet by 31.1% (p=0.0011, delta=-0.82)"
+  ],
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.31136695059280417,
+  "p_value": 0.001101109971248515,
+  "cliffs_delta": -0.82,
+  "per_arm": {
+    "film": {
+      "indist": 3.753887433504133e-05,
+      "val": 0.17181610497646033,
+      "test": 0.3645788194611669,
+      "test_std": 0.06855097502067821,
+      "params": 49920,
+      "flops": 98944
+    },
+    "concat_mlp": {
+      "indist": 3.9325910910292806e-05,
+      "val": 0.0684576143627055,
+      "test": 0.2566925614140928,
+      "test_std": 0.08533267721004298,
+      "params": 82816,
+      "flops": 164480
+    },
+    "cond_layernorm": {
+      "indist": 4.0835106176473346e-05,
+      "val": 0.12403347592335194,
+      "test": 0.3251489570364356,
+      "test_std": 0.09556777072947471,
+      "params": 49920,
+      "flops": 99456
+    },
+    "hypernet": {
+      "indist": 4.0209758219589274e-05,
+      "val": 0.2505472416174598,
+      "test": 0.42625064197927715,
+      "test_std": 0.08894811220522394,
+      "params": 2146944,
+      "flops": 4293120
+    },
+    "dynamic_linear": {
+      "indist": 3.306873775841268e-05,
+      "val": 0.26787846386432645,
+      "test": 0.44896586798131466,
+      "test_std": 0.06348707237707393,
+      "params": 297600,
+      "flops": 594432
+    },
+    "proposed": {
+      "indist": 3.259949871221579e-05,
+      "val": 0.08370735284988769,
+      "test": 0.2935302793979645,
+      "test_std": 0.04779075654792173,
+      "params": 43776,
+      "flops": 109354
+    },
+    "additive": {
+      "indist": 2.7397581374088986e-05,
+      "val": 0.14038307836744934,
+      "test": 0.3411988940089941,
+      "test_std": 0.0713698485153609,
+      "params": 49920,
+      "flops": 98944
+    },
+    "cfilm_hyb": {
+      "indist": 3.849419173320712e-05,
+      "val": 0.13010628218762577,
+      "test": 0.359556732699275,
+      "test_std": 0.0520863984903629,
+      "params": 41792,
+      "flops": 83200
+    },
+    "proposed_scaled_conj": {
+      "indist": 2.9688808564287682e-05,
+      "val": 0.08743153604445979,
+      "test": 0.2826922325417399,
+      "test_std": 0.062407399117709345,
+      "params": 44032,
+      "flops": 110122
+    }
+  }
+}

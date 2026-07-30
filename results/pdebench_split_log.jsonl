@@ -1,0 +1,1 @@
+{"arm": "split_cga", "seed": 10, "diverged": false, "params": 49984, "flops": 99328, "indist": 5.0542737653813674e-05, "val": 0.08242394868284464, "test": 0.2901180796325207}
