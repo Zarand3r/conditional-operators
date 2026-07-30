@@ -1,5 +1,35 @@
 # Pre-registration: a contained operator on PDEBench
 
+## Outcome: gate CONFIRMED, purpose failed again (2026-07-29)
+
+> Written after the run. Everything below is the pre-registration, unchanged.
+
+The gate passed on its own terms ($+36.8\%$ vs `hypernet`, $p=0.00066$). Against `concat_mlp` —
+the number this spec named as the one that matters — `split_cga` is $-5.0\%$.
+
+| | validation (1 seed) | test (10 seeds) |
+|---|---|---|
+| `hybrid_concat` | $+30.8\%$ | $+1.7\%$ |
+| `split_cga` | $+21.4\%$ | $-5.0\%$ |
+
+**The validation margin did not survive, exactly as this spec warned it might.** It cited
+`pde-conj` — $0.962\times$ on validation, $1.1007\times$ on held-out data — as the standing reason
+to distrust a margin of this size. The same thing happened. `hybrid_concat`'s $+1.7\%$ sits inside
+a standard deviation of $0.085$ on a mean of $0.257$, so it is a tie, not a win, and it costs
+$2.10\times$ FiLM's FLOPs to achieve.
+
+**Recorded as a KILL of the experiment's purpose**, per the rule written here before the run: a
+gate pass while losing to `concat_mlp` is a gate artifact. That is now twice in a row, which makes
+it a property of the criteria rather than an accident — see `PDEBENCH_SPEC.md` for why the gate's
+references stopped matching the strongest baseline.
+
+**What it means.** Containing the operator inside an expressive path does not rescue it either. The
+diagnosis that motivated these arms — that the failure is dimensional — appears right about the
+*cause* and wrong about the *remedy*: giving the expressive path back its capacity recovers the
+baseline's performance and nothing more. On this benchmark the structured operator contributes
+nothing measurable, whatever it is wrapped in.
+
+
 **Status:** pre-registered 2026-07-29, before the decision run and before its test split is read.
 **Name:** `pdebench-split` · **Hardware:** one RTX PRO 6000.
 

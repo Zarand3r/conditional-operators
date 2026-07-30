@@ -1,0 +1,101 @@
+{
+  "experiment": "pdebench-split",
+  "spec": "docs/specs/PDEBENCH2_SPEC.md",
+  "gated_arm": "split_cga",
+  "seed_range": [
+    10,
+    19
+  ],
+  "baselines_reused_from": "pdebench-reacdiff (seeds 0-9, identical protocol)",
+  "final_verdict": "confirmed",
+  "gate_criteria": {
+    "AC-1": true,
+    "AC-2": true,
+    "AC-3": true,
+    "AC-5": true
+  },
+  "best_unstructured": "hypernet",
+  "margin_observed": 0.36766692572114307,
+  "p_value": 0.0006574723348566347,
+  "cliffs_delta": -0.86,
+  "margin_vs_concat_mlp": -0.050020216290128205,
+  "per_arm": {
+    "film": {
+      "indist": 3.753887433504133e-05,
+      "test": 0.3645788194611669,
+      "test_std": 0.06855097502067821,
+      "params": 49920,
+      "flops": 98944
+    },
+    "concat_mlp": {
+      "indist": 3.9325910910292806e-05,
+      "test": 0.2566925614140928,
+      "test_std": 0.08533267721004298,
+      "params": 82816,
+      "flops": 164480
+    },
+    "cond_layernorm": {
+      "indist": 4.0835106176473346e-05,
+      "test": 0.3251489570364356,
+      "test_std": 0.09556777072947471,
+      "params": 49920,
+      "flops": 99456
+    },
+    "hypernet": {
+      "indist": 4.0209758219589274e-05,
+      "test": 0.42625064197927715,
+      "test_std": 0.08894811220522394,
+      "params": 2146944,
+      "flops": 4293120
+    },
+    "dynamic_linear": {
+      "indist": 3.306873775841268e-05,
+      "test": 0.44896586798131466,
+      "test_std": 0.06348707237707393,
+      "params": 297600,
+      "flops": 594432
+    },
+    "proposed": {
+      "indist": 3.259949871221579e-05,
+      "test": 0.2935302793979645,
+      "test_std": 0.04779075654792173,
+      "params": 43776,
+      "flops": 109354
+    },
+    "additive": {
+      "indist": 2.7397581374088986e-05,
+      "test": 0.3411988940089941,
+      "test_std": 0.0713698485153609,
+      "params": 49920,
+      "flops": 98944
+    },
+    "cfilm_hyb": {
+      "indist": 3.849419173320712e-05,
+      "test": 0.359556732699275,
+      "test_std": 0.0520863984903629,
+      "params": 41792,
+      "flops": 83200
+    },
+    "proposed_scaled_conj": {
+      "indist": 2.9688808564287682e-05,
+      "test": 0.2826922325417399,
+      "test_std": 0.062407399117709345,
+      "params": 44032,
+      "flops": 110122
+    },
+    "split_cga": {
+      "indist": 3.6720283577551524e-05,
+      "test": 0.2695323788560927,
+      "test_std": 0.06726867195805449,
+      "params": 49984,
+      "flops": 99328
+    },
+    "hybrid_concat": {
+      "indist": 4.120553779785041e-05,
+      "test": 0.25245231576263905,
+      "test_std": 0.08506157656288187,
+      "params": 93185,
+      "flops": 207786
+    }
+  }
+}

@@ -29,10 +29,11 @@ passed. **Kill** means at least one failed, so the hypothesis is rejected for th
 | pde-conj | Does relaxing the isometry fix the fit criterion? | kill | AC-5 again, by 0.065 points (1.1007x vs 1.10x). Validation over 5 seeds said 0.962x; 10 seeds on held-out data said 1.1007x. Conjugation buys ~1.5% of fit, not the 14% validation advertised, so the fit penalty is a real cost of the operator rather than an artifact of the orthogonal basis |
 | pde-cfilm | Does Complex FiLM carry the win without the fit penalty? | confirmed | Yes, on fresh seeds 10-19. 64.6% below the best unstructured arm, delta=-1.00, and fit 0.938x -- the first arm in the program to fit BETTER than the unstructured baseline, at 0.84x FiLM's cost. Replicates the seeds 0-9 observation (65.3%, 1.030x) |
 | pdebench-reacdiff | Does any of this beat standard practice on a benchmark we did not build? | kill (gate said confirmed) | No. The gate passed on its own terms (+31.1% vs the best unstructured arm) but every arm of ours loses to plain concat_mlp: proposed -14.4%, cfilm_hyb -40.1%. The gate references film and hypernet, which are 4th and 8th of nine here; the strongest baseline is referenced by no criterion. Reported as a gate artifact, as the spec required |
+| pdebench-split | Does containing the operator inside an expressive path beat standard practice? | kill (gate said confirmed) | No. Validation said +30.8% and +21.4% over concat_mlp; test says +1.7% (inside one sd) and -5.0%. Second gate artifact in a row. Containing the operator recovers the baseline and adds nothing |
 | shapes3d-cfilm | Does Complex FiLM fix the 3D Shapes fit failure too? | kill | No, and it falsifies the diagnosis. Fit 1.542x, worse than proposed's 1.457x, while passing composition by 84.5%. The PDE condition has no content in it; the 3D Shapes condition has a categorical shape swap. The fit penalty tracks content demand, not the isometry |
 | Guidance | Does powering the condition beat classifier-free guidance? | confirmed | Parity at strength 1; grows 23.7× to strength 8 against CFG's 50.7× (p=1.6e-4), with no second pass |
 
-Nineteen gates in total: nine passed on their own terms, nine failed, one was inconclusive on budget. One of the nine passes is recorded as a gate artifact.
+Twenty gates in total: ten passed on their own terms, nine failed, one was inconclusive on budget. Two of the ten passes are recorded as gate artifacts: they cleared criteria that referenced the wrong baseline.
 
 ## Things worth remembering
 
