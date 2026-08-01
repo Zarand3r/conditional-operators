@@ -181,3 +181,125 @@ if __name__ == "__main__":
     m = TCN("cfilm")
     print(f"\n  receptive field: {m.receptive} samples "
           f"({m.receptive / SR * 1000:.0f} ms at {SR} Hz)")
+
+
+# ---------------------------------------------------------------- SignalTrain LA-2A data
+
+import os
+import pathlib
+import re
+import time
+
+import numpy as np
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+LA2A = ROOT / "datasets" / "signaltrain" / "SignalTrain_LA2A_Dataset_1.1"
+CACHE = ROOT / "datasets" / "la2a_cache.pt"
+WINDOW = 32_768                # ~0.74 s at 44.1 kHz; longer than the 278 ms receptive field
+PER_PAIR = 64                  # random windows kept per (input, target) recording
+
+
+def _parse(name: str):
+    m = re.match(r"target_(\d+)_LA2A_(\dc)__(\d)__(\d+)\.wav", name)
+    return None if m is None else (int(m.group(1)), int(m.group(3)), int(m.group(4)))
+
+
+def build_cache(force: bool = False):
+    """Sample fixed random windows from each 20-minute recording once, and keep only those.
+
+    The full set is 28 GB of 44.1 kHz audio; the cache is about 1 GB and makes every arm see
+    byte-identical data, which the budget-fair protocol requires.
+    """
+    if CACHE.exists() and not force:
+        return torch.load(CACHE, map_location="cpu")
+    import scipy.io.wavfile as wav
+    out = {}
+    for split in ("Train", "Val", "Test"):
+        d = LA2A / split
+        if not d.exists():
+            continue
+        xs, cs, ys = [], [], []
+        rng = np.random.default_rng(0)
+        for tp in sorted(d.glob("target_*.wav")):
+            meta = _parse(tp.name)
+            if meta is None:
+                continue
+            take, switch, peak = meta
+            ip = d / f"input_{take}_.wav"
+            if not ip.exists():
+                continue
+            _, xi = wav.read(ip)
+            _, yi = wav.read(tp)
+            n = min(len(xi), len(yi)) - WINDOW - 1
+            starts = rng.integers(0, n, size=PER_PAIR)
+            for s in starts:
+                xs.append(xi[s:s + WINDOW].astype(np.float32))
+                ys.append(yi[s:s + WINDOW].astype(np.float32))
+                cs.append([switch, peak / 100.0])
+            print(f"  {split}/{tp.name}: switch={switch} peak={peak}", flush=True)
+        out[split] = {"x": torch.from_numpy(np.stack(xs)),
+                      "c": torch.tensor(cs, dtype=torch.float32),
+                      "y": torch.from_numpy(np.stack(ys))}
+        print(f"{split}: {len(xs)} windows", flush=True)
+    torch.save(out, CACHE)
+    return out
+
+
+# ---------------------------------------------------------------- training and screen
+
+DEV = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def esr(pred, target, warmup):
+    """Error-to-signal ratio, this field's standard metric. The first `warmup` samples are
+    discarded because the causal model has not yet filled its receptive field."""
+    p, t = pred[..., warmup:], target[..., warmup:]
+    return (torch.sum((t - p) ** 2) / torch.sum(t ** 2).clamp_min(1e-8)).item()
+
+
+def _throttle_fx(step):
+    """Duty-cycle the card. This backbone pulls ~585 W unthrottled at batch 16, and this
+    machine's power supply trips at a sustained 600 W -- it has cost one overnight run already."""
+    ms = int(os.environ.get("NEURALFX_THROTTLE_MS", "0"))
+    if ms and step % 4 == 0:
+        if DEV == "cuda":
+            torch.cuda.synchronize()
+        time.sleep(ms / 1000.0)
+
+
+def train_one_fx(arm, seed, data, steps, batch=16, lr=3e-3):
+    torch.manual_seed(seed)
+    m = TCN(arm).to(DEV)
+    opt = torch.optim.Adam(m.parameters(), lr=lr)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, steps)
+    tr = data["Train"]
+    n = tr["x"].shape[0]
+    g = torch.Generator().manual_seed(seed)
+    w = m.receptive
+    for step in range(steps):
+        _throttle_fx(step)
+        idx = torch.randint(n, (batch,), generator=g)
+        x = tr["x"][idx].unsqueeze(1).to(DEV)
+        c = tr["c"][idx].to(DEV)
+        y = tr["y"][idx].unsqueeze(1).to(DEV)
+        pred = m(x, c)
+        loss = torch.mean((pred[..., w:] - y[..., w:]) ** 2)
+        if not math.isfinite(loss.item()):
+            return dict(arm=arm, seed=seed, diverged=True)
+        opt.zero_grad(); loss.backward()
+        torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
+        opt.step(); sched.step()
+
+    @torch.no_grad()
+    def ev(split):
+        d = data[split]
+        tot, k = 0.0, 0
+        for i in range(0, d["x"].shape[0], 32):
+            x = d["x"][i:i + 32].unsqueeze(1).to(DEV)
+            c = d["c"][i:i + 32].to(DEV)
+            y = d["y"][i:i + 32].unsqueeze(1).to(DEV)
+            tot += esr(m(x, c), y, w); k += 1
+        return tot / k
+
+    return dict(arm=arm, seed=seed, diverged=False, cond_params=m.cond_params(),
+                train_esr=ev("Train"), val_esr=ev("Val"))
