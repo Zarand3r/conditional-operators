@@ -216,7 +216,7 @@ The last row matters: when the required map is not a linear operator in any basi
 operator-family mechanism is equally out of class, and the unrestricted one wins. That is not a
 failure of structure so much as a task outside the framework's scope.
 
-## 5.2 A structural derivation, and a hard ceiling
+## 5.2 A structural derivation (and a retracted ceiling)
 
 Working the algebra rather than the empirics gives a chain in which every step is forced. It
 subsumes several results we had been treating as separate design choices.
@@ -310,7 +310,62 @@ contains 38 — nothing to compose. dSprites has five factors, whose combination
 **Structured conditioning requires roughly four or more genuinely interacting condition axes to
 have anything to do.**
 
-## 7. Status of each claim
+## 7. A prediction for a setting we have not run: world models
+
+The framework's value is only testable outside the tasks it was built on. This is the sharpest
+prediction it makes for a setting we have no data on, recorded before we test it so that it can
+fail publicly.
+
+**Setting.** A world model conditioned on two very different things: past **proprioception** (joint
+angles, velocities, end-effector pose) and past **actions**. In practice both are "a vector fed to
+the dynamics model", and both are usually conditioned the same way.
+
+**The theory says they should be conditioned differently, and says which is which.**
+
+**Proprioception is state, and wants FiLM.** A proprio reading tells the model what configuration
+the body is in — which features should be active. That is *content*: specifying what, not applying
+an operation. Content lives in the stretch factor (§3.1, §6.1), and the diagonal mechanism is the
+one that reaches the stretch factor. Two further reasons point the same way:
+
+- **No compositional gap.** Proprio states do not compose — "arm here" ∘ "arm there" is not an
+  operation — so closure has nothing to determine (§4). World models also train on trajectories
+  covering the reachable state space fairly densely and evaluate in-distribution, so `gap ≈ 1`.
+- **`E_est` binds.** Proprio is 20–50 dimensional. A hypernetwork head emitting a `d×d` matrix from
+  that is on the order of `10⁵`–`10⁶` parameters per conditioning site, estimated from limited
+  trajectory data. The "capacity helps in the interpolation regime" half of §6.2 only holds where
+  the capacity can actually be estimated, which is why the LA-2A result (hypernetwork wins, two
+  knobs, densely sampled, tiny head) should **not** transfer here.
+
+**Actions are transformations, and want an operator that composes.** Actions compose by
+construction — apply `a₁` then `a₂` — so the group structure is real and closure has something to
+determine. Measured on our own rollout suite: a composing operator plus a latent-consistency loss
+beat FiLM by **78%** at horizon 20 and went flat where FiLM's error grew `4.5×`.
+
+**The prediction, stated so it can be falsified.**
+
+> In a world model conditioned on both, the two paths should use *different* mechanisms: a
+> diagonal/FiLM path for proprioception and a composing operator path for actions. Making both
+> FiLM should cost long-horizon accuracy; making both an operator should cost fit.
+
+Note that both are *operator-style* in the sense of §1 — the condition produces a linear map on the
+features. They differ in **which polar factor that map reaches**, not in whether a map exists. This
+is not a claim about concatenation, which lies outside the framework entirely because no matrix is
+formed.
+
+**Evidential status: weak, and external.** The proprio half matches practitioner experience
+reported to us for DreamZero-style models, where FiLM is said to work best for conditioning on past
+proprioception. That is an anecdote, retrodicted, and it has mundane alternative explanations —
+FiLM is cheap for fast rollouts, it is the default and therefore the best-tuned, and "best" may
+mean best per unit of engineering effort. It is nonetheless the **first data point this framework
+has touched that we did not construct**, which matters given that §5's audit found task selection
+uncontrolled throughout our own programme.
+
+**The cheap test.** In any system that already conditions on both, swap only the *action* path to a
+composing operator and leave proprioception on FiLM. The framework predicts a gain concentrated at
+long horizons and roughly no change to single-step fit. That is a smaller intervention than
+anything we built, and it tests the framework rather than the method.
+
+## 8. Status of each claim
 
 | claim | status |
 |---|---|
@@ -321,11 +376,12 @@ have anything to do.**
 | Fit ratio and gap as proxies (§4) | **empirical**: 9 observations, thresholds calibrated post hoc |
 | Capacity sign flip (6.2) | **empirical**, both regimes observed |
 | Coverage criterion (6.3) | argued from counting, consistent with all 9 tasks |
+| World-model asymmetry (§7) | **prediction, untested by us**; proprio half matches one external anecdote |
 
 The thresholds are guidance, not bounds. Nine observations, and both were fitted after the fact;
 they are reported so that a future task can falsify them.
 
-## 8. What is missing
+## 9. What is missing
 
 The theory's weakest joint is that `E_extrap` is measured by a proxy rather than bounded. What is
 wanted is a statement of the form
@@ -345,7 +401,7 @@ composition lost) is a real design axis this framework does not yet resolve. Mea
 exists on both sides — the linear head is the reason the PDEBench family was dimensionally starved,
 while the nonlinear head is why the magnitude channel breaks exactness.
 
-## 9. Why this is the contribution rather than the operator
+## 10. Why this is the contribution rather than the operator
 
 The project set out to show that a group-structured conditioner wins. It wins on three tasks and
 loses on six, and no application survived contact with a benchmark we did not construct.
