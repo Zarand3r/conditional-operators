@@ -164,10 +164,21 @@ Nine tasks, evaluated under one protocol with pre-registered criteria and a shar
 | synthetic PDE (Complex FiLM) | 0.938 | 4.3× | win | won, 64.6% |
 | synthetic PDE (rotation) | 1.118 | 4.3× | loss | lost (fit criterion) |
 | 3D Shapes | 1.457 | 2.1× | loss | lost (fit criterion) |
-| latent editing (frozen) | 2.433 | 2.1× | loss | lost |
+| latent editing (frozen)† | 2.433 | 2.1× | loss | lost |
 | PDEBench | 2.381 | ~140× | loss | lost |
 | camera sliders | — | 1.26× | no contrast | withdrawn |
 | audio effects / LA-2A | 1.000 | 1.13× | tie | tied |
+
+† **The frozen/co-trained pair is not a single-variable A/B**, though it is quoted that way
+elsewhere in this repository (8× better co-trained, 1.6× worse frozen). The co-trained run
+optimises BCE on images and is scored in pixel space; the frozen run optimises and is scored in
+latent space. Representation, objective and metric all differ. The within-run ratios are the
+defensible part; the pair is suggestive, not controlled.
+
+**A second caveat on the whole table:** the *splits* were pre-registered, the *tasks* were not. All
+three wins are on tasks whose dominant factors are geometric — exactly the rotation-dominated
+regime §3.1 says suits an orthogonal operator. Task selection is not controlled for anywhere in
+this programme, and that weakens all three positives.
 
 Nine for nine. What makes this more than a curve fit is that **each factor is independently
 observed to fail while the other passes**: camera had an acceptable fit and no gap; audio effects
@@ -275,13 +286,22 @@ requiring the condition to *specify what to generate* lie outside `R`. Measured:
 content conditioning, and the ablation fails identically. The remedy is a magnitude channel
 (Complex FiLM), which recovers content at the cost of exactness on that channel.
 
-**6.2 Capacity has opposite signs in the two regimes** — and only once the class is right. In the interpolation regime
+**6.2 Capacity has opposite signs in the two regimes** — but see the audit below: the ordering is
+*not* monotone in parameter count. In the interpolation regime
 (`gap ≈ 1`), `E_extrap ≈ 0` for every mechanism, so only `E_approx + E_est` matter and capacity
 helps. In the composition regime (`gap > 1`), `E_extrap` dominates and capacity increases it.
 Measured: hypernetworks lose by 57–90% on held-out combinations and memorise on an FNO backbone
 (2815× train/val gap) — yet **win** on the LA-2A, where there is no gap at all. Both halves are
 now observed. The earlier claim ("capacity hurts conditioning") was the first half without its
 boundary.
+
+**Audit (2026-08-01): parameter count does not order the arms.** On dSprites the 2.1M
+hypernetwork (0.00383) *beats* the 298K low-rank arm (0.00508); on 3D Shapes likewise (0.00928 vs
+0.01978); and the 83K concat-MLP often beats the 50K FiLM. Sorting by capacity does not sort by
+error. What survives is the weaker statement that *the unstructured arms are usually worst on
+held-out combinations, without being ordered among themselves* — which points at the **operation
+class** (low-rank linear vs full linear vs diagonal vs nonlinear-in-`z`) rather than at capacity,
+and is therefore consistent with §3.1 rather than with a capacity story.
 
 **6.3 Dense coverage dissolves the benefit.** The samples needed to cover `C` grow exponentially
 in `dim(C)`. For `dim(C) ≲ 3` the condition space is enumerable, so `gap ≈ 1` and structure is
