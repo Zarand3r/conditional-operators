@@ -1,0 +1,121 @@
+{
+  "note": "validation only; no test split read; no verdict claimed",
+  "steps": 4000,
+  "seeds": 3,
+  "rows": [
+    {
+      "arm": "film",
+      "seed": 0,
+      "diverged": false,
+      "cond_params": 32640,
+      "train_esr": 0.03942027321141778,
+      "val_esr": 0.026879940119882425
+    },
+    {
+      "arm": "film",
+      "seed": 1,
+      "diverged": false,
+      "cond_params": 32640,
+      "train_esr": 0.04372273625410868,
+      "val_esr": 0.030190410123517118
+    },
+    {
+      "arm": "film",
+      "seed": 2,
+      "diverged": false,
+      "cond_params": 32640,
+      "train_esr": 0.03736077237055835,
+      "val_esr": 0.024954450658212106
+    },
+    {
+      "arm": "cfilm",
+      "seed": 0,
+      "diverged": false,
+      "cond_params": 27680,
+      "train_esr": 0.04355340015679372,
+      "val_esr": 0.029266100144013762
+    },
+    {
+      "arm": "cfilm",
+      "seed": 1,
+      "diverged": false,
+      "cond_params": 27680,
+      "train_esr": 0.05560057559473948,
+      "val_esr": 0.03679013776903351
+    },
+    {
+      "arm": "cfilm",
+      "seed": 2,
+      "diverged": false,
+      "cond_params": 27680,
+      "train_esr": 0.04148838291593799,
+      "val_esr": 0.027957609078536432
+    },
+    {
+      "arm": "concat",
+      "seed": 0,
+      "diverged": false,
+      "cond_params": 42880,
+      "train_esr": 0.04327922168357128,
+      "val_esr": 0.02865202844453355
+    },
+    {
+      "arm": "concat",
+      "seed": 1,
+      "diverged": false,
+      "cond_params": 42880,
+      "train_esr": 0.04419101078317247,
+      "val_esr": 0.029592661047354342
+    },
+    {
+      "arm": "concat",
+      "seed": 2,
+      "diverged": false,
+      "cond_params": 42880,
+      "train_esr": 0.03653162864573074,
+      "val_esr": 0.025091315355772772
+    },
+    {
+      "arm": "hyper",
+      "seed": 0,
+      "diverged": false,
+      "cond_params": 349440,
+      "train_esr": 0.04132869753591491,
+      "val_esr": 0.027232889380926887
+    },
+    {
+      "arm": "hyper",
+      "seed": 1,
+      "diverged": false,
+      "cond_params": 349440,
+      "train_esr": 0.04133890294752112,
+      "val_esr": 0.028701084945350886
+    },
+    {
+      "arm": "hyper",
+      "seed": 2,
+      "diverged": false,
+      "cond_params": 349440,
+      "train_esr": 0.042438529255433066,
+      "val_esr": 0.028117228765040636
+    }
+  ],
+  "summary": {
+    "film": [
+      0.027341600300537217,
+      0.0021623544995183603
+    ],
+    "cfilm": [
+      0.03133794899719457,
+      0.0038921124529774725
+    ],
+    "concat": [
+      0.027778668282553553,
+      0.0019386587697306408
+    ],
+    "hyper": [
+      0.028017067697106136,
+      0.0006035581902329501
+    ]
+  }
+}
