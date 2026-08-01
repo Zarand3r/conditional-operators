@@ -310,6 +310,99 @@ contains 38 — nothing to compose. dSprites has five factors, whose combination
 **Structured conditioning requires roughly four or more genuinely interacting condition axes to
 have anything to do.**
 
+## 6.5 Three results, with proofs
+
+The framework above is stated with two empirical proxies. This section replaces both with derived
+quantities. Throughout, `‖·‖` is Frobenius, `T*` is the task's true conditional map (assumed
+linear in the features — this excludes concatenation-style mechanisms, §3.1(2)), and `R` is a
+mechanism's reachable set.
+
+### Theorem 1 (exact approximation error, per mechanism class)
+
+`E_approx = min_{R ∈ 𝓡} ‖T* − R‖` admits a closed form for each standard mechanism:
+
+| mechanism | reachable set | `E_approx` |
+|---|---|---|
+| hypernetwork | all linear maps | `0` |
+| FiLM | diagonal | `‖T* − diag(T*)‖` |
+| CGA | orthogonal | `‖S* − I‖`, from the polar `T* = U*S*` |
+| Complex FiLM | block-diag. scaled rotations | `√( ‖offblk(T*)‖² + Σ_b ‖B_b − αI − βJ‖² )` |
+
+*Proof.* **FiLM.** The Frobenius norm is entrywise, so the objective separates; diagonal entries are
+matched exactly by `D_ii = T*_ii`, off-diagonal entries are unreachable. **CGA.** Orthogonal
+Procrustes: `‖T*−Q‖² = ‖T*‖² − 2⟨T*,Q⟩ + d`, so minimising is maximising `tr(QᵀT*)`. With
+`T* = UΣVᵀ`, write `Z = VᵀQᵀU`, orthogonal, giving `tr(QᵀT*) = Σᵢ σᵢ Zᵢᵢ ≤ Σᵢ σᵢ`, attained at
+`Z = I`, i.e. `Q = UVᵀ = U*`. Then `T* − Q = U(Σ−I)Vᵀ`, so the residual is `‖Σ−I‖ = ‖S*−I‖`.
+**Complex FiLM.** The reachable set is block-diagonal, so off-diagonal blocks are unreachable and
+contribute in full. Within a `2×2` block the reachable set `{αI + βJ}` is a *linear subspace*, so
+the minimiser is the orthogonal projection and the residual is the component along the complement
+`span{[[1,0],[0,−1]], [[0,1],[1,0]]}`. ∎
+
+These are identities, not bounds, each attained by an explicit minimiser. All four verified
+numerically against brute-force minimisation.
+
+### Lemma (the exponential is 1-Lipschitz on the skew algebra)
+
+For skew-symmetric `X, Y`: `‖e^X − e^Y‖ ≤ ‖X − Y‖`.
+
+*Proof.* Skew matrices form a linear space, so `Z(t) = Y + t(X−Y)` is skew for `t ∈ [0,1]`. The
+derivative of `exp` at `Z` in direction `H` is `∫₀¹ e^{sZ} H e^{(1−s)Z} ds`. For skew `Z` each
+`e^{sZ}` is orthogonal, and Frobenius norm is invariant under orthogonal multiplication on either
+side, so the integrand has norm `‖H‖` and `‖d/dt e^{Z(t)}‖ ≤ ‖X−Y‖`. Integrating over `[0,1]`
+gives the claim. ∎
+
+Measured: max ratio `0.9976` over 200 random pairs. With a symmetric part present the bound fails,
+as it must — the observed amplification reaches `115×`.
+
+### Theorem 2 (extrapolation error of a closed mechanism)
+
+Let `T(c) = exp(A(Wc))` with `A` linear into the skew algebra, and let `T̂(c) = exp(A(Ŵc))` be the
+learned model. Then for every `c`,
+
+```
+‖T̂(c) − T(c)‖  ≤  ‖A‖_op · ‖Ŵ − W‖_op · ‖c‖
+```
+
+*Proof.* `A(Ŵc)` and `A(Wc)` are both skew, so the Lemma gives
+`‖T̂(c) − T(c)‖ ≤ ‖A(Ŵc) − A(Wc)‖ = ‖A((Ŵ−W)c)‖ ≤ ‖A‖_op‖Ŵ−W‖_op‖c‖`. ∎
+
+**The bound depends on `‖c‖` alone — not on the position of `c` relative to `C_train`.** That is
+the closure benefit made quantitative: reaching an unvisited *combination* of conditions costs
+nothing beyond reaching the same magnitude, and no comparable bound holds for a mechanism whose
+head is an MLP.
+
+**Corollary 2.1 (identifiability).** If `C_train` spans `ℝᵏ`, then `W` is identifiable and
+`‖Ŵ − W‖` is an ordinary linear-regression error, vanishing with data. `E_extrap → 0`.
+
+**Corollary 2.2 (why the compact factor is the stable one).** If `A` carries a symmetric part of
+magnitude `s`, the Lemma no longer applies and the Lipschitz constant along the path is bounded
+only by `e^{max(‖X‖,‖Y‖)}`. Error therefore grows like `e^s`. Under strength scaling `c → αc` this
+is **linear in `α` on the rotation channel and exponential on the magnitude channel** — which
+derives §5.2(v), previously asserted, and predicts both the guidance behaviour and the necessity of
+the magnitude clamp.
+
+### Theorem 3 (selection criterion)
+
+Combining, for a closed mechanism,
+
+```
+E_test  ≤  E_approx[Thm 1]  +  ‖A‖_op‖Ŵ−W‖_op‖c‖ [Thm 2]  +  E_est
+```
+
+and the mechanism minimising this bound is the one to choose. The two empirical proxies of §4 are
+then *estimators of terms in this expression* rather than heuristics with post-hoc thresholds: the
+fit ratio estimates the first term, the compositional gap the second.
+
+**What this does not yet cover.** `E_est` has no treatment here; standard capacity bounds apply but
+have not been imported. And Theorems 1 and 3 require `T*`, whose recovery from a fitted
+hypernetwork is an empirical question that §9 flags as untested.
+
+**Novelty, stated plainly.** Theorem 1 is orthogonal Procrustes plus two elementary projections;
+the Lemma is a known property of the exponential on compact groups, used in the unitary-RNN
+literature for temporal recurrence. Neither is deep. Their value here is that they replace the
+fitted thresholds with derived quantities and resolve two claims — §5.2(v) and the clamp — that the
+document previously stated as observations.
+
 ## 7. A prediction for a setting we have not run: world models
 
 The framework's value is only testable outside the tasks it was built on. This is the sharpest
@@ -376,6 +469,9 @@ anything we built, and it tests the framework rather than the method.
 | Fit ratio and gap as proxies (§4) | **empirical**: 9 observations, thresholds calibrated post hoc |
 | Capacity sign flip (6.2) | **empirical**, both regimes observed |
 | Coverage criterion (6.3) | argued from counting, consistent with all 9 tasks |
+| Theorem 1, closed-form `E_approx` (6.5) | **proven**; all four verified numerically |
+| Lemma, `exp` 1-Lipschitz on skew (6.5) | **proven**; measured max ratio 0.9976 |
+| Theorem 2, extrapolation bound (6.5) | **proven** |
 | World-model asymmetry (§7) | **prediction, untested by us**; proprio half matches one external anecdote |
 
 The thresholds are guidance, not bounds. Nine observations, and both were fitted after the fact;
