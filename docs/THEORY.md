@@ -112,10 +112,18 @@ So `E_approx` is governed by **which polar factor the task's transformation actu
 how many parameters the head has:
 
 ```
-E_approx(CGA)         ≈ ‖log S*‖      how much stretching the task requires
-E_approx(FiLM)        ≈ ‖U* − I‖      how much rotation the task requires
-E_approx(ComplexFiLM) ≈ the part of log S* that varies within a channel pair
+E_approx(CGA)  =  min_{Q orthogonal} ‖T* − Q‖_F  =  ‖S* − I‖_F
 ```
+
+which is exact, not a heuristic: the minimiser is the polar factor `U*` and the residual is
+`‖S* − I‖_F` (polar / orthogonal-Procrustes). Verified numerically. Analogously
+`E_approx(FiLM)` is governed by how far `T*` sits from the diagonal maps, and Complex FiLM's by
+the part of `S*` that varies *within* a channel pair, since it holds one scale per pair.
+
+**Two caveats on this identity.** It is stated for the linear part only — every mechanism here is
+affine (`T_c z + β(c)`), and the shift is unaccounted for. And FiLM's `γ` may be negative, so FiLM
+reaches diagonal *sign flips*: a discrete subset of the rotations, not none. Neither changes the
+qualitative picture, and both should be tightened before the claim is leaned on.
 
 This is computable in advance for any task whose operator can be written down, and it is why an
 isometry fails at content by 8× at *any* parameter count: "suppress this channel" has `‖log S*‖`
