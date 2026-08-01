@@ -239,23 +239,33 @@ vanishes identically and the count matches. **No exactly-compositional linear co
 reach a larger family.** Going further requires a non-abelian algebra, which forfeits exactness
 for arbitrary weights.
 
-### The ceiling
+### What exactness actually costs (a correction)
 
-Put (i) and (vi) together. The algebra is at most `d`-dimensional, but the condition enters through
-`W : ℝ^{dim(c)} → ℝ^d`, so the *reachable* family has rank at most `min(dim(c), d)`.
+An earlier version of this section claimed that exact compositionality "caps expressiveness at
+`dim(c)`, independent of network width", and used that to explain the PDEBench failure. **That was
+wrong.** Every mechanism's transformation family is parameterised by `c ∈ ℝᵏ`, so every one has
+image dimension at most `k` — FiLM's `{diag(γ(c))}`, a hypernetwork's `{W(c)}`, and CGA's
+`{exp(A(Wc))}` alike. A universal bound distinguishes nothing.
 
-> **Exact compositionality caps a conditioner's expressiveness at `dim(c)`, independent of the
-> network's width.**
+Exactness does not restrict the family's *dimension*. It restricts its *shape*:
 
-You cannot buy your way out with a wider latent. On PDEBench, `dim(c) = 2` gave a two-dimensional
-family of transformations no matter that `d = 128`, which is why every geometric relaxation failed:
-`proposed_scaled` and `proposed_conj` altered the *shape* of a family whose *rank* was the problem.
+- FiLM's family is an arbitrary `k`-dimensional manifold; it may curve freely as `c` varies.
+- CGA's is a `k`-dimensional **flat** subspace of the algebra, exponentiated into a subgroup.
 
-This also relocates where our effort went wrong. We spent the project varying the operator — 
-orthogonal, scaled, conjugated, split — when the binding constraint was never the algebra. It was
-the linear map from a low-dimensional condition, and (i) says that map cannot be anything else
-while exactness is required. **The only escape is a genuinely higher-dimensional condition**, which
-is a property of the problem, not of the architecture.
+Flatness forces `T(3c) = T(c)³`. That is closure viewed from the cost side, so it is the *same*
+trade as `E_extrap` rather than an additional one.
+
+The genuine sources of `E_approx`, then, are two, and neither is dimensional:
+
+1. **Which individual maps are reachable** — orthogonal vs diagonal vs unrestricted (§3.1). This is
+   the large effect, and it is what the fit ratio measures.
+2. **Whether the conditional transformation is linear in `z` at all.** FiLM, CGA and hypernetworks
+   apply a linear map to the latent; `concat_mlp` applies a *nonlinear function of `z`*.
+
+(2) repairs the PDEBench account. The saturating reaction term is not a linear operator on the
+latent in any basis, so every operator-family mechanism is out of class and the unrestricted
+`concat_mlp` wins. That also explains why `proposed_scaled` and `proposed_conj` changed nothing:
+they explored different linear classes when no linear class was going to work.
 
 ## 6. Three corollaries, each independently measured
 
