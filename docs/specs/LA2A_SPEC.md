@@ -1,5 +1,51 @@
 # Pre-registration: Complex FiLM against FiLM on the SignalTrain LA-2A recordings
 
+## Outcome: KILL (2026-08-01)
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/la2a_summary.json`.
+
+AC-1 and AC-2 both failed. Test ESR over 10 seeds:
+
+| arm | test ESR | sd | cond params |
+|---|---|---|---|
+| **`hyper`** | **0.0321** | 0.0015 | 349,440 |
+| `concat` | 0.0354 | 0.0046 | 42,880 |
+| `film` (incumbent) | 0.0365 | 0.0020 | 32,640 |
+| `cfilm` (gated) | 0.0376 | 0.0036 | 27,680 |
+
+**Against FiLM the result is a tie, not a loss:** $-2.8\%$ at $p=0.764$, $\delta=+0.18$. The
+three-seed screen's $-14.6\%$ did not hold up. So the defensible statement is "indistinguishable
+from FiLM at $0.85\times$ the conditioning parameters" — real, but a long way from the $36\%$ the
+claim was built on, and not what "drop-in upgrade" implies.
+
+**Against the strongest baseline it is a clear loss:** $-17.1\%$ to `hyper`.
+
+## The finding that matters more than the verdict
+
+**The winner is the hypernetwork** — 10.7$\times$ FiLM's conditioning parameters, and 2.43$\times$
+the backbone it modulates. Our capacity-inversion result predicts the opposite ordering, and it
+held on every previous task including the ones we lost. It does not hold here, and the published
+literature in this field reports the same thing we just measured.
+
+The two are reconcilable, and the reconciliation sharpens both. Capacity inversion was always a
+claim about **compositional generalisation** — held-out combinations, where a high-capacity
+conditioner memorises the training combinations and fails off them. This benchmark has no
+compositional gap at all: two controls, densely covered, split by audio content. It measures
+**interpolation**, and for interpolation capacity simply helps.
+
+So the corrected statement is: *conditioning capacity hurts compositional generalisation and helps
+in-distribution interpolation.* Both halves are now measured. The earlier claim was the first half
+stated without its boundary.
+
+## What this closes
+
+This was the last application the boundary map admitted, run on someone else's data, architecture,
+incumbent and metric. Complex FiLM does not improve on FiLM there, and the arm that wins is the one
+our thesis says should lose. Seven applications attempted, seven bounded or failed, and the applied
+line should be written up as closed rather than left open.
+
+
 **Status:** pre-registered 2026-08-01, before the decision run.
 **Name:** `la2a-cfilm` · **Hardware:** one RTX PRO 6000.
 

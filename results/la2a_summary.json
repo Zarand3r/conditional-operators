@@ -1,0 +1,51 @@
+{
+  "experiment": "la2a-cfilm",
+  "spec": "docs/specs/LA2A_SPEC.md",
+  "gated_arm": "cfilm",
+  "strongest_baseline": "hyper",
+  "final_verdict": "kill",
+  "criteria": {
+    "AC-1": false,
+    "AC-2": false,
+    "AC-3": true,
+    "AC-4": true
+  },
+  "vs_incumbent": {
+    "margin": -0.028370004450392405,
+    "p": 0.7636622032442064,
+    "delta": 0.18,
+    "pass_": false
+  },
+  "vs_strongest_baseline": {
+    "margin": -0.17139240078706738,
+    "p": 0.9993425276651433,
+    "delta": 0.84,
+    "pass_": false
+  },
+  "per_arm": {
+    "film": {
+      "test_esr": 0.036523319656650226,
+      "test_sd": 0.002003020466584869,
+      "val_esr": 0.029145282331543662,
+      "cond_params": 32640
+    },
+    "cfilm": {
+      "test_esr": 0.0375594863978525,
+      "test_sd": 0.003606449076678386,
+      "val_esr": 0.03075622521340847,
+      "cond_params": 27680
+    },
+    "concat": {
+      "test_esr": 0.03539130569746097,
+      "test_sd": 0.004605037754183824,
+      "val_esr": 0.028018303513526917,
+      "cond_params": 42880
+    },
+    "hyper": {
+      "test_esr": 0.032063966244459154,
+      "test_sd": 0.0014881177690835713,
+      "val_esr": 0.026214813214416304,
+      "cond_params": 349440
+    }
+  }
+}
