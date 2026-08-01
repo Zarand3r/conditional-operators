@@ -205,6 +205,58 @@ The last row matters: when the required map is not a linear operator in any basi
 operator-family mechanism is equally out of class, and the unrestricted one wins. That is not a
 failure of structure so much as a task outside the framework's scope.
 
+## 5.2 A structural derivation, and a hard ceiling
+
+Working the algebra rather than the empirics gives a chain in which every step is forced. It
+subsumes several results we had been treating as separate design choices.
+
+**(i) Exact composition forces linearity.** `T(c₁+c₂) = T(c₁)T(c₂)` requires
+`A(c₁+c₂) = A(c₁) + A(c₂)` in algebra coordinates. By Cauchy's functional equation, a continuous
+additive map is linear. There is no nonlinear exactly-compositional conditioner.
+
+**(ii) Content forces nonlinearity.** Specifying *what* to produce is not an additive operation —
+composing "cat" with "dog" is not "cat + dog" — so the condition-to-modulation map must be
+expressive. Measured: the fully linear Complex FiLM scores 0.19 in the content role against the
+expressive variant's 0.97.
+
+**(iii) Therefore content and composition cannot share a channel.** Not a design tension — a
+theorem, by (i) and (ii). Any conditioner that must do both has to *split its representation*.
+
+**(iv) The minimal split is `ℂ*`.** The smallest algebra carrying both an expressive
+(non-compact) and an exactly-compositional (compact) direction is `ℂ = ℝ ⊕ iℝ`, whose
+multiplicative group factors as `ℂ* ≅ ℝ_{>0} × U(1)`. That is precisely magnitude × phase.
+**Complex FiLM is not a heuristic; it is the forced resolution of (iii).**
+
+**(v) Compactness is why the assignment goes that way.** Both factors are groups, so either could
+in principle carry composition. The asymmetry is boundedness: rotations are bounded by nature, so
+exact composition survives; `e^s` is unbounded, needs a clamp, and a clamp is nonlinear. Measured:
+composition error `~10⁻⁶` while `|s| ≤ 4`, order 1 the moment the clamp engages. **The compact
+factor is the only one on which exactness is practically stable.**
+
+**(vi) The complex algebra is maximal.** Its dimension is 2 per `2×2` block × `d/2` blocks = `d`,
+which is exactly the dimension of a Cartan subalgebra of `gl(d)`. Verified: the commutator
+vanishes identically and the count matches. **No exactly-compositional linear conditioner can
+reach a larger family.** Going further requires a non-abelian algebra, which forfeits exactness
+for arbitrary weights.
+
+### The ceiling
+
+Put (i) and (vi) together. The algebra is at most `d`-dimensional, but the condition enters through
+`W : ℝ^{dim(c)} → ℝ^d`, so the *reachable* family has rank at most `min(dim(c), d)`.
+
+> **Exact compositionality caps a conditioner's expressiveness at `dim(c)`, independent of the
+> network's width.**
+
+You cannot buy your way out with a wider latent. On PDEBench, `dim(c) = 2` gave a two-dimensional
+family of transformations no matter that `d = 128`, which is why every geometric relaxation failed:
+`proposed_scaled` and `proposed_conj` altered the *shape* of a family whose *rank* was the problem.
+
+This also relocates where our effort went wrong. We spent the project varying the operator — 
+orthogonal, scaled, conjugated, split — when the binding constraint was never the algebra. It was
+the linear map from a low-dimensional condition, and (i) says that map cannot be anything else
+while exactness is required. **The only escape is a genuinely higher-dimensional condition**, which
+is a property of the problem, not of the architecture.
+
 ## 6. Three corollaries, each independently measured
 
 **6.1 An isometric conditioner cannot inject content.** If `T_c` is orthogonal then
