@@ -67,57 +67,65 @@ does, which no dimensional criterion captures.
 
 \section{Introduction}
 
-Nearly every conditional model must inject something into its computation: a class, an action,
-a timestep, a text embedding. Call this conditioning. Diffusion models modulate every block on
-the timestep and class via adaLN \citep{peebles2023dit}; visual reasoning, speech, and RL
-systems modulate features on questions, speakers, and goals \citep{perez2018film}; world models
-condition latent dynamics on actions. Three mechanisms carry almost all of this conditioning: concatenation, feature-wise affine modulation (FiLM), or a hypernetwork that emits
-weights from the condition.
+Nearly every conditional model must inject something into its computation: a class, an action, a
+timestep, a text embedding. Call this conditioning. Diffusion models modulate every block on the
+timestep and class via adaLN \citep{peebles2023dit}; visual reasoning, speech and RL systems
+modulate features on questions, speakers and goals \citep{perez2018film}; world models condition
+latent dynamics on actions. Three mechanisms carry almost all of it: concatenation, feature-wise
+affine modulation (FiLM), and a hypernetwork that emits weights from the condition.
 
-Two of these bracket an expressivity axis; we set concatenation aside, and carry it as a
-baseline arm. FiLM's diagonal transform is
-cheap and stable but cannot mix features. Hypernetworks can express any linear operator but pay
-quadratic cost and, as we show, memorize the training conditions: their error on unseen
-combinations of familiar conditions is worse than FiLM's, despite 43$\times$ the conditioning
-compute. The middle of this axis, structured operator families between diagonal and dense, is
-well explored for weight fine-tuning \citep{hu2022lora,qiu2023oft,liu2024boft,yuan2024hra} and
-largely unexplored in FiLM's role: per-sample, input-conditioned modulation of activations.
+Which one to use is settled empirically. Papers train all three and print a table, and the tables
+disagree across domains. No account says which mechanism suits which task, so every new setting
+repeats the sweep, and a practitioner who reads two papers gets two answers. Geometric deep
+learning explains when symmetries of the \emph{data} help, but conditioning is a different object:
+whatever structure exists lives in the condition space.
 
-Conditioning plays two roles, and the distinction runs through this paper. A condition can
-name a \emph{change} to apply, such as a pose offset or an edit, or it can name the
-\emph{content} to produce, such as a class or a caption. FiLM serves both. We ask which
-structure, at FiLM-level cost, buys compositional generalization: correct behavior on
-combinations of conditions never seen together in training. Our answer imports a mechanism
-from positional encoding. RoPE \citep{su2021rope} and its generalization GRAPE \citep{grape2025}
-encode position $n$ as a group action $G(n)=\exp(n\,\omega L)$; because position enters linearly
-in the Lie algebra, $G(n{+}m)=G(n)G(m)$ holds exactly. We transplant this construction from
-scalar positions in attention to arbitrary condition vectors in activation modulation.
+A condition names one of two things, and the distinction runs through this paper. It can name a
+\emph{change} to apply, such as a pose offset or an edit, or the \emph{content} to produce, such as
+a class or a caption. FiLM serves both. We ask which structure, at FiLM-level cost, buys
+compositional generalization: correct behavior on combinations of conditions never seen together in
+training. Our answer transplants a mechanism from positional encoding. RoPE \citep{su2021rope} and
+its generalization GRAPE \citep{grape2025} encode position $n$ as a group action
+$G(n)=\exp(n\,\omega L)$, and because position enters linearly in the Lie algebra,
+$G(n{+}m)=G(n)G(m)$ holds exactly. We carry that construction from scalar positions in attention to
+arbitrary condition vectors in activation modulation, and call the result \textbf{CGA}.
+
+Establishing that CGA's advantage comes from composition, and not from being a better arm, requires
+evidence of a particular shape. We sweep the number of simultaneously changed conditions and their
+magnitude independently, and register in advance that the advantage must vanish for a single weak
+condition and grow with the number composed. It does: $0.6\%$ on one factor, then $25.5\%$,
+$38.7\%$ and $46.6\%$ on two, three and four, with every arm within $1.6\%$ of the others at weak
+single conditions. An advantage absent at one condition and rising with the number composed cannot
+be difficulty, strength, or a generally stronger arm. Figure~\ref{fig:main} shows the same effect
+in a second form: how far each conditioner degrades when conditions combine in ways it never saw.
+
+The same discipline bounds the claim. Twenty-five pre-registered gates returned fifteen negatives,
+and each names a setting where exact composition buys nothing: content conditioning, which we prove
+unreachable for any orthogonal conditioner in any representation; a frozen representation; rollouts
+without a consistency loss; and a fit penalty that tracks how much content the condition must
+supply. We then built the case our own account favored, a sixteen-control parametric chain, and
+predicted a win from two screening quantities before running it. The advantage was flat at
+$-1.1\%$. That failure identified the condition the account was missing, which we could already
+measure: whether the task's own conditions compose the way the operator does.
 
 \paragraph{Contributions.}
-\textbf{(1) Framework.} CGA treats conditioning as a group representation of the condition
-space; FiLM, RoPE, and GRAPE drop out as special cases, and a two-line proposition makes
-condition composition exact for any weights (\S\ref{sec:framework}).
-\textbf{(2) Protocol.} A pre-registered, budget-fair evaluation: margins, statistical tests, and
-single-read splits committed to version control before every run, with a shared counter
-enforcing parameter and FLOP parity; we report every verdict, including negatives against our
-own predictions (\S\ref{sec:protocol}).
-\textbf{(3) Where it works, and where it stops.} CGA has the lowest error on unseen condition
-combinations in all five suites where the condition is a transformation, by up to five orders
-of magnitude, and in every image suite the more expressive the conditioner,
-the worse it generalizes. Three of the eight suites returned pre-registered negatives, and each
-names a setting where the composition law of Proposition~\ref{prop:main} buys nothing:
-3D~Shapes, which CGA wins on unseen combinations but loses on training fit; content
-conditioning; and multi-step rollouts (\S\ref{sec:results}).
-\textbf{(4) Successor and guidance.} The negatives specify Complex FiLM, validated under two
-further gates as a FiLM replacement covering both conditioning roles, whose phase channel also
-yields guidance as an exact operator power: $2$--$5\times$ less distortion than CFG with no
-unconditional pass (\S\ref{sec:results}).
-\textbf{(5) A predictive account of mechanism choice.} One rule generates the wins and losses. Approximation error is class membership rather than capacity, and admits closed forms per
-mechanism through the polar decomposition; exact composition bounds extrapolation error by
-$\|A\|\|\hat W-W\|\|c\|$, independent of how far the condition sits from those seen, and only on
-the compact factor. Both quantities are estimable from short runs. They are not sufficient: the
-first prediction we made before seeing an outcome failed, and identified a third condition we
-could already measure: whether the task's own conditions compose the way the operator does (\S\ref{sec:theory}).
+\textbf{(1) Framework.} Conditioning by a group representation of the condition space makes
+composition exact for any weights, not merely after training, and recovers FiLM, RoPE and GRAPE as
+special cases (\S\ref{sec:framework}).
+\textbf{(2) Protocol.} A pre-registered, budget-fair evaluation: margins, statistical tests and
+single-read splits committed to version control before every run, with a shared counter enforcing
+parameter and FLOP parity. We report every verdict, including two that cleared their criteria and
+which we record as failures because the criteria named the wrong baseline (\S\ref{sec:protocol}).
+\textbf{(3) A mechanism, established by shape.} The advantage rises from $0.6\%$ to $46.6\%$ with
+the number of composed conditions and vanishes at one weak condition, which rules out the
+alternatives that a fixed comparison cannot (\S\ref{sec:results}).
+\textbf{(4) Where it stops.} Fifteen registered negatives, one of them a proof: no orthogonal
+conditioner can produce content, in any representation (\S\ref{sec:results}).
+\textbf{(5) An account of mechanism choice, and its own falsification.} Approximation error is
+class membership rather than capacity, with closed forms per mechanism through the polar
+decomposition, and exact composition bounds extrapolation error independently of how far the
+condition sits from those seen. Two short runs estimate both. They are not sufficient, and the
+experiment that showed so is reported here (\S\ref{sec:theory}).
 
 \section{Related work}
 \label{sec:related}
