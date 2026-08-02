@@ -244,3 +244,40 @@ HYBRID_ARMS = ("hybrid_concat", "split_cga")
 
 if __name__ == "__main__":
     raise SystemExit(0 if check() else 1)
+
+
+# ---------------------------------------------------------------- attention-style conditioning
+
+class CrossAttnCond(CondArm):
+    """Conditions as separate tokens, aggregated by a value sum: what cross-attention does.
+
+    Each condition coordinate becomes its own token, so composing conditions means adding tokens.
+    That aggregation is a weighted *sum* of values, which makes composition additive --- the
+    first-order expansion of a group action. This arm exists to test whether the exact
+    multiplicative form buys anything over it (docs/specs/COMPOSITION_SPEC.md).
+
+    `softmax=False` removes the normalisation, making the token aggregation exactly additive and
+    isolating normalisation from aggregation.
+    """
+
+    def __init__(self, dc=DC, softmax: bool = True, dk: int = 32):
+        super().__init__(dc)
+        self.softmax, self.dk = softmax, dk
+        self.tok = nn.Parameter(torch.randn(dc, dk) * 0.1)   # one learned token per coordinate
+        self.q = nn.Linear(DZ, dk, bias=False)
+        self.v = _zero_(nn.Linear(dk, DZ))
+
+    def op(self, h, d, z):
+        keys = self.tok                                       # [dc, dk]
+        vals = self.v(keys)                                   # [dc, DZ]
+        logits = (self.q(z) @ keys.T) / self.dk ** 0.5        # [n, dc]
+        w = torch.softmax(logits, dim=-1) if self.softmax else logits
+        return z + (w * d) @ vals                             # condition scales its own token
+
+    def op_flops(self):
+        return _fl(DZ, self.dk) + _fl(self.dk, DZ) + 3 * self.dc * DZ
+
+
+ARM_CLASSES["xattn"] = CrossAttnCond
+ARM_CLASSES["xattn_linear"] = lambda dc=DC: CrossAttnCond(dc, softmax=False)
+ATTN_ARMS = ("xattn", "xattn_linear")

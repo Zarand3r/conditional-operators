@@ -1,0 +1,22 @@
+{
+  "film": {
+    "additive_err": 7.501217365264893,
+    "multiplicative_err": 16.80673599243164,
+    "effect_size": 9.803878823916117
+  },
+  "concat_mlp": {
+    "additive_err": 1.072438821196556,
+    "multiplicative_err": 1.0144900729258854,
+    "effect_size": 1.5001592189073563
+  },
+  "hypernet": {
+    "additive_err": 11.968887011210123,
+    "multiplicative_err": 37.20865058898926,
+    "effect_size": 12.032101154327393
+  },
+  "proposed": {
+    "additive_err": 0.3809916744939983,
+    "multiplicative_err": 6.1944261157502e-06,
+    "effect_size": 2.796743373076121
+  }
+}
