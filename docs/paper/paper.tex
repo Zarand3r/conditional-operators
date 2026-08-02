@@ -350,9 +350,13 @@ capacity memorizes the training combinations.
 
 \paragraph{(5) Three negatives, scored by the criteria we registered in advance.} On 3D~Shapes, CGA has the lowest error on unseen
 combinations ($87.5\%$ below the hypernetwork) but its training error is $1.46\times$ the
-hypernetwork's, which trips the pre-registered no-regression criterion. In the content suite (the content suite), rotation conditioning fails: pixel MSE $0.31$ against FiLM's
-$0.04$, an $8\times$ regression and the ablation fails identically: a rotation moves information and cannot add any,
-so it cannot carry ``generate this image.'' In the rollout suite, every arm compounds error at
+hypernetwork's, which trips the pre-registered no-regression criterion. In the content suite, rotation conditioning fails: pixel MSE $0.31$ against FiLM's $0.04$, an
+$8\times$ regression, and the ablation fails identically. This one is provable rather than
+observed. Producing content means suppressing features, so the required transformation has
+eigenvalues of modulus far from $1$; every orthogonal matrix has all $|\lambda|=1$; and a change of
+representation acts by conjugation, which preserves the spectrum. So no orthogonal conditioner can
+carry ``generate this image'' \emph{in any representation}, and no amount of co-training repairs
+it (\S\ref{sec:theory}). In the rollout suite, every arm compounds error at
 the same rate; each step adds a small mismatch between the predicted and
 the true latent. A contracting operator shrinks past mismatches; an isometry preserves them, so
 they accumulate.
@@ -517,6 +521,18 @@ then $W$ is identifiable and the error vanishes with data. With a symmetric part
 Lipschitz property fails and error grows like $e^{s}$, which is why the magnitude channel needs a
 clamp while the phase channel composes to $10^{-6}$, and why guidance degrades linearly in strength
 on the rotation channel and exponentially on the magnitude one.
+
+\paragraph{One impossibility, and its converse.} If the required transformation has any eigenvalue
+of modulus $\neq 1$, no orthogonal conditioner can represent it in \emph{any} representation: a
+change of basis is a conjugation, and conjugation preserves the spectrum. Content conditioning
+needs $|\lambda|\to 0$, so its $8\times$ failure is structural rather than incidental. The converse
+matters as much. Approximation error is computed for the transformation required \emph{in the
+coordinates the encoder produced}, so it is a property of the task and representation together,
+not of the task alone. A learned representation can repair a rotation wearing the wrong basis and
+can never repair a change of scale. This is why freezing the representation was fatal, and it
+carries a design rule: the operator must be the \emph{only} conditioning path, since a parallel
+unstructured route removes the pressure to find such coordinates. Our own hybrid arm, which
+contained a concatenation path, scored $+1.7\%$ against concatenation alone, which is a tie.
 
 \paragraph{The rule, and what it explains.} Choose the mechanism whose reachable factor matches the
 polar type the task requires; then adopt exact composition only if the evaluation visits unvisited

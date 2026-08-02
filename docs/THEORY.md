@@ -393,6 +393,54 @@ and the mechanism minimising this bound is the one to choose. The two empirical 
 then *estimators of terms in this expression* rather than heuristics with post-hoc thresholds: the
 fit ratio estimates the first term, the compositional gap the second.
 
+### Theorem 4 (the spectral obstruction: an impossibility)
+
+Let `T*` be the transformation a task requires. If `T*` has any eigenvalue with `|λ| ≠ 1`, then no
+orthogonal conditioner can represent it **in any representation**.
+
+*Proof.* Every orthogonal matrix has all eigenvalues of modulus 1. A change of representation acts
+on the operator by conjugation, `T ↦ M T M⁻¹`, and conjugate matrices have the same characteristic
+polynomial, hence the same spectrum. So if `|λ| ≠ 1` for some eigenvalue of `T*`, that remains true
+in every basis, and `T*` is similar to no orthogonal matrix. ∎
+
+Verified numerically: conjugating `diag(0.1, 0.3, 1, 1, 2, 3)` by 500 random invertible matrices
+leaves the eigenvalue moduli unchanged and `min ‖S − I‖ = 3.004`.
+
+**This is the sharpest negative result in the framework, and it upgrades our largest measured
+failure.** Content conditioning — "produce this rather than that" — requires suppressing features,
+i.e. `|λ| → 0`. The 8× regression we measured was therefore not a shortfall of capacity, not a
+poorly chosen basis, and not something co-training could have repaired. It was structurally
+unreachable, and would have been in any representation.
+
+**The line it draws.** Compare with §6.6 below: a learned representation *can* repair a rotation
+wearing the wrong basis, and *cannot* repair a change of scale. Every result in §5 falls on one
+side or the other of that line.
+
+### 6.6 `E_approx` is a property of the task *and the representation*
+
+Theorem 1 computes `E_approx` from `T*`, but `T*` is the transformation required **in whatever
+coordinates the encoder produced**. It is not an invariant of the task. Learn different coordinates
+and `S*` moves.
+
+This weakens the framework as stated in §4: the fit-ratio screen measures whether a
+*task-plus-representation pair* suits a mechanism, not whether a task does. It should be read that
+way, and a poor reading would attribute to a task what belongs to its encoder.
+
+It also reframes what the encoder is for. Under
+`z' = h⁻¹(T(c) h(z))` with `h` invertible, composition survives because `h` cancels, so the network
+is free to search for coordinates in which the condition acts as a group. Our encoder/decoder is a
+crude version of this, which is why the frozen-representation result was not a quirk: `latent-edit`
+supplied an `h` optimised for reconstruction with no reason to linearise conditioning, and the arm
+lost by 60% to a hypernetwork carrying 48× the parameters. Theorem 4 bounds how much this can ever
+buy.
+
+**Corollary (the no-bypass rule).** The pressure to find such coordinates exists only if the
+operator is the *sole* conditioning path. Given a parallel unstructured route, the model can use it
+and the encoder learns nothing group-friendly. This predicts our own hybrid result: `hybrid_concat`
+contains a concat-MLP and scored `+1.7%` against concat — a tie, which is what a model that
+reverted to the bypass would give. The natural engineering instinct, to hedge the structured
+operator with a residual, destroys the mechanism that makes it work.
+
 **What this does not yet cover.** `E_est` has no treatment here; standard capacity bounds apply but
 have not been imported. And Theorems 1 and 3 require `T*`, whose recovery from a fitted
 hypernetwork is an empirical question that §9 flags as untested.
@@ -472,6 +520,8 @@ anything we built, and it tests the framework rather than the method.
 | Theorem 1, closed-form `E_approx` (6.5) | **proven**; all four verified numerically |
 | Lemma, `exp` 1-Lipschitz on skew (6.5) | **proven**; measured max ratio 0.9976 |
 | Theorem 2, extrapolation bound (6.5) | **proven** |
+| Theorem 4, spectral obstruction (6.5) | **proven**; verified over 500 conjugations |
+| `E_approx` is representation-dependent (6.6) | **proven**; weakens the §4 screen as stated |
 | World-model asymmetry (§7) | **prediction, untested by us**; proprio half matches one external anecdote |
 
 The thresholds are guidance, not bounds. Nine observations, and both were fitted after the fact;
