@@ -36,33 +36,26 @@ and the network handles combinations it never saw. \textbf{CGA} (Conditioning as
 formalizes this: the condition enters the operator linearly in an abelian Lie algebra,
 $\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ holds for any weights.
 A diagonal algebra yields a compositional FiLM variant; the rotation algebra with scalar
-position is RoPE. Under a pre-registered protocol (margins, tests, and splits committed before
-every run; conditioning cost within $1.2\times$ FiLM), CGA posts the lowest error on
-never-trained condition combinations across five transformation suites, with complete seed
-separation ($p{=}9.1{\times}10^{-5}$, $N{=}10$) and zero-shot extrapolation to combinations
-longer than any combination seen in training. Swapping its linear map for an MLP raises error
-by up to $4.3{\times}10^{4}\times$; the most expressive baselines generalize worst. Three registered gates
-returned negatives that bound the method: a fit penalty on rich scenes, a content-conditioning
-failure (rotations move information and cannot add it), multi-step rollouts, where every
-conditioner compounds error equally unless a latent-consistency loss is added, and a frozen
-representation, where the same task CGA wins by $8\times$ when the representation is co-trained is
-lost by $1.6\times$ when it is not. The negatives specify the
-successor. \textbf{Complex FiLM}, magnitude for content and phase for composition, beats FiLM by
-36\% on unseen combinations and matches it on content ($0.97\times$) under two further
-pre-registered gates, and on a 2D Navier-Stokes surrogate conditioned on physical parameters it
-passes every criterion at once: $64.6\%$ below the best unstructured arm, every seed beating every
-seed, while fitting \emph{better} in distribution ($0.938\times$) at $0.84\times$ FiLM's cost. A
-further gate bounds that: the fit penalty tracks how much content the condition must supply, not
-the operator's geometry, and no variant we tested repairs it when the condition supplies content
-itself. The same structure yields a guidance knob needing no second forward pass, which distorts
-$2$--$5\times$ less than classifier-free guidance on a deterministic target, though not on a
-multimodal one. Sweeping the number of simultaneously changed conditions and their magnitude
-independently isolates the mechanism: the advantage is $+0.6\%$ on one condition and rises to
-$+46.6\%$ on four, and is absent at weak single conditions, so it is composition rather than
-difficulty or strength. It is also narrower than we expected. Both screening quantities passed on a
-sixteen-control chain built because the account favoured it, and the advantage was flat at
-$-1.1\%$: structured conditioning pays when a task's own conditions compose the way the operator
-does, which no dimensional criterion captures.
+position is RoPE. Under a pre-registered protocol, with margins, tests and splits committed
+before every run and conditioning cost held within $1.2\times$ FiLM, we ran $25$ gates and
+recorded $15$ negatives.
+
+Sweeping the number of conditions composed and their strength independently isolates the
+mechanism: the advantage is $+0.6\%$ on one condition and rises to $+46.6\%$ on four
+($p{=}9.1{\times}10^{-5}$), and is absent at weak single conditions, so it is composition rather
+than difficulty or strength. Structure also has a hard edge. An orthogonal conditioner cannot
+represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so content conditioning
+is unreachable rather than merely hard, and the two conditioning roles provably cannot share a
+channel. The minimal algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$,
+which makes \textbf{Complex FiLM}, magnitude for content and phase for composition, a derived
+construction rather than a heuristic; it beats FiLM by $36\%$ on unseen combinations at $0.84\times$
+its cost and, on a Navier-Stokes surrogate, fits \emph{better} in distribution ($0.938\times$) while
+landing $64.6\%$ below the best unstructured arm.
+
+Two short training runs predict which tasks pay, and we report where that rule breaks. Both
+quantities passed on a sixteen-control audio chain built because the account favoured it, and the
+advantage was flat at $-1.1\%$. Structured conditioning pays when a task's own conditions compose
+the way the operator does, which no dimensional criterion captures and which we missed.
 \end{abstract}
 
 \section{Introduction}
@@ -124,8 +117,10 @@ conditioner can produce content, in any representation (\S\ref{sec:results}).
 \textbf{(5) An account of mechanism choice, and its own falsification.} Approximation error is
 class membership rather than capacity, with closed forms per mechanism through the polar
 decomposition, and exact composition bounds extrapolation error independently of how far the
-condition sits from those seen. Two short runs estimate both. They are not sufficient, and the
-experiment that showed so is reported here (\S\ref{sec:theory}).
+condition sits from those seen. The same algebra forces the successor: content and composition
+cannot share a channel, and the minimal split that carries both is magnitude times phase. Two short
+runs estimate the account's two quantities, and we report the experiment that shows they are not
+sufficient (\S\ref{sec:theory}).
 
 \section{Related work}
 \label{sec:related}
@@ -205,6 +200,12 @@ Composition is usually a behavior the network must learn from data. Here it is a
 the parametrization. It holds at initialization, during training, and far outside the training
 distribution. Training only decides which directions the condition rotates and how fast.
 
+The guarantee is conditional on coverage, and the condition is easy to miss. Composition determines
+$\T$ at an unseen condition only when the training conditions generate that condition under the
+group operation. Training on conditions that do not generate the tested ones buys no extrapolation,
+however exact the homomorphism, which is why a large compositional gap can indicate a test set
+outside the training set's reach rather than an opportunity.
+
 \paragraph{Special cases.} Choices of $(\mathfrak{a}, c, P)$ recover deployed mechanisms:
 
 \begin{center}
@@ -233,14 +234,13 @@ $4d^2$ FLOPs per sample, which is $1.52\times$ FiLM's entire conditioning path a
 Two fixes work. A structured orthogonal $P$ (five block-diagonal Cayley layers with fixed
 shuffles, following Group-and-Shuffle) brings the total to $1.11\times$ FiLM, with 4{,}800
 parameters against the 8{,}128 dimensions of $\mathrm{SO}(128)$; that is enough, because $P$
-only needs the planes the condition acts on. Inside a transformer, no explicit $P$ is needed:
-the adjacent dense projections can absorb $P$, exactly as RoPE relies on the query and key
-projections rather than on a basis of its own. Linearity also gives the operator a strength dial
-for free: $\T(c)^{w}=\T(wc)$, so raising the operator to a power is the same as scaling the
-condition, and \S\ref{sec:results} uses this in place of CFG's extrapolation between a
-conditional and an unconditional prediction. The operator equals the identity at initialization
-and at $c{=}0$, and every singular value is 1. Unit tests pin
-all three properties. Complex FiLM extends the algebra to $\mathrm{diag}\times
+only needs the planes the condition acts on. Inside a transformer no explicit $P$ is needed, since
+the adjacent dense projections absorb it exactly as RoPE relies on the query and key projections
+rather than on a basis of its own. Linearity also gives a strength dial for free:
+$\T(c)^{w}=\T(wc)$, so raising the operator to a power is the same as scaling the condition, which
+\S\ref{sec:results} uses in place of CFG's extrapolation between a conditional and an unconditional
+prediction. Unit tests pin identity at initialization and at $c{=}0$, orthogonality, and exact
+composition. Complex FiLM extends the algebra to $\mathrm{diag}\times
 \mathfrak{so}(2)^{d/2}$: each feature pair is multiplied by $m\,e^{i\theta}$, with magnitude
 from FiLM's expressive head (the content channel) and phase linear in the condition (the
 composition channel), at $0.84\times$ FiLM's cost in our harnesses.
@@ -255,24 +255,22 @@ as a conjunction of \emph{criteria}: typically a margin over the strongest basel
 combinations, a no-regression criterion on the training distribution, and a budget criterion. A
 suite passes only if all of its criteria pass, and we report the outcome either way.
 
-\paragraph{Design.} Every suite is pre-registered: success margins, statistical tests
-($N{=}10$ seeds, one-sided Mann--Whitney $p\le0.01$, Cliff's $|\delta|\ge0.474$), and data
-we fixed and committed margins, tests and splits to version control before each run. Each test split is read
-once, after all selection on a validation split. All arms share one backbone and one training
-recipe. A shared counter enforces the budget: our conditioning path stays within $1.20\times$
-FiLM's FLOPs and $1.05\times$ the smallest hypernetwork baseline's parameters; baselines may be
-larger, and reach $48\times$ our parameter count. We record deviations as dated amendments in the
-committed specifications, plus one accounting erratum that our own audit caught and that
-downgraded a favorable verdict.
+\paragraph{Design.} We commit every suite's success margin, statistical test ($N{=}10$ seeds,
+one-sided Mann--Whitney $p\le0.01$, Cliff's $|\delta|\ge0.474$) and splits to version control
+before its decision run. Each test split is read once, after all selection on a validation split.
+All arms share one backbone and one training recipe. A shared counter enforces the budget: our
+conditioning path stays within $1.20\times$ FiLM's FLOPs and $1.05\times$ the smallest hypernetwork
+baseline's parameters, while baselines reach $48\times$ our parameter count. We record deviations as
+dated amendments in the committed specifications, plus one accounting erratum that our own audit
+caught and that downgraded a favorable verdict.
 
 \paragraph{Threats to validity, and the design answer.} The benchmarks are self-constructed,
 so we built them to remove judgment from scoring: dSprites and 3D~Shapes are deterministic
 factor-to-image maps, so every held-out condition has a unique ground-truth image and pixel
 error is an objective compositional metric, with no perceptual score and no human rating.
-Pre-registration removes outcome-contingent analysis; the verdicts below include three
-negatives, one of which falsified our own headline prediction. Every number in this paper
-regenerates from the committed logs with one command per suite; re-running a suite from
-scratch costs one training run per arm per seed.
+Pre-registration removes outcome-contingent analysis, and fifteen of the twenty-five verdicts
+below are negatives, one of which falsified our own headline prediction. Every number here
+regenerates from the committed logs with one command per suite.
 
 \paragraph{Arms.} FiLM; conditional LayerNorm; Concat-MLP; a dense hypernetwork
 $I{+}\Delta W(c)$; a dynamic low-rank map $I{+}A(c)B(c)^{\top}$; the Lie operator; Complex FiLM
@@ -317,8 +315,7 @@ another}: the two synthetic suites report operator MSE, the rest report per-pixe
 \caption{How much worse each conditioner gets when conditions are combined in ways it never
 saw, as a multiple of its own error on trained combinations. A value of 1.0, the dashed line,
 would mean no degradation at all. CGA sits closest to it on all three image suites, and the two
-most expressive conditioners sit furthest: their capacity goes into memorising the training
-combinations rather than generalising past them.}
+conditioners that can express any linear map sit furthest.}
 \label{fig:main}
 \end{figure}
 
@@ -358,16 +355,24 @@ composed cannot be difficulty, strength, or a generally stronger arm.
 The magnitudes follow. On dSprites every arm fits the training distribution equally well, which
 isolates composition: CGA cuts error on unseen combinations by $53.8\%$ against the strongest
 baseline at $39\times$ fewer conditioning FLOPs, and by $42.9\%$ once a categorical shape factor
-joins the condition. Read as a multiplier, going from trained to unseen combinations costs CGA
-$1.25\times$, or $1.63\times$ with the shape factor, against $2.1$--$3.3\times$ for every baseline.
-We call that multiplier the \emph{compositional gap}.
+joins the condition. Moving from trained to unseen combinations costs CGA $1.25\times$, or
+$1.63\times$ with the shape factor, against $2.1$--$3.3\times$ for every baseline. We call that
+multiplier the \emph{compositional gap}.
 
-\paragraph{(3) The linear map is the mechanism, and capacity works against it.} The ablation keeps
-the basis and the operator family, spends more compute, and swaps only the linear map for an MLP.
-It loses by $4.3{\times}10^{4}\times$ on synthetic triples and $1.55\times$ on dSprites. The two
-hypernetwork arms can express any operator and post the largest compositional gaps of any arm on
-every image suite, $2.7$--$3.3\times$ on dSprites and $13$--$26\times$ on 3D~Shapes against CGA's
-$1.13$--$1.63\times$. Their capacity memorises the training combinations.
+\paragraph{(3) The linear map is the mechanism, and the operation class rather than the parameter
+count explains the rest.} The ablation keeps the basis and the operator family, spends more
+compute, and swaps only the linear map for an MLP. It loses by $4.3{\times}10^{4}\times$ on
+synthetic triples and $1.55\times$ on dSprites. The two hypernetwork arms can express any operator
+and post the largest compositional gaps of any arm on every image suite, $2.7$--$3.3\times$ on
+dSprites and $13$--$26\times$ on 3D~Shapes against CGA's $1.13$--$1.63\times$.
+
+We first read this as capacity memorising the training combinations, and our own audit does not
+support that reading. Sorting the arms by parameter count does not sort them by error: the $2.1$M
+hypernetwork beats the $298$K low-rank arm on dSprites ($0.00383$ against $0.00508$) and on
+3D~Shapes ($0.00928$ against $0.01978$), and the $83$K Concat-MLP often beats the $50$K FiLM. What
+survives is weaker and points elsewhere: the unstructured arms are usually worst on held-out
+combinations without being ordered among themselves, which implicates which maps an arm can express
+rather than how many parameters express them (\S\ref{sec:theory}).
 
 \paragraph{(4) Complex FiLM covers both conditioning roles at lower cost.} Complex FiLM multiplies
 feature pairs by $m\,e^{i\theta}$, giving content to the magnitude channel and composition to the
@@ -383,11 +388,10 @@ conditioned on four physical parameters (viscosity, drag, forcing and background
 the initial vorticity field supplying all of the content), Complex FiLM passes every criterion on
 fresh seeds: $45.4\%$ below FiLM, $64.6\%$ below the best unstructured arm at $\delta{=}{-}1.00$,
 and an in-distribution fit ratio of $\mathbf{0.938\times}$, the first arm here to fit better than
-the unstructured baseline. The margin replicates across independent seed sets ($65.3\%$ and
-$1.030\times$ on the first, $64.6\%$ and $0.938\times$ on the second). The claim covers Complex
-FiLM and not the pure group operator: its magnitude head is nonlinear in $c$, so composition stays
-exact on the phase channel only. It buys fit by spending half the guarantee, and the arm that keeps
-the guarantee on both channels failed this criterion twice.
+the unstructured baseline, replicated across independent seed sets. The claim covers Complex FiLM
+and not the pure group operator: its magnitude head is nonlinear in $c$, so composition stays exact
+on the phase channel only. It buys fit by spending half the guarantee, and the arm that keeps the
+guarantee on both channels failed this criterion twice.
 
 \paragraph{(5) Content is provably out of reach for an orthogonal conditioner.} In the content
 suite, rotation conditioning fails: pixel MSE $0.31$ against FiLM's $0.04$, an $8\times$ regression,
@@ -400,18 +404,17 @@ representation, and co-training cannot repair it (\S\ref{sec:theory}).
 \paragraph{(6) The remaining fit penalty tracks content demand.} Where the condition supplies some
 content, the operator fits worse in distribution than an unstructured arm. On 3D~Shapes CGA posts
 the lowest error on unseen combinations ($87.5\%$ below the hypernetwork) and still trips the
-pre-registered no-regression criterion at $1.46\times$. On the physics task the same criterion
-fails at $1.118\times$. We registered two relaxations against it that keep exact composition,
-adding a scaling generator and conjugating the orthogonal basis by a learned diagonal. The
-conjugated operator looked like a cure on validation ($0.962\times$) and reached $1.1007\times$ on
-the held-out split over ten seeds, missing by $0.065$ percentage points. Relaxing the metric does
-not fix it.
+pre-registered no-regression criterion at $1.46\times$, and on the physics task the same criterion
+fails at $1.118\times$. Two registered relaxations that keep exact composition, a scaling generator
+and a learned diagonal conjugating the orthogonal basis, do not fix it: the conjugated operator
+looked like a cure on validation ($0.962\times$) and reached $1.1007\times$ on the held-out split,
+missing by $0.065$ percentage points.
 
 A magnitude channel does, but only where the condition supplies no content. Complex FiLM reaches
-$0.938\times$ on the physics task, whose condition is four parameters acting on content the input
-already carries; gated on fresh seeds on 3D~Shapes, whose condition includes a categorical shape
-swap, it reaches $1.542\times$, slightly worse than the pure rotation, while still passing the
-compositional criteria by $84.5\%$ at $\delta{=}{-}1.00$. How much content the conditioning must supply governs the penalty. This family of operators suits conditions that
+$0.938\times$ on the physics task, whose four parameters act on content the input already carries;
+on 3D~Shapes, whose condition includes a categorical shape swap, it reaches $1.542\times$, worse
+than the pure rotation, while still passing the compositional criteria by $84.5\%$. The penalty
+tracks how much content the conditioning must supply. This family suits conditions that
 \emph{transform} content supplied elsewhere, and no variant we tested rescues it otherwise.
 
 \paragraph{(7) The advantage requires a co-trained representation.} We ran the same dataset,
@@ -426,11 +429,10 @@ hypernetwork while using $48\times$ fewer conditioning parameters, and fits $2.4
 distribution against a $1.10\times$ ceiling. Complex FiLM fails there too, so the rotation channel
 is not the culprit.
 
-The operator's advantage is therefore a property of the operator and its representation together.
-Bolted onto a frozen general-purpose encoder, which is the pattern latent-space editing deploys, it
-loses. CGA still posts the smallest compositional gap of any arm that fits ($1.39\times$ against
-the hypernetwork's $2.11\times$): it degrades most gracefully and still loses, because grace does
-not recover a fit handicap.
+The advantage is therefore a property of the operator and its representation together, and bolting
+it onto a frozen general-purpose encoder, the pattern latent-space editing deploys, loses. CGA still
+posts the smallest compositional gap of any arm that fits, $1.39\times$ against the hypernetwork's
+$2.11\times$, so it degrades most gracefully and still loses: grace does not recover a fit handicap.
 
 \paragraph{(8) Rollouts need a consistency loss, and the operator alone does nothing.} In the
 rollout suite every arm compounds error at the same rate, because each step adds a small mismatch
@@ -440,13 +442,12 @@ to every arm equally, inverts the picture: the rotation operator's horizon-20 er
 $0.0039$ (growth $2.0\times$) against the hypernetwork's $0.038$ (growth $19.8\times$) and FiLM's
 $0.017$ (Figure~\ref{fig:horizon}, left). The loss is standard in model-based RL
 \citep{hansen2022tdmpc}, and rotation transitions with latent-prediction objectives appear in the
-homomorphism autoencoder \citep{keurti2023}. We separate the two effects: adding the same loss to
-every arm at the same budget shows that neither the loss nor the isometric operator fixes rollouts
-alone, and that they work only together. A null result sharpens this. Shrinking the latent by a
-fixed factor at every step, swept from $0.003$ to $0.1$, leaves horizon-20 error unchanged, so
-whatever removes the accumulated mismatch must depend on the state. A separate single-step
-criterion fails, so the rollout suite counts as a negative in Table~\ref{tab:main} even though its
-horizon-20 result is favorable.
+homomorphism autoencoder \citep{keurti2023}; giving every arm the same loss at the same budget shows
+that neither ingredient fixes rollouts alone. A null result sharpens the mechanism: shrinking the
+latent by a fixed factor each step, swept from $0.003$ to $0.1$, leaves horizon-20 error unchanged,
+so whatever removes the accumulated mismatch must depend on the state. A separate single-step
+criterion fails, so this suite counts as a negative in Table~\ref{tab:main} despite the horizon-20
+result.
 
 \begin{figure}[t]
 \centering
@@ -525,6 +526,36 @@ Lipschitz property fails and error grows like $e^{s}$, which is why the magnitud
 clamp while the phase channel composes to $10^{-6}$, and why guidance degrades linearly in strength
 on the rotation channel and exponentially on the magnitude one.
 
+\begin{table}[t]
+\centering
+\caption{The two screening quantities against the outcome, for every task we ran. The fit ratio is
+the tested arm's in-distribution error over the best-fitting baseline's; the gap is that baseline's
+held-out error over its own in-distribution error. Both are read off the baselines, since an arm
+cannot be its own yardstick. Predictions use fit $\le 1.20$ and gap $\ge 1.5$. The last row is the
+only one where the prediction preceded the run, and it is the only miss.}
+\label{tab:screen}
+\small
+\input{tables/screen}
+\end{table}
+
+\paragraph{Complex FiLM is forced, not chosen.} The two conditioning roles cannot share a channel,
+and the algebra says what to do instead. Exact composition requires $A(c_1{+}c_2)=A(c_1)+A(c_2)$ in
+algebra coordinates, and a continuous additive map is linear by Cauchy's functional equation: there
+is no nonlinear exactly-compositional conditioner. Content runs the other way. Specifying what to
+produce is not additive, since composing ``cat'' with ``dog'' is not ``cat $+$ dog'', so the
+condition-to-modulation map has to be expressive; the fully linear variant scores $0.19$ in the
+content role against the expressive variant's $0.97$. The two requirements are therefore
+incompatible on one channel, which makes splitting the representation a theorem rather than a
+design preference. The smallest algebra carrying both an expressive and an exactly-compositional
+direction is $\mathbb{C}=\mathbb{R}\oplus i\mathbb{R}$, whose multiplicative group factors as
+$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. Compactness fixes which
+carries which. Rotations are bounded, so exactness survives on them; $e^{s}$ is unbounded, needs a
+clamp, and a clamp is nonlinear. We measure composition error of $10^{-6}$ while $|s|\le 4$ and
+order $1$ the moment the clamp engages. The construction is also maximal: two dimensions per
+$2{\times}2$ block over $d/2$ blocks is $d$, the dimension of a Cartan subalgebra of
+$\mathfrak{gl}(d)$, so no exactly-compositional linear conditioner reaches a larger family. Going
+further costs commutativity, and with it exactness at arbitrary weights.
+
 \paragraph{One impossibility, and its converse.} If the required transformation has any eigenvalue
 of modulus $\neq 1$, no orthogonal conditioner can represent it in \emph{any} representation: a
 change of basis is a conjugation, and conjugation preserves the spectrum. Content conditioning
@@ -540,15 +571,28 @@ contained a concatenation path, scored $+1.7\%$ against concatenation alone, whi
 \paragraph{The rule, and what it explains.} Choose the mechanism whose reachable factor matches the
 polar type the task requires; then adopt exact composition only if the evaluation visits unvisited
 conditions. Short runs estimate both quantities: in-distribution fit ratio for the first,
-compositional gap for the second. Across our nine comparisons the two jointly separate every
-win from every loss, and each is independently observed to fail while the other passes: the camera
-suite had an acceptable fit and no gap, the audio suite a fit ratio of $1.000$ and no gap, PDEBench
-an enormous gap and an unusable fit. The account also covers results the capacity framing could
-not, including why Complex FiLM specifically beats a pure rotation on a task whose operator carries
-both viscous decay (stretch) and advection (rotation).
+compositional gap for the second. Table~\ref{tab:screen} applies both to every task we ran. They
+separate the wins from the losses, and each is independently observed to fail while the other
+passes: the audio chain had a fit ratio of $1.000$ and no gap, PDEBench an enormous gap and an
+unusable fit. A one-factor account cannot produce that pattern.
 
-\paragraph{The two checks are not sufficient, and the first out-of-sample test says so.} Both
-we calibrated both thresholds above on the nine comparisons they summarise, so that agreement is
+The threshold is softer than the separation. Both quantities need a yardstick arm, and the two
+defensible choices disagree: measured against the baseline each gate nominated in advance, the
+Navier-Stokes Complex FiLM run fits at $0.938\times$, and measured against whichever baseline fits
+best, at $1.122\times$. The wins and losses stay separated under either, but the dividing line moves
+from $1.05$ to roughly $1.20$. We report the stricter yardstick throughout Table~\ref{tab:screen}
+and treat the threshold as fitted rather than derived.
+
+The account also covers results the capacity framing could not. The synthetic Navier-Stokes operator
+is diagonal in Fourier, so its polar factors are computable rather than estimated: viscosity and
+drag are pure stretch (phase $0.000$), background advection is pure rotation (log-magnitude
+$0.000$, phase $1.594$). A task needing both factors is one a pure rotation cannot fit, and that is
+what happened, to our own arm. The rotation failed on fit while Complex FiLM, which reaches both,
+fit at $0.938\times$ and won by $64.6\%$. The polar type named which of our arms would fail before
+we knew why.
+
+\paragraph{The two checks are not sufficient, and the first out-of-sample test says so.}
+We calibrated both thresholds on the comparisons they summarise, so that agreement is
 consistency, not predictive accuracy. We then built the case the account favours: a sixteen-control
 parametric chain, the high-dimensional regime where coverage arguments say structure should matter
 most. Both checks passed before the run, with a compositional gap of $1.83\times$ and a fit ratio of
@@ -567,6 +611,16 @@ exact about, however large the condition space or the gap. Structured conditioni
 task's own conditions compose the way the operator does, which is narrower than any dimensional
 criterion and is measurable in advance.
 
+\paragraph{What to do with it.} Two short runs decide the question. Fit one high-capacity
+conditioner, read its effective operator, and let the closed forms above give each mechanism's
+approximation error; measure the compositional gap on your own evaluation; then check that the
+task's own conditions compose the way the operator does. Reach for a group-structured conditioner
+when all three hold: the condition names a change to apply rather than content to produce, held-out
+combinations are meaningfully harder than trained ones, and the representation trains alongside the
+operator. Keep FiLM otherwise. Complex FiLM is the drop-in where the condition transforms content
+the input already supplies, at lower cost than FiLM. In rollouts, pair the operator with a
+latent-consistency loss, since neither works alone.
+
 \paragraph{Honest status.} The mathematics is elementary: Procrustes, Cauchy, and a standard
 Lipschitz property of the exponential on compact groups. We calibrated the thresholds quoted above
 on the same nine tasks they summarise, so the framework is consistent with our evidence rather than
@@ -574,31 +628,16 @@ validated out of sample, and the tasks themselves were not pre-registered even t
 were. We state the rule so that it can be falsified, and give in \S\ref{sec:limits} the experiment
 that would do it.
 
-\section{Practical guidance}
-\label{sec:practical}
-
-The account yields a procedure, and two short runs decide it. Fit one high-capacity conditioner and
-read its effective operator; the closed forms of \S\ref{sec:theory} then give each mechanism's
-approximation error, and the polar type says which class suits the task. Measure the compositional
-gap on your own evaluation. Then check that the task's own conditions compose the way the operator
-does, which \S\ref{sec:theory} shows is the condition our first out-of-sample prediction missed.
-
-Reach for a group-structured conditioner when all three hold: the condition names a change to apply
-rather than content to produce, held-out combinations are meaningfully harder than trained ones, and
-the representation trains alongside the operator. Keep FiLM otherwise. Complex FiLM is the drop-in
-where the condition transforms content the input already supplies, at lower cost than FiLM. In
-rollouts, pair the operator with a latent-consistency loss, since neither works alone.
-
 \section{Limitations}
 \label{sec:limits}
 
-All evidence comes from controlled $64{\times}64$ benchmarks with known factors, width-128
-models, and a single conditioning site; we validate nothing at production scale, and the
-natural deployment experiment is the adaLN site of a text-conditioned diffusion transformer.
-Learned latents do not support exact group action, so the advantage on real images is the
-$1.8$--$8\times$ error reduction quoted above, not the $10^5\times$ of the synthetic suites. 3D~Shapes shows orthogonality can cost in-distribution fit
-on rich scenes. Conditions far from any group action, such as open-ended text, remain untested;
-the learned-condition-geometry extension is future work.
+All evidence comes from controlled $64{\times}64$ benchmarks with known factors, width-128 models
+and a single conditioning site, so we validate nothing at production scale; the natural deployment
+experiment is the adaLN site of a text-conditioned diffusion transformer. Learned latents do not
+support exact group action, so the advantage on real images is the $1.8$--$8\times$ error reduction
+quoted above rather than the $10^5\times$ of the synthetic suites, and 3D~Shapes shows orthogonality
+can cost in-distribution fit on rich scenes. Conditions far from any group action, such as
+open-ended text, remain untested.
 
 \paragraph{The guidance result does not transfer to a multimodal target.} Our guidance benchmark
 measures distortion against a deterministic target, so it cannot see the distribution-sharpening
@@ -615,6 +654,17 @@ stretch-to-rotation ratio, $\T^*(c)=U(c)^{\alpha}S(c)^{1-\alpha}$; the closed fo
 where FiLM, Complex FiLM and a rotation each take over as $\alpha$ sweeps. Registering those
 crossover points before running would convert a framework fitted on nine observations into a
 prediction tested out of sample, and would predict our own losses. We have not run it.
+
+\paragraph{A prediction we record before testing it.} World models condition on past
+proprioception and on past actions, usually through the same mechanism. The account says they want
+different ones. A proprioceptive reading names which features should be active, which is content
+and lives in the stretch factor, and proprioceptive states do not compose, so closure has nothing
+to determine; FiLM should win there. Actions compose by construction, so the group structure is
+real, and on our own rollout suite a composing operator with a consistency loss beat FiLM by $78\%$
+at horizon $20$. The prediction is that splitting the two paths beats using one mechanism for both,
+that making both FiLM costs long-horizon accuracy, and that making both an operator costs
+single-step fit. It is a smaller intervention than anything we built, it tests the account rather
+than the operator, and we state it so that it can fail in public.
 
 \paragraph{Reproducibility statement.} We release the code, the pre-registrations, and the raw
 logs. Every suite has a specification committed before its decision run; a registry maps each
