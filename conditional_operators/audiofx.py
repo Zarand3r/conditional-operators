@@ -290,3 +290,189 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------- a WIDE parametric chain
+
+"""The regime the theory points at and nothing in this project has tested: dc in the tens.
+
+Every task here has had dc <= 6, which by our own coverage argument is where the condition space
+is enumerable and structure has least to offer. Real effect chains are not like that -- a mixing
+channel has dozens of controls, and no session ever visits more than a sliver of their product.
+
+The chain alternates linear stages (band gains) with nonlinear ones (saturation), so no pair of
+axes is exactly the operator's form; `alignment_wide()` checks that before anything is trained.
+"""
+
+N_BANDS = 8
+N_SAT = 4
+N_DYN = 4
+WIDE_DC = N_BANDS + N_SAT + N_DYN          # 16 controls
+
+WIDE_BASE = {"band_db": 0.0, "drive": 1.0, "thresh_db": -18.0}
+WIDE_STEP = {"band_db": 5.0, "drive": 2.0, "thresh_db": 8.0}
+
+
+def _band_edges(n=N_BANDS, lo=80.0, hi=7000.0):
+    import numpy as np
+    return [float(f) for f in np.geomspace(lo, hi, n + 1)]
+
+
+def wide_process(x: torch.Tensor, delta) -> torch.Tensor:
+    """Alternating linear and nonlinear stages, so alignment cannot be inherited from either.
+
+    Vectorised over the batch with a *different* control setting per sample: `x` is `[B, N]` and
+    `delta` is `[B, dc]` (a single `[dc]` vector is broadcast). The naive per-sample loop cost
+    1.2 s per batch of 64, which is 79 minutes of data generation per run.
+    """
+    d = delta if torch.is_tensor(delta) else torch.tensor(delta, dtype=torch.float32)
+    d = d.to(x.device).float()
+    if d.dim() == 1:
+        d = d.unsqueeze(0).expand(x.shape[0], -1)
+    edges = _band_edges()
+    n = x.shape[-1]
+    f = torch.fft.rfftfreq(n, d=1.0 / SR).to(x.device)
+
+    gain = torch.ones(x.shape[0], f.shape[0], device=x.device)
+    for b in range(N_BANDS):
+        lo, hi = edges[b], edges[b + 1]
+        g = 10.0 ** ((WIDE_BASE["band_db"] + WIDE_STEP["band_db"] * d[:, b]) / 20.0)
+        mask = ((f >= lo) & (f < hi)).unsqueeze(0)
+        gain = torch.where(mask, g.unsqueeze(1).expand_as(gain), gain)
+    y = torch.fft.irfft(torch.fft.rfft(x) * gain, n=n)
+
+    for k in range(N_SAT):
+        drv = (WIDE_BASE["drive"] * (WIDE_STEP["drive"] ** d[:, N_BANDS + k])).unsqueeze(1)
+        y = torch.tanh(drv * y) / torch.tanh(drv)
+        th = (WIDE_BASE["thresh_db"]
+              + WIDE_STEP["thresh_db"] * d[:, N_BANDS + N_SAT + k]).unsqueeze(1)
+        env_db = 20.0 * torch.log10(_envelope(y))
+        y = y * (10.0 ** (-0.5 * (env_db - th).clamp_min(0.0) / 20.0))
+    return y
+
+
+def alignment_wide(n_pairs: int = 12) -> float:
+    """Same rigging check as the narrow chain: is any pair exactly exp(linear in the condition)?"""
+    g = torch.Generator().manual_seed(0)
+    x = signals(32, g)
+
+    def logspec(delta):
+        y = wide_process(x, delta)
+        return torch.log10(torch.fft.rfft(y).abs().clamp_min(1e-8))
+
+    base = logspec([0] * WIDE_DC)
+    gen = torch.Generator().manual_seed(1)
+    res = []
+    for _ in range(n_pairs):
+        i, j = torch.randperm(WIDE_DC, generator=gen)[:2].tolist()
+        ci = [0] * WIDE_DC; ci[i] = 1
+        cj = [0] * WIDE_DC; cj[j] = 1
+        bo = [0] * WIDE_DC; bo[i] = 1; bo[j] = 1
+        lhs = logspec(bo) - base
+        rhs = (logspec(ci) - base) + (logspec(cj) - base)
+        res.append(((lhs - rhs).norm() / lhs.norm().clamp_min(1e-8)).item())
+    aligned = sum(1 for r in res if r < 0.05)
+    print(f"  {len(res)} random pairs: {aligned} exactly our form, "
+          f"median residual {sorted(res)[len(res)//2]:.3f}")
+    return aligned
+
+
+_SIGNAL_BANK = None
+
+
+def signal_bank(size: int = 8192, seed: int = 0) -> torch.Tensor:
+    """A fixed pool of source signals, built once and held on the GPU.
+
+    Generating them per batch cost 750 ms: the harmonic sum and the noise term run on CPU tensors
+    here at roughly 100x the expected time, which dominated everything else by two orders of
+    magnitude. Sampling from a fixed pool also makes every arm see byte-identical sources.
+    """
+    global _SIGNAL_BANK
+    if _SIGNAL_BANK is None or _SIGNAL_BANK.shape[0] < size:
+        g = torch.Generator().manual_seed(seed)
+        chunks = [signals(512, g) for _ in range(max(1, size // 512))]
+        _SIGNAL_BANK = torch.cat(chunks, dim=0)
+    return _SIGNAL_BANK
+
+
+class WideTask:
+    """dc=16. Train on at most two simultaneous controls; evaluate at 1, 2, 4 and 8.
+
+    With 16 controls the product space is far beyond enumeration, which is the coverage condition
+    the boundary map names and which every earlier task in this project failed.
+    """
+
+    TRAIN_MAX = 2
+    EVAL_NS = (1, 2, 4, 8)
+
+    def __init__(self, seed=0):
+        self.gen0 = seed
+
+    def _delta(self, n, gen):
+        d = torch.zeros(WIDE_DC)
+        idx = torch.randperm(WIDE_DC, generator=gen)[:n]
+        d[idx] = (torch.randint(0, 2, (n,), generator=gen).float() * 2 - 1)
+        return d
+
+    def sample(self, kind, count, gen, n=None):
+        bank = signal_bank()
+        idx = torch.randint(bank.shape[0], (count,), generator=gen)
+        x = bank[idx.to(bank.device)]
+        ks = ([n] * count if n is not None
+              else torch.randint(1, self.TRAIN_MAX + 1, (count,), generator=gen).tolist())
+        c = torch.stack([self._delta(k, gen) for k in ks]).to(DEVICE)
+        y = wide_process(x, c)                      # one vectorised call for the whole batch
+        return x.unsqueeze(1), c, y.unsqueeze(1)
+
+
+def train_wide(arm, seed, task, steps, batch=64, lr=1e-3):
+    torch.manual_seed(seed)
+    m = ConvFX(arm, dc=WIDE_DC).to(DEVICE)
+    opt = torch.optim.Adam(m.parameters(), lr=lr)
+    g = torch.Generator().manual_seed(seed)
+    for step in range(steps):
+        _throttle(step)
+        x, c, y = task.sample("train", batch, g)
+        loss = torch.mean((m(x, c) - y) ** 2)
+        if not math.isfinite(loss.item()):
+            return dict(arm=arm, seed=seed, diverged=True)
+        opt.zero_grad(); loss.backward(); opt.step()
+
+    cells = {}
+    with torch.no_grad():
+        for n in WideTask.EVAL_NS:
+            eg = torch.Generator().manual_seed(9_100)
+            tot = 0.0
+            for _ in range(4):
+                x, c, y = task.sample("eval", 128, eg, n=n)
+                tot += torch.mean((m(x, c) - y) ** 2).item()
+            cells[f"n{n}"] = tot / 4
+    return dict(arm=arm, seed=seed, diverged=False, cells=cells,
+                params=m.cond.n_params(), flops=m.cond.flops())
+
+
+def screen_wide(steps=4000):
+    """Validation only. Does dc=16 give the compositional gap that dc=4 did not?"""
+    task = WideTask()
+    rows = {}
+    for arm in ("film", "concat_mlp", "xattn", "proposed", "cfilm_hyb"):
+        t0 = time.time()
+        r = train_wide(arm, 0, task, steps)
+        rows[arm] = r
+        print(f"  {arm:12} " + "  ".join(f"n{n}={r['cells'][f'n{n}']:.5f}"
+                                         for n in WideTask.EVAL_NS)
+              + f"  [{time.time()-t0:.0f}s]", flush=True)
+    best_fit = min(r["cells"]["n1"] for r in rows.values())
+    gap = min(rows[a]["cells"]["n8"] / rows[a]["cells"]["n1"] for a in rows)
+    bias = min(rows["proposed"]["cells"]["n1"], rows["cfilm_hyb"]["cells"]["n1"]) / best_fit
+    print(f"\n  compositional gap (n8/n1, best arm) : {gap:.2f}x   (want >= 1.50x)")
+    print(f"  structured fit ratio at n=1          : {bias:.3f}x  (want <= 1.05x)")
+    for n in WideTask.EVAL_NS:
+        base = min(rows[a]["cells"][f"n{n}"] for a in ("film", "concat_mlp", "xattn"))
+        adv = 1 - min(rows["proposed"]["cells"][f"n{n}"],
+                      rows["cfilm_hyb"]["cells"][f"n{n}"]) / base
+        print(f"  n={n}: structured advantage over best additive arm {adv:+.1%}")
+    RESULTS_DIR.mkdir(exist_ok=True)
+    (RESULTS_DIR / "widefx_screen.json").write_text(json.dumps(
+        {"note": "validation only; no verdict claimed", "steps": steps,
+         "gap": gap, "fit_ratio": bias, "rows": rows}, indent=2))
