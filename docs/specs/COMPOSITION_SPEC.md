@@ -1,5 +1,44 @@
 # Pre-registration: does exact multiplicative aggregation beat additive, and where?
 
+## Outcome: KILL, and the two halves separate cleanly (2026-08-02)
+
+> Written after the run. Everything below is the pre-registration, unchanged. Numbers in
+> `results/composition_summary.json`.
+
+AC-1 required the advantage to scale in **both** `n` and `s`. It scales in `n` and not in `s`.
+
+```
+advantage of proposed over the best additive arm
+          s=0.25    s=0.5     s=1.0     s=2.0
+n=1       -0.8%     -1.4%     +0.6%     -9.9%
+n=2       -0.8%     -1.3%    +25.5%    -12.4%
+n=3       -0.7%     -1.5%    +38.7%    -14.2%
+n=4       -0.8%     -1.7%    +46.6%    -14.8%
+```
+
+**The composition claim is confirmed, in exactly the predicted shape.** At the trained magnitude a
+single condition buys $+0.6\%$ — nothing, as required — and the advantage grows monotonically as
+conditions stack: $+25.5\%$, $+38.7\%$, $+46.6\%$ ($p=9.1\times10^{-5}$, $\delta=-1.00$). AC-2
+passed independently, with a $1.6\%$ spread at `n=1, s=0.25` where the first-order expansion is
+tight. A criterion we could have failed by winning, and did not.
+
+**The magnitude claim is refuted, and the derivation was wrong.** The `½‖ΣA‖²` argument predicted
+monotone growth in strength. Rotations are **periodic**: past the trained angle the operator wraps,
+so the error is oscillatory rather than growing, and the advantage reverses. This is the same
+non-monotonicity the E0 guidance screen measured (fidelity `0.139 → 1.979 → … → 0.800` across
+`α = 1…8`), and it was not carried into the derivation. Theorem 2's bound is still correct — error
+is at most linear in `‖c‖` — but it is loose, and loose in the direction that matters here.
+
+**What the pair establishes.** The advantage comes from *composing conditions*, not from strength,
+not from difficulty, and not from task selection: it is absent at one condition, absent at weak
+conditions, and grows with the number of factors at fixed magnitude. That is a mechanism, not a
+correlation. It also bounds the practical claim sharply — the benefit lives at the trained
+conditioning scale and disappears outside it, so exact composition is not a strength knob.
+
+**Consequence for §7 of `THEORY.md`:** the strength prediction must be withdrawn and replaced with
+the periodicity caveat. The count prediction stands.
+
+
 **Status:** pre-registered 2026-08-02, before the decision run.
 **Name:** `composition-order` · **Hardware:** one RTX PRO 6000.
 
