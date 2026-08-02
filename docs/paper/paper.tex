@@ -569,20 +569,17 @@ that would do it.
 \section{Practical guidance}
 \label{sec:practical}
 
-Three rules for practitioners, from the eight suites.
-\textbf{Use phase conditioning when your conditions are changes that combine.} Edit deltas,
-attribute offsets, pose or camera adjustments, applied once. Cost matches FiLM, fit matches,
-and error on never-trained combinations is $1.8$--$8\times$ lower on real images
-($42.9$--$87.5\%$ reduction against the strongest baseline) and up to $10^5\times$ lower when
-the conditions form a group exactly. FiLM gives no warning when it
-fails this way: its training loss looks normal, and only the unseen combinations are wrong.
-CGA's composition law rules that failure out by construction.
-\textbf{For conditions that say what to generate, use Complex FiLM or keep FiLM.} Pure rotation
-fails there ($7\times$); Complex FiLM matches FiLM on content ($0.97\times$) while keeping the
-composition wins, so it is the candidate drop-in at our evidence scale.
-\textbf{In rollouts, pair an isometric operator with a consistency loss.} Without the loss, all
-conditioners compound error at the same rate; with it, the rotation operator stays flat where
-FiLM grows $4.5\times$ and a hypernetwork $10\times$.
+The account yields a procedure, and two short runs decide it. Fit one high-capacity conditioner and
+read its effective operator; the closed forms of \S\ref{sec:theory} then give each mechanism's
+approximation error, and the polar type says which class suits the task. Measure the compositional
+gap on your own evaluation. Then check that the task's own conditions compose the way the operator
+does, which \S\ref{sec:theory} shows is the condition our first out-of-sample prediction missed.
+
+Reach for a group-structured conditioner when all three hold: the condition names a change to apply
+rather than content to produce, held-out combinations are meaningfully harder than trained ones, and
+the representation trains alongside the operator. Keep FiLM otherwise. Complex FiLM is the drop-in
+where the condition transforms content the input already supplies, at lower cost than FiLM. In
+rollouts, pair the operator with a latent-consistency loss, since neither works alone.
 
 \section{Limitations}
 \label{sec:limits}
@@ -597,27 +594,19 @@ the learned-condition-geometry extension is future work.
 
 \paragraph{The guidance result does not transfer to a multimodal target.} Our guidance benchmark
 measures distortion against a deterministic target, so it cannot see the distribution-sharpening
-CFG exists to provide. We built a second harness to check: condition on shape, scale and
-orientation and leave position free, making $p(x\mid c)$ uniform over $64$ cells exactly, so
-fidelity and diversity are separately measurable against a target known in closed form. An
-unregistered single-seed pilot on it, with no gate and no verdict claimed, points against the
-method on all three axes we could measure. At matched fidelity CFG retains \emph{more} diversity
-(coverage $0.946$ at fidelity $0.919$, against ours $0.920$ at a better $0.828$), so CFG dominates
-the frontier. The strength knob is not monotone: fidelity runs $0.139$, $1.979$, $1.300$, $0.828$,
-$0.733$, $0.800$ as $\alpha$ goes $1$ to $8$, which is the rotation channel wrapping, since
-$\T(c)^\alpha$ turns by $\alpha\theta$ and turning further is not the same as conditioning harder.
-And the base model fits $33\%$ worse before any guidance at all. We therefore claim the
-guidance result only as stated, less distortion at equal cost on a deterministic target, and
-not as a general replacement for CFG. Establishing that would need the frontier comparison to come
-out the other way, and in our pilot it does not.
+CFG exists to provide. A second harness makes $p(x\mid c)$ uniform over $64$ cells, so fidelity and
+diversity are separately measurable against a target known in closed form. An unregistered
+single-seed pilot on it, with no gate and no verdict claimed, goes against us on all three axes we
+could measure: at matched fidelity CFG retains more diversity, the strength knob is not monotone
+because the rotation channel wraps, and the base model fits $33\%$ worse before any guidance at
+all. We therefore claim less distortion at equal cost on a deterministic target, and no more.
 
-\paragraph{The experiment that would falsify the account.} The rule of
-\S\ref{sec:theory} predicts a \emph{location}, not merely a direction. Construct a task family
-whose conditional operator has a dialable stretch-to-rotation ratio, $\T^*(c)=U(c)^{\alpha}
-S(c)^{1-\alpha}$; the closed forms above then predict where FiLM, Complex FiLM and a rotation each
-take over as $\alpha$ sweeps. Registering those crossover points before running, and checking them,
-would convert a framework fitted on nine observations into a prediction tested out of sample. It
-would also predict our own losses, which is the stronger demonstration. We have not run it.
+\paragraph{The experiment that would falsify the account.} The rule of \S\ref{sec:theory} predicts
+a \emph{location}, not a direction. Build a task family whose conditional operator has a dialable
+stretch-to-rotation ratio, $\T^*(c)=U(c)^{\alpha}S(c)^{1-\alpha}$; the closed forms then predict
+where FiLM, Complex FiLM and a rotation each take over as $\alpha$ sweeps. Registering those
+crossover points before running would convert a framework fitted on nine observations into a
+prediction tested out of sample, and would predict our own losses. We have not run it.
 
 \paragraph{Reproducibility statement.} We release the code, the pre-registrations, and the raw
 logs. Every suite has a specification committed before its decision run; a registry maps each
