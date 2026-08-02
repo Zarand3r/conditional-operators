@@ -180,6 +180,38 @@ three wins are on tasks whose dominant factors are geometric — exactly the rot
 regime §3.1 says suits an orthogonal operator. Task selection is not controlled for anywhere in
 this programme, and that weakens all three positives.
 
+### The first out-of-sample test, and it fails
+
+**2026-08-02.** A 16-control audio effect chain — the high-dimensional parametric regime §6.3 says
+structure should suit, and which nothing else in this programme tested. Both registered checks
+passed *before* the run: compositional gap `1.83×` and structured fit ratio `1.011×`. The framework
+therefore predicted a win. The measured advantage was **flat at −1.1% across n = 1, 2, 4, 8**.
+
+The table below is fitted: its two thresholds were calibrated on the same nine tasks it summarises.
+This was the first case where the prediction preceded the outcome, and **the prediction is wrong**.
+The "nine for nine" claim should be read as consistency with the evidence it was built from, not as
+predictive accuracy.
+
+**A third condition is missing, and we already had the instrument.** The rigging check — introduced
+only to confirm a task was not built to flatter the operator — found **0 of 12 pairs exactly our
+form, median residual 0.427**. That is the class check of §3.1 applied to the *task* rather than to
+the mechanism, and it called this outcome before training.
+
+The mechanism is clear in hindsight. In dSprites the factors are independent coordinates of the
+generative process, so combining two changes yields a well-defined image and composition holds
+exactly in factor space. In the effect chain the saturation and dynamics stages interact, so the
+combined effect is *not* the composition of the individual effects. There is then nothing for exact
+composition to be exact about, however high-dimensional the condition and however large the gap.
+
+**Revised screen.** Three checks, all measurable before training, all necessary:
+
+1. conditioning share — is the task learnable at all
+2. compositional gap — are held-out combinations meaningfully harder
+3. **task alignment** — does the task's own condition space compose the way the operator does
+
+The framework as stated in §4 carries two of the three. Any future use should carry all three, and
+the retrospective table below should be re-scored against the third before it is quoted again.
+
 Nine for nine. What makes this more than a curve fit is that **each factor is independently
 observed to fail while the other passes**: camera had an acceptable fit and no gap; audio effects
 had a fit ratio of exactly 1.000 and no gap; PDEBench had an enormous gap and an unusable fit. A
