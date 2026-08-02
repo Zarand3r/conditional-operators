@@ -53,9 +53,15 @@ passes every criterion at once: $64.6\%$ below the best unstructured arm, every 
 seed, while fitting \emph{better} in distribution ($0.938\times$) at $0.84\times$ FiLM's cost. A
 further gate bounds that: the fit penalty tracks how much content the condition must supply, not
 the operator's geometry, and no variant we tested repairs it when the condition supplies content
-itself. The same structure yields a guidance knob needing no second forward pass,
-which distorts $2$--$5\times$ less than classifier-free guidance on a deterministic target,
-though not on a multimodal one. One operator, both roles, FiLM cost.
+itself. The same structure yields a guidance knob needing no second forward pass, which distorts
+$2$--$5\times$ less than classifier-free guidance on a deterministic target, though not on a
+multimodal one. Sweeping the number of simultaneously changed conditions and their magnitude
+independently isolates the mechanism: the advantage is $+0.6\%$ on one condition and rises to
+$+46.6\%$ on four, and is absent at weak single conditions, so it is composition rather than
+difficulty or strength. It is also narrower than we expected. Both screening quantities passed on a
+sixteen-control chain built because the account favoured it, and the advantage was flat at
+$-1.1\%$: structured conditioning pays when a task's own conditions compose the way the operator
+does, which no dimensional criterion captures.
 \end{abstract}
 
 \section{Introduction}
@@ -110,8 +116,10 @@ unconditional pass (\S\ref{sec:results}).
 rule. Approximation error is class membership rather than capacity, and admits closed forms per
 mechanism through the polar decomposition; exact composition bounds extrapolation error by
 $\|A\|\|\hat W-W\|\|c\|$, independent of how far the condition sits from those seen, and only on
-the compact factor. Both quantities are estimable from short runs, and together they separate every
-win from every loss in our nine comparisons (\S\ref{sec:theory}).
+the compact factor. Both quantities are estimable from short runs. They are not sufficient: the
+first prediction we made before seeing an outcome failed, and identified a third condition ---
+whether the task's own conditions compose the way the operator does --- which we could already
+measure (\S\ref{sec:theory}).
 
 \section{Related work}
 \label{sec:related}
@@ -490,6 +498,25 @@ you which plane a condition rotates, and how fast.}
 \label{fig:mech}
 \end{figure}
 
+\paragraph{(9) The advantage comes from composing conditions, shown by its shape.} Every result
+above compares arms on a fixed evaluation, which cannot separate a compositional mechanism from a
+generally better one. We therefore swept the number of simultaneously changed factors and their
+magnitude independently, and pre-registered that the advantage must be absent for a single weak
+condition and must grow with the number composed. At the trained magnitude the structured operator
+gains $+0.6\%$ over the best additive arm on one factor, then $+25.5\%$, $+38.7\%$ and $+46.6\%$ on
+two, three and four ($p{=}9.1{\times}10^{-5}$, $\delta{=}{-}1.00$), and at weak single conditions all
+arms fall within $1.6\%$ of each other. The shape is the evidence: an advantage absent at one
+condition and rising with the number composed cannot be difficulty, strength, or a better arm.
+
+The same run refutes the other half of the prediction we registered. We had argued that additive
+aggregation, which is what a value-sum over condition tokens performs, should degrade as
+$\tfrac12\|\sum_i A_i\|^2$ and therefore worsen with conditioning \emph{strength}; instead the
+advantage reverses beyond the trained scale, reaching $-14.8\%$. Rotations are periodic, so past the
+trained angle the operator wraps and the error oscillates rather than growing. The bound of
+\S\ref{sec:theory} survives, since it is an upper bound linear in $\|c\|$, but it is loose exactly
+where we relied on it. Exact composition buys accuracy when stacking conditions at the scale trained
+on, and is not a strength knob.
+
 \section{Why: a predictive account of mechanism choice}
 \label{sec:theory}
 
@@ -543,6 +570,26 @@ suite had an acceptable fit and no gap, the audio suite a fit ratio of $1.000$ a
 an enormous gap and an unusable fit. The account also covers results the capacity framing could
 not, including why Complex FiLM specifically beats a pure rotation on a task whose operator carries
 both viscous decay (stretch) and advection (rotation).
+
+\paragraph{The two checks are not sufficient, and the first out-of-sample test says so.} Both
+thresholds above are calibrated on the nine comparisons they summarise, so that agreement is
+consistency, not predictive accuracy. We then built the case the account favours: a sixteen-control
+parametric chain, the high-dimensional regime where coverage arguments say structure should matter
+most. Both checks passed before the run, with a compositional gap of $1.83\times$ and a fit ratio of
+$1.011\times$, so the account predicted a win. The measured advantage was flat at $-1.1\%$ across
+one, two, four and eight simultaneous controls.
+
+A third condition is missing, and the instrument for it was already in the repository. A rigging
+check we had added only to confirm a task was not built to flatter the operator found $0$ of $12$
+control pairs matching the operator's form. That is the class test of the previous paragraph applied
+to the \emph{task} rather than to the mechanism, and it called the outcome before training. The
+reason is visible in hindsight: dSprites factors are independent coordinates of the generative
+process, so combining two changes yields a well-defined image and composition holds exactly in
+factor space, whereas the chain's saturation and dynamics stages interact, so the combined effect is
+not the composition of the individual effects. There is then nothing for exact composition to be
+exact about, however large the condition space or the gap. Structured conditioning pays when the
+task's own conditions compose the way the operator does, which is narrower than any dimensional
+criterion and is measurable in advance.
 
 \paragraph{Honest status.} The mathematics is elementary --- Procrustes, Cauchy, a standard
 Lipschitz property of the exponential on compact groups. The thresholds quoted above are calibrated
