@@ -19,7 +19,7 @@
 \newtheorem{definition}{Definition}
 \newcommand{\T}{T}
 
-\title{Conditioning as Group Action:\\ Exact Compositional Conditioning at FiLM Cost}
+\title{When Structured Conditioning Helps:\\ What Each Mechanism Can Reach, and What None Can}
 \author{Richard Bao\\ \texttt{richardbao419@gmail.com}}
 \date{}
 
@@ -27,30 +27,32 @@
 \maketitle
 
 \begin{abstract}
-Practitioners condition networks by scaling features (FiLM) or by generating weights
-(hypernetworks). Both learn what each condition does. Neither learns what two conditions do
-together unless training data shows them together. We condition by rotating features, with
-rotation angles linear in the condition, so rotations add and unseen combinations compose for
-free. \textbf{CGA} (Conditioning as Group Action) places the condition in an abelian Lie algebra,
-$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, making $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ exact for any weights;
-RoPE is the scalar-position case.
+Conditioning a network means injecting a class, an action or a caption into its computation, and
+three mechanisms carry almost all of it: concatenation, feature-wise modulation (FiLM), and
+hypernetworks. Which to use is settled by sweeping, and the resulting tables disagree across
+domains. We show the choice is partly decidable in advance, because each mechanism reaches a
+different set of feature maps and the polar decomposition says which. Approximation error then has
+a closed form per mechanism, and two consequences are impossibilities rather than tendencies. No
+orthogonal conditioner can represent a transformation with an eigenvalue of modulus $\neq 1$ in
+\emph{any} representation, so conditioning that must specify content is structurally out of reach
+for it. And exact composition forces linearity while content forbids it, so the two roles cannot
+share a channel; the minimal algebra carrying both is
+$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$, which derives magnitude-times-phase modulation
+rather than proposing it.
 
-Across $25$ pre-registered gates at FiLM cost we recorded $15$ negatives, and the shape of the win
-identifies its cause: the advantage is $+0.6\%$ on one condition and $+46.6\%$ on four
-($p{=}9.1{\times}10^{-5}$), and absent at weak single conditions, so it is composition rather than
-difficulty or strength. The negatives bound it, and one is a proof. No orthogonal conditioner can
-represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so content conditioning is
-unreachable rather than hard, and the two conditioning roles cannot share a channel. The minimal
-algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$, which derives
-\textbf{Complex FiLM}, magnitude for content and phase for composition: $36\%$ better than FiLM on
-unseen combinations at $0.84\times$ its cost, and $64.6\%$ below the best unstructured arm on a
-Navier-Stokes surrogate.
+We test the account with two operators it names, a group-structured conditioner with exact
+composition at FiLM cost and its complex extension, under $25$ pre-registered gates that returned
+$15$ negatives. The predictions hold where the account says they should: the advantage is $+0.6\%$
+on one condition and $+46.6\%$ on four ($p{=}9.1{\times}10^{-5}$) and absent at weak single
+conditions, so it is composition rather than difficulty; the polar type of a Navier-Stokes operator
+named which of our own arms would fail before we understood why; and content conditioning fails by
+$8\times$, as the impossibility requires.
 
-Two short runs predict which tasks pay, and we report where that rule breaks. Both passed on a
-sixteen-control audio chain we built because the account favored it, and the advantage was flat at
-$-1.1\%$. A check already in our repository had called that outcome before training. Structured
-conditioning pays when a task's own conditions compose the way the operator does, which no
-dimensional criterion captures.
+The account's empirical half is weaker, and we report its failure. Two short runs are meant to
+predict which tasks pay. Both passed on a sixteen-control chain we built because the account
+favored it, and the advantage was flat at $-1.1\%$. A check already in our repository had called
+that outcome. Structured conditioning pays when a task's own conditions compose the way the
+operator does, which no dimensional criterion captures and which our screen did not measure.
 \end{abstract}
 
 \section{Introduction}
@@ -68,54 +70,63 @@ repeats the sweep, and a practitioner who reads two papers gets two answers. Geo
 learning explains when symmetries of the \emph{data} help, but conditioning is a different object:
 whatever structure exists lives in the condition space.
 
-A condition names one of two things, and the distinction runs through this paper. It can name a
-\emph{change} to apply, such as a pose offset or an edit, or the \emph{content} to produce, such as
-a class or a caption. FiLM serves both. We ask which structure, at FiLM-level cost, buys
-compositional generalization: correct behavior on combinations of conditions never seen together in
-training. Our answer transplants a mechanism from positional encoding. RoPE \citep{su2021rope} and
-its generalization GRAPE \citep{grape2025} encode position $n$ as a group action
-$G(n)=\exp(n\,\omega L)$, and because position enters linearly in the Lie algebra,
-$G(n{+}m)=G(n)G(m)$ holds exactly. We carry that construction from scalar positions in attention to
-arbitrary condition vectors in activation modulation, and call the result \textbf{CGA}.
+The choice is less open than the sweeping suggests, because the mechanisms do not differ in how
+much they can express so much as in \emph{what} they can express. A condition names one of two
+things, and the distinction runs through this paper: it can name a \emph{change} to apply, such as
+a pose offset or an edit, or the \emph{content} to produce, such as a class or a caption. Those are
+different operations on the features. Every invertible map factors uniquely into a rotation and a
+stretch, and each mechanism reaches essentially one factor: FiLM the stretch, a rotation the
+rotation, a hypernetwork both. Approximation error is then not a matter of headroom but of class
+membership, and it has a closed form (\S\ref{sec:reach}).
 
-Establishing that CGA's advantage comes from composition, and not from being a better arm, requires
-evidence of a particular shape. We sweep the number of simultaneously changed conditions and their
-magnitude independently, and register in advance that the advantage must vanish for a single weak
-condition and grow with the number composed. It does: $0.6\%$ on one factor, then $25.5\%$,
-$38.7\%$ and $46.6\%$ on two, three and four, with every arm within $1.6\%$ of the others at weak
-single conditions. An advantage absent at one condition and rising with the number composed cannot
-be difficulty, strength, or a generally stronger arm. Figure~\ref{fig:main} shows the same effect
-in a second form: how far each conditioner degrades when conditions combine in ways it never saw.
+Two consequences are impossibilities. An orthogonal conditioner cannot represent a transformation
+with an eigenvalue of modulus $\neq 1$ in \emph{any} representation, because a change of basis is a
+conjugation and conjugation preserves the spectrum; content conditioning needs exactly such
+eigenvalues, so it is unreachable rather than difficult, and no amount of co-training repairs it.
+Separately, exact composition forces the condition-to-modulation map to be linear, by Cauchy's
+functional equation, while content is not additive and forbids linearity. The two roles therefore
+cannot share a channel, and the smallest algebra carrying both is
+$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. That derives a conditioner
+rather than proposing one.
 
-The same discipline bounds the claim. Twenty-five pre-registered gates returned fifteen negatives,
-and each names a setting where exact composition buys nothing: content conditioning, which we prove
-unreachable for any orthogonal conditioner in any representation; a frozen representation; rollouts
-without a consistency loss; and a fit penalty that tracks how much content the condition must
-supply. We then built the case our own account favored, a sixteen-control parametric chain, and
-predicted a win from two screening quantities before running it. The advantage was flat at
-$-1.1\%$. That failure identified the condition the account was missing, which we could already
-measure: whether the task's own conditions compose the way the operator does.
+We test the account with the two operators it names (\S\ref{sec:framework}). Both already exist in
+special cases: RoPE \citep{su2021rope} and GRAPE \citep{grape2025} encode position as a group action
+$G(n)=\exp(n\,\omega L)$, exactly compositional because position enters linearly in the Lie algebra.
+Carrying that construction from scalar positions to arbitrary condition vectors in FiLM's role gives
+\textbf{CGA}, and extending its algebra gives \textbf{Complex FiLM}. Twenty-five pre-registered
+gates returned fifteen negatives, and the wins and the negatives land where the account says.
+Composition is confirmed by shape rather than by margin: the advantage is $0.6\%$ on one factor and
+rises to $25.5\%$, $38.7\%$ and $46.6\%$ on two, three and four, while every arm stays within
+$1.6\%$ of the others at weak single conditions, so it cannot be difficulty or strength
+(Figure~\ref{fig:main}). Content conditioning fails by $8\times$, as the impossibility requires.
+The polar type of a Navier-Stokes operator named which of our own arms would fail before we
+understood why.
+
+The account's empirical half is weaker, and reporting its failure is part of the contribution. Two
+short runs are meant to decide whether structure pays. We built the case the account favored, a
+sixteen-control parametric chain, and predicted a win before running it; the advantage was flat at
+$-1.1\%$. A check already in the repository had called that outcome, and it measures the condition
+the screen was missing: whether the task's own conditions compose the way the operator does.
 
 \paragraph{Contributions.}
-\textbf{(1) Framework.} Conditioning by a group representation of the condition space makes
-composition exact for any weights, not merely after training, and recovers FiLM, RoPE and GRAPE as
-special cases (\S\ref{sec:framework}).
-\textbf{(2) Protocol.} A pre-registered, budget-fair evaluation: margins, statistical tests and
-single-read splits committed to version control before every run, with a shared counter enforcing
-parameter and FLOP parity. We report every verdict, including two that cleared their criteria and
-which we record as failures because the criteria named the wrong baseline (\S\ref{sec:protocol}).
-\textbf{(3) A mechanism, established by shape.} The advantage rises from $0.6\%$ to $46.6\%$ with
-the number of composed conditions and vanishes at one weak condition, which rules out the
-alternatives that a fixed comparison cannot (\S\ref{sec:results}).
-\textbf{(4) Where it stops.} Fifteen registered negatives, one of them a proof: no orthogonal
-conditioner can produce content, in any representation (\S\ref{sec:results}).
-\textbf{(5) An account of mechanism choice, and its own falsification.} Approximation error is
-class membership rather than capacity, with closed forms per mechanism through the polar
-decomposition, and exact composition bounds extrapolation error independently of how far the
-condition sits from those seen. The same algebra forces the successor: content and composition
-cannot share a channel, and the minimal split that carries both is magnitude times phase. Two short
-runs estimate the account's two quantities, and we report the experiment that shows they are not
-sufficient (\S\ref{sec:theory}).
+\textbf{(1) What each mechanism can reach.} The reachable sets of FiLM, rotations, hypernetworks
+and complex modulation are nearly disjoint rather than nested, so parameter count is the wrong
+currency; the polar decomposition gives each one's approximation error in closed form
+(\S\ref{sec:reach}).
+\textbf{(2) Two impossibilities.} No orthogonal conditioner represents an eigenvalue of modulus
+$\neq 1$ in any representation, and no conditioner carries content and exact composition on one
+channel. The second derives magnitude-times-phase modulation as the minimal resolution, and shows
+it is maximal (\S\ref{sec:reach}).
+\textbf{(3) Two operators that make the account testable.} A group-structured conditioner with
+composition exact for any weights, recovering FiLM, RoPE and GRAPE as special cases, and its
+complex extension at $0.84\times$ FiLM's cost (\S\ref{sec:framework}).
+\textbf{(4) Evidence, including fifteen negatives.} A pre-registered, budget-fair protocol over
+$25$ gates, with margins, tests and single-read splits committed before every run. Composition is
+established by shape rather than margin, and we report two verdicts that cleared their criteria as
+failures because the criteria named the wrong baseline (\S\ref{sec:protocol},~\S\ref{sec:results}).
+\textbf{(5) The account's own falsification.} Its two screening quantities predicted a win on the
+one task where the prediction preceded the run, and the advantage was flat at $-1.1\%$. We report
+the missing condition and the instrument that measures it (\S\ref{sec:screen}).
 
 \section{Related work}
 \label{sec:related}
@@ -158,13 +169,91 @@ latent-prediction losses originate with \citet{quessard2020}, \citet{caselles201
 homomorphism autoencoder \citep{keurti2023}, whose composition property is emergent rather than
 imposed; latent consistency objectives are standard in model-based RL \citep{hansen2022tdmpc}.
 Distillation moves guidance into the conditioning path \citep{fu2025teefusion}, and prior work
-documents CFG's high-scale distortion \citep{bradley2024cfg}. We claim none of these components. We claim the combination: a
-group-structured operator in FiLM's role at budget parity, composition imposed exactly by a
-linear-in-algebra map, magnitude split from phase as content and composition channels, guidance
-as an exact power, and verdicts from pre-registered gates.
+documents CFG's high-scale distortion \citep{bradley2024cfg}.
 
-\section{The CGA framework}
+We claim none of these components, and several of them are instances of what we analyse: the
+amplitude-and-phase modulation of \citet{chan2021pigan} and the phase composition of
+\citet{sun2019rotate} are the split our \S\ref{sec:reach} derives, arrived at by construction
+rather than by necessity. What is missing from all of it is an account of \emph{which} mechanism
+suits which task. The operator families above are studied as parametrizations and compared by
+benchmark; none states what a mechanism can and cannot represent, and none predicts its own
+failures. That account, its two impossibilities, and the pre-registered programme that tests and
+partly falsifies it are what we contribute.
+
+\section{Which maps a mechanism can reach}
+\label{sec:reach}
+
+Mechanism choice looks like a matter of taste because the usual currency, parameter count, does not
+measure the thing that decides it. This section replaces that currency.
+
+Write a conditioning mechanism as a family of feature maps $\{\T_c\}$ indexed by the condition,
+where FiLM contributes the diagonal maps, a hypernetwork all linear maps, and the two operators we
+build in \S\ref{sec:framework} the orthogonal maps (\textbf{CGA}) and the block-diagonal scaled
+rotations (\textbf{Complex FiLM}). Split test error into an approximation term, an estimation term
+and an extrapolation term, $E_{\mathrm{approx}}+E_{\mathrm{est}}+E_{\mathrm{extrap}}$. Two facts
+follow, and one of them forecloses a class of designs outright. Full derivations are in the
+released \texttt{THEORY.md}; \S\ref{sec:results} measures every quantity previewed here.
+
+\paragraph{Approximation error is class membership, not capacity.} The reachable sets are nearly
+disjoint rather than nested: the diagonal maps and the orthogonal maps intersect only in the $2^d$
+matrices with entries $\pm1$. Switching from FiLM to a rotation does not shrink the reachable set,
+it \emph{moves} it, so parameter counts are the wrong currency. Complex FiLM uses $0.85\times$
+FiLM's parameters while substituting one operation class for another. The right coordinates are
+polar, $\T=US$, and each mechanism reaches one factor. This yields exact minimisers, not bounds:
+$E_{\mathrm{approx}}=0$ for a hypernetwork, $\|\T^*-\mathrm{diag}\,\T^*\|_F$ for FiLM,
+$\|S^*-I\|_F$ for a rotation (orthogonal Procrustes), and a blockwise projection residual for
+Complex FiLM. So a rotation's approximation error \emph{is} the stretch content of the task's
+operator, which is why an isometry fails at content by $8\times$ at any parameter count
+(\S\ref{sec:results}).
+
+\paragraph{One impossibility, and its converse.} If the required transformation has any eigenvalue
+of modulus $\neq 1$, no orthogonal conditioner can represent it in \emph{any} representation: a
+change of basis is a conjugation, and conjugation preserves the spectrum. Content conditioning
+needs $|\lambda|\to 0$, so its $8\times$ failure is structural rather than incidental. The converse
+matters as much. Approximation error refers to the transformation required \emph{in the coordinates the encoder
+produced}, so it is a property of the task and representation together,
+not of the task alone. A learned representation can repair a rotation wearing the wrong basis and
+can never repair a change of scale. This predicts that freezing the representation is fatal, which
+\S\ref{sec:results} confirms, and it carries a design rule: the operator must be the \emph{only} conditioning path, since a parallel
+unstructured route removes the pressure to find such coordinates. Our own hybrid arm, which
+contained a concatenation path, scored $+1.7\%$ against concatenation alone, a tie.
+
+\paragraph{Exact composition bounds extrapolation, and only on the compact factor.} For
+$\T(c)=\exp(A(Wc))$ with $A$ skew, the exponential is $1$-Lipschitz, giving
+$\|\hat{\T}(c)-\T(c)\|_F\le\|A\|\,\|\hat W-W\|\,\|c\|$. The bound depends on $\|c\|$ alone and not
+on how far $c$ sits from the training conditions: reaching an unvisited \emph{combination} costs
+nothing beyond reaching the same magnitude, and if the training conditions span the condition space
+then $W$ is identifiable and the error vanishes with data. With a symmetric part present the
+Lipschitz property fails and error grows like $e^{s}$, which is why the magnitude channel needs a
+clamp while the phase channel composes to $10^{-6}$, and why guidance degrades linearly in strength
+on the rotation channel and exponentially on the magnitude one.
+
+\paragraph{Complex FiLM is forced, not chosen.} The two conditioning roles cannot share a channel,
+and the algebra says what to do instead. Exact composition requires $A(c_1{+}c_2)=A(c_1)+A(c_2)$ in
+algebra coordinates, and a continuous additive map is linear by Cauchy's functional equation: there
+is no nonlinear exactly-compositional conditioner. Content runs the other way. Specifying what to
+produce is not additive, since composing ``cat'' with ``dog'' is not ``cat $+$ dog'', so the
+condition-to-modulation map has to be expressive; the fully linear variant scores $0.19$ in the
+content role against the expressive variant's $0.97$ (\S\ref{sec:results}). The two requirements are therefore
+incompatible on one channel, which makes splitting the representation a theorem rather than a
+design preference. The smallest algebra carrying both an expressive and an exactly-compositional
+direction is $\mathbb{C}=\mathbb{R}\oplus i\mathbb{R}$, whose multiplicative group factors as
+$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. Compactness fixes which
+carries which. Rotations are bounded, so exactness survives on them; $e^{s}$ is unbounded, needs a
+clamp, and a clamp is nonlinear. We measure composition error of $10^{-6}$ while $|s|\le 4$ and
+order $1$ the moment the clamp engages. The construction is also maximal: two dimensions per
+$2{\times}2$ block over $d/2$ blocks is $d$, the dimension of a Cartan subalgebra of
+$\mathfrak{gl}(d)$, so no exactly-compositional linear conditioner reaches a larger family. Going
+further costs commutativity, and with it exactness at arbitrary weights.
+
+
+
+\section{Two conditioners the account names}
 \label{sec:framework}
+
+The account of \S\ref{sec:reach} names two operators: one that reaches the rotation factor exactly,
+and one that reaches both factors at the cost of exactness on half of them. Both already exist in
+special cases, and writing them in this form is what makes them testable.
 
 Let $x\in\mathbb{R}^d$ be features and $c\in\mathbb{R}^k$ a condition. FiLM computes
 $y=\gamma(c)\odot x+\beta(c)$; hypernetworks emit $W(c)$. All are instances of
@@ -287,8 +376,13 @@ recurrently, one action per step, tested at horizons 10 and 20 after training on
 FiLM against condition powering for Complex FiLM, scored against deterministic ground truth at
 each strength.
 
-\section{Results}
+\section{Evidence: where the account holds}
 \label{sec:results}
+
+Each result below tests something \S\ref{sec:reach} asserts. Results (1) to (3) test the
+composition claim and its mechanism, (4) tests the derived conditioner, (5) and (6) test the
+impossibility and the fit penalty it implies, and (7) to (9) test the representation, rollout and
+guidance consequences. Every verdict comes from a gate committed before its run.
 
 \begin{table}[t]
 \centering
@@ -333,7 +427,7 @@ twice as fast.}
 \paragraph{(1) Composition is exact, and the weights say what each condition does.} On the
 hidden-basis suite, CGA reaches $3.3{\times}10^{-8}$ error on unseen pairs and
 $5.3{\times}10^{-8}$ on never-trained triples. The best baseline sits five orders of magnitude
-higher, and every baseline degrades as combinations lengthen. Learned angles match the true
+higher, and every baseline degrades as combinations lengthen (Figure~\ref{fig:synthetic}). Learned angles match the true
 generators to $2{\times}10^{-4}$ rad, so reading the weights tells you which plane each condition
 rotates and how fast (Figure~\ref{fig:mech}).
 
@@ -367,7 +461,7 @@ hypernetwork beats the $298$K low-rank arm on dSprites ($0.00383$ against $0.005
 3D~Shapes ($0.00928$ against $0.01978$), and the $83$K Concat-MLP often beats the $50$K FiLM. What
 survives is weaker and points elsewhere: the unstructured arms are usually worst on held-out
 combinations without being ordered among themselves, which implicates which maps an arm can express
-rather than how many parameters express them (\S\ref{sec:theory}).
+rather than how many parameters express them (\S\ref{sec:reach}).
 
 \paragraph{(4) Complex FiLM covers both conditioning roles at lower cost.} Complex FiLM multiplies
 feature pairs by $m\,e^{i\theta}$, giving content to the magnitude channel and composition to the
@@ -394,7 +488,7 @@ and the ablation fails identically. A proof explains it. Producing content means
 features, so the required transformation carries eigenvalues of modulus far from $1$; every
 orthogonal matrix has all $|\lambda|{=}1$; and a change of representation acts by conjugation, which
 preserves the spectrum. No orthogonal conditioner can carry ``generate this image'' in \emph{any}
-representation, and co-training cannot repair it (\S\ref{sec:theory}).
+representation, and co-training cannot repair it (\S\ref{sec:reach}).
 
 \paragraph{(6) The remaining fit penalty tracks content demand.} Where the condition supplies some
 content, the operator fits worse in distribution than an unstructured arm. On 3D~Shapes CGA posts
@@ -484,42 +578,13 @@ The sweep in (2) refutes the other half of what we registered. We had argued tha
 aggregation, which is what a value-sum over condition tokens performs, should degrade as
 $\tfrac12\|\sum_i A_i\|^2$ and therefore worsen with conditioning \emph{strength}. The advantage
 instead reverses beyond the trained scale, reaching $-14.8\%$. Rotations are periodic, so past the
-trained angle the operator wraps and the error oscillates. The bound of \S\ref{sec:theory} survives
+trained angle the operator wraps and the error oscillates. The bound of \S\ref{sec:reach} survives
 as an upper bound linear in $\|c\|$, but it is loose exactly where we relied on it. Exact
 composition buys accuracy when stacking conditions at the scale trained on, and gives no strength
 dial.
 
-\section{Why: a predictive account of mechanism choice}
-\label{sec:theory}
-
-The results above are a table of wins and losses. This section gives the rule that generates them,
-and it is the part we expect to outlast the operator. Full derivations are in the released
-\texttt{THEORY.md}.
-
-Write a conditioning mechanism as a family of feature maps $\{\T_c\}$ and split test error as
-$E_{\mathrm{approx}}+E_{\mathrm{est}}+E_{\mathrm{extrap}}$. Two facts then determine which
-mechanism suits which task.
-
-\paragraph{Approximation error is class membership, not capacity.} The reachable sets are nearly
-disjoint rather than nested: the diagonal maps and the orthogonal maps intersect only in the $2^d$
-matrices with entries $\pm1$. Switching from FiLM to a rotation does not shrink the reachable set,
-it \emph{moves} it, so parameter counts are the wrong currency. Complex FiLM uses $0.85\times$
-FiLM's parameters while substituting one operation class for another. The right coordinates are
-polar, $\T=US$, and each mechanism reaches one factor. This yields exact minimisers, not bounds:
-$E_{\mathrm{approx}}=0$ for a hypernetwork, $\|\T^*-\mathrm{diag}\,\T^*\|_F$ for FiLM,
-$\|S^*-I\|_F$ for a rotation (orthogonal Procrustes), and a blockwise projection residual for
-Complex FiLM. So a rotation's approximation error \emph{is} the stretch content of the task's
-operator, which is why an isometry fails at content by $8\times$ at any parameter count.
-
-\paragraph{Exact composition bounds extrapolation, and only on the compact factor.} For
-$\T(c)=\exp(A(Wc))$ with $A$ skew, the exponential is $1$-Lipschitz, giving
-$\|\hat{\T}(c)-\T(c)\|_F\le\|A\|\,\|\hat W-W\|\,\|c\|$. The bound depends on $\|c\|$ alone and not
-on how far $c$ sits from the training conditions: reaching an unvisited \emph{combination} costs
-nothing beyond reaching the same magnitude, and if the training conditions span the condition space
-then $W$ is identifiable and the error vanishes with data. With a symmetric part present the
-Lipschitz property fails and error grows like $e^{s}$, which is why the magnitude channel needs a
-clamp while the phase channel composes to $10^{-6}$, and why guidance degrades linearly in strength
-on the rotation channel and exponentially on the magnitude one.
+\section{Turning the account into a screen, and watching it break}
+\label{sec:screen}
 
 \begin{table}[t]
 \centering
@@ -533,37 +598,7 @@ only one where the prediction preceded the run, and it is the only miss.}
 \input{tables/screen}
 \end{table}
 
-\paragraph{Complex FiLM is forced, not chosen.} The two conditioning roles cannot share a channel,
-and the algebra says what to do instead. Exact composition requires $A(c_1{+}c_2)=A(c_1)+A(c_2)$ in
-algebra coordinates, and a continuous additive map is linear by Cauchy's functional equation: there
-is no nonlinear exactly-compositional conditioner. Content runs the other way. Specifying what to
-produce is not additive, since composing ``cat'' with ``dog'' is not ``cat $+$ dog'', so the
-condition-to-modulation map has to be expressive; the fully linear variant scores $0.19$ in the
-content role against the expressive variant's $0.97$. The two requirements are therefore
-incompatible on one channel, which makes splitting the representation a theorem rather than a
-design preference. The smallest algebra carrying both an expressive and an exactly-compositional
-direction is $\mathbb{C}=\mathbb{R}\oplus i\mathbb{R}$, whose multiplicative group factors as
-$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. Compactness fixes which
-carries which. Rotations are bounded, so exactness survives on them; $e^{s}$ is unbounded, needs a
-clamp, and a clamp is nonlinear. We measure composition error of $10^{-6}$ while $|s|\le 4$ and
-order $1$ the moment the clamp engages. The construction is also maximal: two dimensions per
-$2{\times}2$ block over $d/2$ blocks is $d$, the dimension of a Cartan subalgebra of
-$\mathfrak{gl}(d)$, so no exactly-compositional linear conditioner reaches a larger family. Going
-further costs commutativity, and with it exactness at arbitrary weights.
-
-\paragraph{One impossibility, and its converse.} If the required transformation has any eigenvalue
-of modulus $\neq 1$, no orthogonal conditioner can represent it in \emph{any} representation: a
-change of basis is a conjugation, and conjugation preserves the spectrum. Content conditioning
-needs $|\lambda|\to 0$, so its $8\times$ failure is structural rather than incidental. The converse
-matters as much. Approximation error refers to the transformation required \emph{in the coordinates the encoder
-produced}, so it is a property of the task and representation together,
-not of the task alone. A learned representation can repair a rotation wearing the wrong basis and
-can never repair a change of scale. This is why freezing the representation was fatal, and it
-carries a design rule: the operator must be the \emph{only} conditioning path, since a parallel
-unstructured route removes the pressure to find such coordinates. Our own hybrid arm, which
-contained a concatenation path, scored $+1.7\%$ against concatenation alone, which is a tie.
-
-\paragraph{The rule, and what it explains.} Choose the mechanism whose reachable factor matches the
+\paragraph{Two short runs estimate both terms.} Choose the mechanism whose reachable factor matches the
 polar type the task requires; then adopt exact composition only if the evaluation visits unvisited
 conditions. Short runs estimate both quantities: in-distribution fit ratio for the first,
 compositional gap for the second. Table~\ref{tab:screen} applies both to every task we ran. They
@@ -643,7 +678,7 @@ could measure: at matched fidelity CFG retains more diversity, the strength knob
 because the rotation channel wraps, and the base model fits $33\%$ worse before any guidance at
 all. We therefore claim less distortion at equal cost on a deterministic target, and no more.
 
-\paragraph{The experiment that would falsify the account.} The rule of \S\ref{sec:theory} predicts
+\paragraph{The experiment that would falsify the account.} The rule of \S\ref{sec:screen} predicts
 a \emph{location}, not a direction. Build a task family whose conditional operator has a dialable
 stretch-to-rotation ratio, $\T^*(c)=U(c)^{\alpha}S(c)^{1-\alpha}$; the closed forms then predict
 where FiLM, Complex FiLM and a rotation each take over as $\alpha$ sweeps. Registering those
