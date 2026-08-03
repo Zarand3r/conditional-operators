@@ -19,7 +19,7 @@
 \newtheorem{definition}{Definition}
 \newcommand{\T}{T}
 
-\title{When Structured Conditioning Helps:\\ What Each Mechanism Can Reach, and What None Can}
+\title{Structured Conditioning Mostly Does Not Help:\\ A Pre-registered Account of the Exceptions}
 \author{Richard Bao\\ \texttt{richardbao419@gmail.com}}
 \date{}
 
@@ -29,30 +29,29 @@
 \begin{abstract}
 Conditioning a network means injecting a class, an action or a caption into its computation, and
 three mechanisms carry almost all of it: concatenation, feature-wise modulation (FiLM), and
-hypernetworks. Which to use is settled by sweeping, and the resulting tables disagree across
-domains. We show the choice is partly decidable in advance, because each mechanism reaches a
-different set of feature maps and the polar decomposition says which. Approximation error then has
-a closed form per mechanism, and two consequences are impossibilities rather than tendencies. No
-orthogonal conditioner can represent a transformation with an eigenvalue of modulus $\neq 1$ in
-\emph{any} representation, so conditioning that must specify content is structurally out of reach
-for it. And exact composition forces linearity while content forbids it, so the two roles cannot
-share a channel; the minimal algebra carrying both is
-$\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$, which derives magnitude-times-phase modulation
-rather than proposing it.
+hypernetworks. Which to use is settled by sweeping, and the resulting tables disagree. We built the
+structured conditioner theory recommends, a group action whose composition is exact for any
+weights, and ran it through $25$ pre-registered gates. It mostly does not help: fifteen gates
+returned negatives, both benchmarks whose task we did not design were losses, and the one
+prediction we made before running the experiment was wrong.
 
-We test the account with two operators it names, a group-structured conditioner with exact
-composition at FiLM cost and its complex extension, under $25$ pre-registered gates that returned
-$15$ negatives. The predictions hold where the account says they should: the advantage is $+0.6\%$
-on one condition and $+46.6\%$ on four ($p{=}9.1{\times}10^{-5}$) and absent at weak single
-conditions, so it is composition rather than difficulty; the polar type of a Navier-Stokes operator
-named which of our own arms would fail before we understood why; and content conditioning fails by
-$8\times$, as the impossibility requires.
+The exceptions are principled, and that is the contribution. Each mechanism reaches a different set
+of feature maps, and the polar decomposition says which: FiLM the stretch factor, a group action
+the rotation factor, a hypernetwork both. Approximation error is then class membership rather than
+headroom, with a closed form per mechanism, and two consequences are impossibilities. No orthogonal
+conditioner can represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so
+conditioning that specifies content is out of reach for it at any parameter count. And exact
+composition forces linearity while content forbids it, so the two roles cannot share a channel; the
+minimal algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$, which derives
+magnitude-times-phase modulation rather than proposing it.
 
-The account's empirical half is weaker, and we report its failure. Two short runs are meant to
-predict which tasks pay. Both passed on a sixteen-control chain we built because the account
-favored it, and the advantage was flat at $-1.1\%$. A check already in our repository had called
-that outcome. Structured conditioning pays when a task's own conditions compose the way the
-operator does, which no dimensional criterion captures and which our screen did not measure.
+Structure pays where the account says. The advantage is $+0.6\%$ on one condition and $+46.6\%$ on
+four ($p{=}9.1{\times}10^{-5}$) and absent at weak single conditions, so it is composition rather
+than difficulty; content conditioning fails by $8\times$, as the impossibility requires. Where the
+account is fitted rather than derived, it breaks: two short runs meant to predict which tasks pay
+both passed on a sixteen-control chain we built because the account favored it, and the advantage
+was flat at $-1.1\%$. Structured conditioning pays when a task's own conditions compose the way the
+operator does, which no dimensional criterion captures.
 \end{abstract}
 
 \section{Introduction}
@@ -70,14 +69,29 @@ repeats the sweep, and a practitioner who reads two papers gets two answers. Geo
 learning explains when symmetries of the \emph{data} help, but conditioning is a different object:
 whatever structure exists lives in the condition space.
 
-The choice is less open than the sweeping suggests, because the mechanisms do not differ in how
-much they can express so much as in \emph{what} they can express. A condition names one of two
-things, and the distinction runs through this paper: it can name a \emph{change} to apply, such as
-a pose offset or an edit, or the \emph{content} to produce, such as a class or a caption. Those are
+We set out to close that gap with a mechanism rather than an account. Positional encoding supplies
+one: RoPE \citep{su2021rope} and GRAPE \citep{grape2025} encode position as a group action
+$G(n)=\exp(n\,\omega L)$, exactly compositional because position enters linearly in the Lie algebra,
+so combined positions compose without being trained together. Carrying that construction from
+scalar positions to arbitrary condition vectors in FiLM's role costs no more than FiLM and makes
+composition a property of the parametrization rather than something learned from data. It is the
+structured conditioner the theory recommends, and we expected it to win.
+
+It mostly does not. Twenty-five pre-registered gates returned fifteen negatives. Both benchmarks
+whose task we did not design ourselves, a published PDE benchmark and a real analog compressor,
+were losses, to concatenation and to a hypernetwork respectively. When we finally made a prediction
+before running the experiment rather than after, on the high-dimensional condition space where
+coverage arguments say structure should matter most, the advantage came out flat at $-1.1\%$. A
+practitioner reading only our positive results would reach for this operator and be wrong most of
+the time.
+
+The exceptions are not noise, and characterizing them is what the paper contributes. Mechanisms
+differ less in how much they can express than in \emph{what} they can express. A condition names
+one of two things, and the distinction runs throughout: it can name a \emph{change} to apply, such
+as a pose offset, or the \emph{content} to produce, such as a class or a caption. Those are
 different operations on the features. Every invertible map factors uniquely into a rotation and a
-stretch, and each mechanism reaches essentially one factor: FiLM the stretch, a rotation the
-rotation, a hypernetwork both. Approximation error is then not a matter of headroom but of class
-membership, and it has a closed form (\S\ref{sec:reach}).
+stretch, and each mechanism reaches essentially one factor, so approximation error is class
+membership rather than headroom and has a closed form (\S\ref{sec:reach}).
 
 Two consequences are impossibilities. An orthogonal conditioner cannot represent a transformation
 with an eigenvalue of modulus $\neq 1$ in \emph{any} representation, because a change of basis is a
@@ -87,43 +101,34 @@ Separately, exact composition forces the condition-to-modulation map to be linea
 functional equation, while content is not additive and forbids linearity. The two roles therefore
 cannot share a channel, and the smallest algebra carrying both is
 $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. That derives a conditioner
-rather than proposing one.
+rather than proposing one, and it is the successor our negatives specify.
 
-We test the account with the two operators it names (\S\ref{sec:framework}). Both already exist in
-special cases: RoPE \citep{su2021rope} and GRAPE \citep{grape2025} encode position as a group action
-$G(n)=\exp(n\,\omega L)$, exactly compositional because position enters linearly in the Lie algebra.
-Carrying that construction from scalar positions to arbitrary condition vectors in FiLM's role gives
-\textbf{CGA}, and extending its algebra gives \textbf{Complex FiLM}. Twenty-five pre-registered
-gates returned fifteen negatives, and the wins and the negatives land where the account says.
-Composition is confirmed by shape rather than by margin: the advantage is $0.6\%$ on one factor and
-rises to $25.5\%$, $38.7\%$ and $46.6\%$ on two, three and four, while every arm stays within
-$1.6\%$ of the others at weak single conditions, so it cannot be difficulty or strength
-(Figure~\ref{fig:main}). Content conditioning fails by $8\times$, as the impossibility requires.
-The polar type of a Navier-Stokes operator named which of our own arms would fail before we
-understood why.
-
-The account's empirical half is weaker, and reporting its failure is part of the contribution. Two
-short runs are meant to decide whether structure pays. We built the case the account favored, a
-sixteen-control parametric chain, and predicted a win before running it; the advantage was flat at
-$-1.1\%$. A check already in the repository had called that outcome, and it measures the condition
-the screen was missing: whether the task's own conditions compose the way the operator does.
+Where the account predicts a win, we measure one. Composition is confirmed by shape rather than by
+margin: the advantage is $0.6\%$ on one factor and rises to $25.5\%$, $38.7\%$ and $46.6\%$ on two,
+three and four, while every arm stays within $1.6\%$ of the others at weak single conditions, so it
+cannot be difficulty or strength (Figure~\ref{fig:main}). Content conditioning fails by $8\times$,
+as the impossibility requires. The polar type of a Navier-Stokes operator named which of our own
+arms would fail before we understood why. Where the account is fitted rather than derived, it
+breaks, and the $-1.1\%$ above is that break; the condition it was missing turns out to be
+measurable in advance, by an instrument already in our repository.
 
 \paragraph{Contributions.}
-\textbf{(1) What each mechanism can reach.} The reachable sets of FiLM, rotations, hypernetworks
-and complex modulation are nearly disjoint rather than nested, so parameter count is the wrong
-currency; the polar decomposition gives each one's approximation error in closed form
+\textbf{(1) A negative result, pre-registered.} Structured conditioning loses on most of the
+settings we tested: fifteen negatives across $25$ gates with margins, tests and single-read splits
+committed before every run, including both benchmarks whose task we did not design. We report two
+verdicts that cleared their criteria as failures, because the criteria named the wrong baseline
+(\S\ref{sec:protocol},~\S\ref{sec:results}).
+\textbf{(2) What each mechanism can reach.} The reachable sets of FiLM, group actions,
+hypernetworks and complex modulation are nearly disjoint rather than nested, so parameter count is
+the wrong currency; the polar decomposition gives each one's approximation error in closed form
 (\S\ref{sec:reach}).
-\textbf{(2) Two impossibilities.} No orthogonal conditioner represents an eigenvalue of modulus
-$\neq 1$ in any representation, and no conditioner carries content and exact composition on one
-channel. The second derives magnitude-times-phase modulation as the minimal resolution, and shows
-it is maximal (\S\ref{sec:reach}).
-\textbf{(3) Two operators that make the account testable.} A group-structured conditioner with
-composition exact for any weights, recovering FiLM, RoPE and GRAPE as special cases, and its
-complex extension at $0.84\times$ FiLM's cost (\S\ref{sec:framework}).
-\textbf{(4) Evidence, including fifteen negatives.} A pre-registered, budget-fair protocol over
-$25$ gates, with margins, tests and single-read splits committed before every run. Composition is
-established by shape rather than margin, and we report two verdicts that cleared their criteria as
-failures because the criteria named the wrong baseline (\S\ref{sec:protocol},~\S\ref{sec:results}).
+\textbf{(3) Two impossibilities that explain the negatives.} No orthogonal conditioner represents
+an eigenvalue of modulus $\neq 1$ in any representation, and no conditioner carries content and
+exact composition on one channel. The second derives magnitude-times-phase modulation as the
+minimal resolution and shows it is maximal (\S\ref{sec:reach}).
+\textbf{(4) The exceptions, established by shape rather than margin.} The advantage rises from
+$0.6\%$ to $46.6\%$ with the number of composed conditions and vanishes at one weak condition,
+which rules out the alternatives a fixed comparison cannot (\S\ref{sec:results}).
 \textbf{(5) The account's own falsification.} Its two screening quantities predicted a win on the
 one task where the prediction preceded the run, and the advantage was flat at $-1.1\%$. We report
 the missing condition and the instrument that measures it (\S\ref{sec:screen}).
@@ -376,13 +381,15 @@ recurrently, one action per step, tested at horizons 10 and 20 after training on
 FiLM against condition powering for Complex FiLM, scored against deterministic ground truth at
 each strength.
 
-\section{Evidence: where the account holds}
+\section{Evidence: the exceptions, and the rest}
 \label{sec:results}
 
-Each result below tests something \S\ref{sec:reach} asserts. Results (1) to (3) test the
-composition claim and its mechanism, (4) tests the derived conditioner, (5) and (6) test the
-impossibility and the fit penalty it implies, and (7) to (9) test the representation, rollout and
-guidance consequences. Every verdict comes from a gate committed before its run.
+Table~\ref{tab:main} reports every suite, and the negatives outnumber the wins. Each result below
+tests something \S\ref{sec:reach} asserts: (1) to (3) the composition claim and its mechanism, (4)
+the derived conditioner, (5) and (6) the impossibility and the fit penalty it implies, and (7) to
+(9) the representation, rollout and guidance consequences. Four are settings where structure buys
+nothing, and they are as informative as the wins because the account names them in advance. Every
+verdict comes from a gate committed before its run.
 
 \begin{table}[t]
 \centering
