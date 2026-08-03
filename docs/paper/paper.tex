@@ -28,34 +28,29 @@
 
 \begin{abstract}
 Practitioners condition networks by scaling features (FiLM) or by generating weights
-(hypernetworks).
-Both learn what each condition does. Neither learns what two conditions do together unless
-training data shows them together. We condition by rotating features, with rotation angles a
-linear function of the condition. Rotations add, so combined conditions compose automatically,
-and the network handles combinations it never saw. \textbf{CGA} (Conditioning as Group Action)
-formalizes this: the condition enters the operator linearly in an abelian Lie algebra,
-$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, so $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ holds for any weights.
-A diagonal algebra yields a compositional FiLM variant; the rotation algebra with scalar
-position is RoPE. Under a pre-registered protocol, with margins, tests and splits committed
-before every run and conditioning cost held within $1.2\times$ FiLM, we ran $25$ gates and
-recorded $15$ negatives.
+(hypernetworks). Both learn what each condition does. Neither learns what two conditions do
+together unless training data shows them together. We condition by rotating features, with
+rotation angles linear in the condition, so rotations add and unseen combinations compose for
+free. \textbf{CGA} (Conditioning as Group Action) places the condition in an abelian Lie algebra,
+$\T(c)=P\exp(\mathrm{A}(Wc))P^{\top}$, making $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$ exact for any weights;
+RoPE is the scalar-position case.
 
-Sweeping the number of conditions composed and their strength independently isolates the
-mechanism: the advantage is $+0.6\%$ on one condition and rises to $+46.6\%$ on four
-($p{=}9.1{\times}10^{-5}$), and is absent at weak single conditions, so it is composition rather
-than difficulty or strength. Structure also has a hard edge. An orthogonal conditioner cannot
-represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so content conditioning
-is unreachable rather than merely hard, and the two conditioning roles provably cannot share a
-channel. The minimal algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$,
-which makes \textbf{Complex FiLM}, magnitude for content and phase for composition, a derived
-construction rather than a heuristic; it beats FiLM by $36\%$ on unseen combinations at $0.84\times$
-its cost and, on a Navier-Stokes surrogate, fits \emph{better} in distribution ($0.938\times$) while
-landing $64.6\%$ below the best unstructured arm.
+Across $25$ pre-registered gates at FiLM cost we recorded $15$ negatives, and the shape of the win
+identifies its cause: the advantage is $+0.6\%$ on one condition and $+46.6\%$ on four
+($p{=}9.1{\times}10^{-5}$), and absent at weak single conditions, so it is composition rather than
+difficulty or strength. The negatives bound it, and one is a proof. No orthogonal conditioner can
+represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so content conditioning is
+unreachable rather than hard, and the two conditioning roles cannot share a channel. The minimal
+algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$, which derives
+\textbf{Complex FiLM}, magnitude for content and phase for composition: $36\%$ better than FiLM on
+unseen combinations at $0.84\times$ its cost, and $64.6\%$ below the best unstructured arm on a
+Navier-Stokes surrogate.
 
-Two short training runs predict which tasks pay, and we report where that rule breaks. Both
-quantities passed on a sixteen-control audio chain built because the account favoured it, and the
-advantage was flat at $-1.1\%$. Structured conditioning pays when a task's own conditions compose
-the way the operator does, which no dimensional criterion captures and which we missed.
+Two short runs predict which tasks pay, and we report where that rule breaks. Both passed on a
+sixteen-control audio chain we built because the account favored it, and the advantage was flat at
+$-1.1\%$. A check already in our repository had called that outcome before training. Structured
+conditioning pays when a task's own conditions compose the way the operator does, which no
+dimensional criterion captures.
 \end{abstract}
 
 \section{Introduction}
@@ -366,7 +361,7 @@ synthetic triples and $1.55\times$ on dSprites. The two hypernetwork arms can ex
 and post the largest compositional gaps of any arm on every image suite, $2.7$--$3.3\times$ on
 dSprites and $13$--$26\times$ on 3D~Shapes against CGA's $1.13$--$1.63\times$.
 
-We first read this as capacity memorising the training combinations, and our own audit does not
+We first read this as capacity memorizing the training combinations, and our own audit does not
 support that reading. Sorting the arms by parameter count does not sort them by error: the $2.1$M
 hypernetwork beats the $298$K low-rank arm on dSprites ($0.00383$ against $0.00508$) and on
 3D~Shapes ($0.00928$ against $0.01978$), and the $83$K Concat-MLP often beats the $50$K FiLM. What
@@ -420,8 +415,8 @@ tracks how much content the conditioning must supply. This family suits conditio
 \paragraph{(7) The advantage requires a co-trained representation.} We ran the same dataset,
 held-out attribute pairs, arms and budget counter twice, varying whether the representation trains
 alongside the operator. We previously called this a single-variable comparison and it is not: the
-co-trained run optimises a pixel objective and scores in pixel space, while the frozen run
-optimises and scores in latent space, so representation, objective and metric all differ. The
+co-trained run optimizes a pixel objective and scores in pixel space, while the frozen run
+optimizes and scores in latent space, so representation, objective and metric all differ. The
 within-run ratios are the defensible part. Co-trained, CGA's error on unseen combinations sits
 $87.5\%$ below the hypernetwork's. Frozen, against a plain autoencoder trained once for
 reconstruction and then shared unchanged by every arm, CGA lands $60.1\%$ \emph{worse} than that
@@ -593,7 +588,7 @@ we knew why.
 
 \paragraph{The two checks are not sufficient, and the first out-of-sample test says so.}
 We calibrated both thresholds on the comparisons they summarise, so that agreement is
-consistency, not predictive accuracy. We then built the case the account favours: a sixteen-control
+consistency, not predictive accuracy. We then built the case the account favors: a sixteen-control
 parametric chain, the high-dimensional regime where coverage arguments say structure should matter
 most. Both checks passed before the run, with a compositional gap of $1.83\times$ and a fit ratio of
 $1.011\times$, so the account predicted a win. The measured advantage was flat at $-1.1\%$ across
@@ -699,7 +694,7 @@ structured orthogonal parametrization. \emph{NeurIPS}, 2024.
 \bibitem[He et al.(2022)]{he2022unified} J.~He, C.~Zhou, X.~Ma, T.~Berg-Kirkpatrick, G.~Neubig.
 Towards a unified view of parameter-efficient transfer learning. \emph{ICLR}, 2022.
 \bibitem[Montero et al.(2021)]{montero2021role} M.~Montero, C.~Ludwig, R.~Costa, G.~Malhotra,
-J.~Bowers. The role of disentanglement in generalisation. \emph{ICLR}, 2021.
+J.~Bowers. The role of disentanglement in generalization. \emph{ICLR}, 2021.
 \bibitem[Higgins et al.(2018)]{higgins2018towards} I.~Higgins et al. Towards a definition of
 disentangled representations. \emph{arXiv:1812.02230}, 2018.
 \bibitem[Cohen and Welling(2016)]{cohen2016group} T.~Cohen, M.~Welling. Group equivariant
