@@ -1,4 +1,4 @@
-# Conditioning as Group Action
+# Structured conditioning mostly doesn't help
 
 Code, data, and pre-registrations for [the paper](docs/paper/paper.pdf).
 
@@ -8,7 +8,7 @@ conditions do together unless the training data happened to contain them togethe
 didn't, they fail quietly: the training loss looks fine and only the unseen combinations come
 out wrong.
 
-The idea here is to rotate the features instead, with the rotation angles a linear function of
+The obvious fix is to rotate the features instead, with the rotation angles a linear function of
 the condition:
 
 ```
@@ -16,60 +16,69 @@ y = T(c)·x + β(c)      where      T(c) = P·exp(A(Wc))·Pᵀ
 ```
 
 Rotations add, so `T(c₁+c₂) = T(c₁)T(c₂)` falls out of the parametrization. It holds for any
-weights, at initialization, and far outside the training distribution — the network never has to
-learn composition, because it cannot get it wrong. FiLM and RoPE turn out to be two other points
-in the same family.
+weights, at initialization, and far outside the training distribution. The network never has to
+learn composition because it cannot get it wrong. FiLM and RoPE are two other points in the same
+family. I expected this to win.
 
-## What happened
+## It mostly doesn't
 
-Eleven experiments. The success criteria for each were written down and committed before it ran,
-so the outcome couldn't be argued afterwards. Seven passed. Four didn't, and the four that
-didn't are the more useful half.
+Twenty-five experiments. The success criteria for each were written down and committed before it
+ran, so the outcome couldn't be argued afterwards. **Fifteen came back negative.**
 
-When the condition is a *change* — a pose offset, an attribute delta, something you would
-naturally combine with another change — rotating wins comfortably. On synthetic tasks where the
-conditions form a group exactly, error on unseen combinations is five orders of magnitude below
-the best baseline, and flat as combinations get longer than anything trained. On dSprites and 3D
-Shapes, working through a learned latent it doesn't control, it still cuts error on unseen
-combinations by 43–88%, using fewer parameters than any baseline and about 1.1× FiLM's compute.
-A hypernetwork with 43× the conditioning compute does worse than plain FiLM on the same task,
-which was not what I expected going in.
+Both benchmarks where I took the data *and* the task definition from someone else were losses:
+plain concatenation beat it on PDEBench, and a hypernetwork beat it on the LA-2A compressor. The
+one time I made a prediction *before* running the experiment rather than after, on the
+high-dimensional condition space where the theory said structure should matter most, the
+advantage came out flat at −1.1%.
 
-Then it stops working, in three places worth knowing about:
+Anyone who read only my positive results would reach for this operator and be wrong most of the
+time. That's the headline.
 
-**On 3D Shapes it wins the thing it was built to win and loses anyway.** Lowest error on unseen
-combinations by 87.5%, but it fits the *training* combinations 1.46× worse than the best
-baseline, and the criteria I'd registered forbid buying generalization that way. Scored as a
-failure.
+## When it does work, and why
 
-**It cannot say what to generate.** Asked to condition a diffusion model on the image content
-itself, rotation conditioning is 7× worse than FiLM. In hindsight this is obvious — a rotation
-moves information around and cannot add any — but it took a failed experiment to see it. If your
-condition is a class label or a caption, use FiLM.
+The exceptions aren't random, and working out what separates them is what the project actually
+produced.
 
-**It doesn't fix world-model rollouts.** Exact composition should have stopped error compounding
-over long rollouts. It didn't; every conditioner drifts at the same rate, which killed my own
-headline prediction. The reason turned out to be more interesting than the prediction: rollout
-error is dominated by the latent drifting off the decodable manifold, not by the transition
-composing badly. Add a latent-consistency loss and the picture inverts — rollout error goes flat
-7× past the training horizon while every baseline still drifts.
+Conditioning multiplies your features by a matrix. Any matrix is a rotation followed by a
+stretch, and each mechanism only reaches one part: FiLM stretches and can't turn, a rotation
+turns and can't stretch, a hypernetwork does both. So the question isn't how many parameters a
+mechanism has, it's which of the two things your task needs.
 
-Those failures pointed at the fix. **Complex FiLM** treats each feature pair as a complex number:
-an expressive magnitude carries content, a linear phase carries composition. It beats FiLM by 36%
-on unseen combinations and matches it on content generation, at FiLM's cost. The same phase
-channel gives guidance for free — scaling the condition is exactly raising the operator to a
-power — which distorts 2–5× less than classifier-free guidance at every strength and needs no
-second forward pass.
+Two consequences are flat impossibilities rather than tendencies:
 
-`python -m conditional_operators.suites --list` prints all of this from the committed results,
-verdicts included.
+**A rotation can never specify content.** Rotations preserve lengths, so they can move information
+around but not add or remove any. If your condition is a class label or a caption, you need to
+suppress features, and no change of coordinates fixes this because coordinates don't move
+eigenvalues. Measured: 8× worse than FiLM, and the ablation fails identically. If your condition
+names *what to generate*, use FiLM. This one is worth knowing before you try it.
+
+**Content and composition can't share a channel.** Exact composition forces the
+condition-to-modulation map to be linear. Content isn't additive, so it needs a nonlinear map.
+You can't have both on one channel, and the smallest thing that carries both is a magnitude times
+a phase. That derives **Complex FiLM** rather than proposing it: expressive magnitude for
+content, linear phase for composition. It beats FiLM by 36% on unseen combinations at 0.84× its
+cost, and wins by 64.6% on a Navier-Stokes surrogate.
+
+Where the theory says structure should pay, it does. The advantage is +0.6% on one condition and
++46.6% on four, and vanishes at weak single conditions, so it's composition doing the work and
+not difficulty or a generally better arm.
+
+Where the theory is fitted rather than derived, it breaks. Two short training runs are supposed
+to predict whether structure will pay. Both passed on the 16-control audio chain I built
+*because* the theory liked it, and the advantage was flat. A check already sitting in this
+repository had called that outcome before training: the chain's stages interact, so the combined
+effect isn't the composition of the individual effects, and there's nothing for exact composition
+to be exact about.
+
+`python -m conditional_operators.suites --list` prints every experiment from the committed
+results, verdicts included.
 
 ## Running it
 
 ```bash
 uv venv --python 3.12 .venv                                    # torch needs <3.13
 uv pip install --python .venv/bin/python numpy scipy torch matplotlib h5py
-.venv/bin/python -m unittest discover -s tests                 # 83 tests, seconds, no GPU
+.venv/bin/python -m unittest discover -s tests                 # 160 tests
 .venv/bin/python -m conditional_operators.suites --list        # every experiment and how it scored
 .venv/bin/python -m conditional_operators.suites aligned --run      # ~15 min on CPU
 ```
@@ -102,11 +111,13 @@ conditional_operators/
   data.py arms.py   synthetic benchmark; the conditioning arms and the shared cost counter
   train.py sweep.py the aligned synthetic experiment
   stage2..stage11   the remaining experiments and controls
+  discriminability.py  the screen that is supposed to predict whether structure will pay
   suites.py         experiment name → code → results → verdict, and how to run each one
   gen_tables.py figures.py mechanistic.py   the paper's artifacts
 docs/
   paper/            the paper; its tables and figures are generated, never hand-edited
   specs/            the pre-registrations, one per experiment, each written before its run
+  THEORY.md         what each mechanism can reach, the two impossibilities, and the proofs
   RESEARCH_LOG.md   what happened and when, including the amendments and the prior-art sweep
   PROPOSAL.md RESEARCH_NOTES.md   where the idea started, kept for provenance
 results/            the raw run logs and summaries every number comes from
@@ -121,27 +132,33 @@ criteria invented after the fact, no dropped seeds, no moved goalposts. A shared
 the conditioning path within 1.20× FiLM's FLOPs while baselines are allowed up to 48× the
 parameters. Test splits get read once, after all the tuning is done on validation.
 
-This cost me three results I wanted and one I predicted publicly, which is the point of doing it
-that way. Deviations are recorded as dated amendments inside the specs. One erratum — a FLOP
-undercount my own audit caught, which turned a favourable verdict into an inconclusive one — is
-written up in `RESEARCH_LOG.md`.
+This cost me most of the results I wanted, including one I'd predicted publicly, which is the
+point of doing it that way. Two experiments *passed* their criteria and are recorded as failures
+anyway, because the criteria named the wrong baseline. Deviations are dated amendments inside the
+specs. Two errata are written up: a FLOP undercount my own audit caught, which turned a
+favourable verdict into an inconclusive one, and a summary table in `THEORY.md` that turned out
+not to reproduce from the committed results when I went to fold it into the paper.
 
 ## What this doesn't show
 
 Everything here runs at 64×64 with known factors and width-128 models. None of it is validated at
 production scale, and the obvious next experiment is the adaLN site of a real text-conditioned
-diffusion model. The method suits conditions that are combinable changes; for conditions that
-name content, my own results say keep FiLM, and Complex FiLM is the candidate that handles both
-at the scale I could test.
+diffusion model.
+
+The wins are all on tasks I designed, which is the weakest joint in the whole thing — geometric
+factor changes are exactly what rotations are good at, and I chose them. The two benchmarks I
+didn't design were both losses. The maths in the theory is elementary (orthogonal Procrustes,
+Cauchy's functional equation, conjugation preserving eigenvalues); its value is that nobody seems
+to have written it down for conditioning, not that any step is hard.
 
 ## Citation
 
 ```bibtex
 @misc{cga2026,
-  title  = {Conditioning as Group Action: Exact Compositional Conditioning at FiLM Cost},
+  title  = {Structured Conditioning Mostly Does Not Help:
+            A Pre-registered Account of the Exceptions},
   author = {Bao, Richard},
   year   = {2026},
-  email  = {richardbao419@gmail.com},
   url    = {https://github.com/Zarand3r/conditional-operators}
 }
 ```
