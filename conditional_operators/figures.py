@@ -92,6 +92,45 @@ def _dots(ax, arms, values, labels, fmt, log=False, ref=None):
 
 # ---------------------------------------------------------------- headline: the compositional gap
 
+def fig_reach():
+    """What each conditioner can do to a set of features.
+
+    The only conceptual figure in the paper, and the one that carries its argument: conditioning
+    applies a map to the features, every map is a rotation followed by a stretch, and each
+    mechanism reaches one part. An "F" is used because it is chiral, so a rotation is visible;
+    a circle would hide the very difference the figure is about. Drawn from the definitions,
+    so there is nothing to load.
+    """
+    import numpy as np
+    F = np.array([(-.45, -1.), (-.05, -1.), (-.05, -.1), (.5, -.1), (.5, .25),
+                  (-.05, .25), (-.05, .6), (.7, .6), (.7, 1.), (-.45, 1.)]).T
+    F = np.hstack([F, F[:, :1]])
+    a = np.deg2rad(40)
+    rot = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+
+    panels = [
+        ("FiLM", np.diag([1.7, .55]), "stretches each axis", "cannot rotate", BASE),
+        ("Group action (ours)", rot, "rotates", "cannot stretch", OURS),
+        ("Complex FiLM", rot @ np.diag([1.35, 1.35]), "rotates, one scale per pair",
+         "stretch is coarse", OURS),
+        ("Hypernetwork", rot @ np.diag([1.7, .55]), "any map at all", "nothing ruled out", BASE),
+    ]
+    fig, axes = plt.subplots(1, 4, figsize=(7.0, 2.2))
+    for ax, (name, M, can, cannot, col) in zip(axes, panels):
+        out = M @ F
+        ax.fill(*F, color="#f4f4f4", zorder=0)
+        ax.plot(*F, color="#c6c6c6", lw=.9, ls=(0, (3, 2)), zorder=1)
+        ax.fill(*out, color=col, alpha=.15, zorder=2)
+        ax.plot(*out, color=col, lw=1.6, zorder=3)
+        ax.set_title(name, fontsize=8.5, pad=7)
+        ax.text(.5, -.13, can, transform=ax.transAxes, ha="center", fontsize=7.6, color=INK)
+        ax.text(.5, -.27, cannot, transform=ax.transAxes, ha="center", fontsize=7.6,
+                color="#a8a8a8", style="italic")
+        ax.set_xlim(-2., 2.); ax.set_ylim(-1.9, 1.9)
+        ax.set_aspect("equal"); ax.axis("off")
+    _save(fig, "f0_reach")
+
+
 def fig_gap():
     """F1. How much worse does each conditioner get on unseen combinations than on trained ones?
 
@@ -287,6 +326,7 @@ def _save(fig, name):
 
 
 if __name__ == "__main__":
+    fig_reach()
     fig_gap()
     fig_synthetic()
     fig_length()
