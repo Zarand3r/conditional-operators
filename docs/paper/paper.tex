@@ -37,8 +37,8 @@ prediction we made before running the experiment was wrong.
 
 The exceptions are principled, and that is the contribution. Each mechanism reaches a different set
 of feature maps, and the polar decomposition says which: FiLM the stretch factor, a group action
-the rotation factor, a hypernetwork both. Approximation error is then class membership rather than
-headroom, with a closed form per mechanism, and two consequences are impossibilities. No orthogonal
+the rotation factor, a hypernetwork both. Each mechanism's approximation error then has a closed form, fixed by which part the task
+needed and did not get. Two consequences are hard limits. No orthogonal
 conditioner can represent an eigenvalue of modulus $\neq 1$ in \emph{any} representation, so
 conditioning that specifies content is out of reach for it at any parameter count. And exact
 composition forces linearity while content forbids it, so the two roles cannot share a channel; the
@@ -46,11 +46,11 @@ minimal algebra carrying both is $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$
 magnitude-times-phase modulation rather than proposing it.
 
 Structure pays where the account says. The advantage is $+0.6\%$ on one condition and $+46.6\%$ on
-four ($p{=}9.1{\times}10^{-5}$) and absent at weak single conditions, so it is composition rather
-than difficulty; content conditioning fails by $8\times$, as the impossibility requires. Where the
-account is fitted rather than derived, it breaks: two short runs meant to predict which tasks pay
-both passed on a sixteen-control chain we built because the account favored it, and the advantage
-was flat at $-1.1\%$. Structured conditioning pays when a task's own conditions compose the way the
+four ($p{=}9.1{\times}10^{-5}$), and absent at weak single conditions, so difficulty cannot explain
+it. Content conditioning fails by $8\times$, as the impossibility requires. The fitted half of the
+account breaks. Two short runs are meant to predict which tasks pay; both passed on a
+sixteen-control chain we built because the account favored it, and the advantage was flat at
+$-1.1\%$. Structured conditioning pays when a task's own conditions compose the way the
 operator does, which no dimensional criterion captures.
 \end{abstract}
 
@@ -64,12 +64,12 @@ latent dynamics on actions. Three mechanisms carry almost all of it: concatenati
 affine modulation (FiLM), and a hypernetwork that emits weights from the condition.
 
 Which one to use is settled empirically. Papers train all three and print a table, and the tables
-disagree across domains. No account says which mechanism suits which task, so every new setting
+disagree across domains. We know of no account that says which mechanism suits which task, so every new setting
 repeats the sweep, and a practitioner who reads two papers gets two answers. Geometric deep
 learning explains when symmetries of the \emph{data} help, but conditioning is a different object:
 whatever structure exists lives in the condition space.
 
-We set out to close that gap with a mechanism rather than an account. Positional encoding supplies
+We set out to close that gap with a mechanism. Positional encoding supplies
 one: RoPE \citep{su2021rope} and GRAPE \citep{grape2025} turn position into a rotation, and because
 position enters the rotation angle linearly, two positions compose exactly without ever being
 trained together. Carrying that from scalar positions to arbitrary conditions, in FiLM's role and
@@ -78,9 +78,9 @@ the structured conditioner the theory recommends, and we expected it to win.
 
 It mostly does not. Twenty-five pre-registered gates returned fifteen negatives. Both benchmarks
 whose task we did not design ourselves, a published PDE benchmark and a real analog compressor,
-were losses, to concatenation and to a hypernetwork respectively. When we finally made a prediction
-before running the experiment rather than after, on the high-dimensional condition space where
-coverage arguments say structure should matter most, the advantage came out flat at $-1.1\%$. A
+were losses, to concatenation and to a hypernetwork respectively. Then we made a prediction before running the experiment instead of after. The setting was the
+high-dimensional condition space where coverage arguments say structure should matter most. The
+advantage came out flat at $-1.1\%$. A
 practitioner reading only our positive results would reach for this operator and be wrong most of
 the time.
 
@@ -88,27 +88,26 @@ The exceptions are not noise, and characterizing them is what the paper contribu
 differ less in how much they can express than in \emph{what} they can express. A condition names
 one of two things, and the distinction runs throughout: it can name a \emph{change} to apply, such
 as a pose offset, or the \emph{content} to produce, such as a class or a caption. Those ask for
-different operations on the features. Any map splits into a rotation and a stretch, each mechanism
-reaches essentially one part (Figure~\ref{fig:reach}), and its error is then fixed by which part
-the task needed (\S\ref{sec:reach}).
+different operations on the features. Any map splits into a rotation and a stretch, and each mechanism reaches essentially one part
+(Figure~\ref{fig:reach}). Its error is whatever the task needed from the other one
+(\S\ref{sec:reach}).
 
-Two consequences are impossibilities rather than tendencies. Rotations preserve lengths, so a
+Two consequences are hard limits, not tendencies. Rotations preserve lengths, so a
 conditioner built from them cannot shrink or grow any direction, and no change of coordinates
 rescues that because coordinates do not move eigenvalues. Producing content means suppressing
 features, so content is out of reach at any parameter count. Separately, exact composition forces
 the condition-to-modulation map to be linear, while content is not additive and forbids linearity.
 The two roles therefore cannot share a channel, and the smallest structure carrying both is a
-magnitude times a phase. That derives a conditioner rather than proposing one, and it is the
-successor our negatives specify.
+magnitude times a phase. The algebra hands you a conditioner, and it is the successor our
+negatives specify.
 
-Where the account predicts a win, we measure one. Composition is confirmed by shape rather than by
-margin: the advantage is $0.6\%$ on one factor and rises to $25.5\%$, $38.7\%$ and $46.6\%$ on two,
-three and four, while every arm stays within $1.6\%$ of the others at weak single conditions, so it
-cannot be difficulty or strength (Figure~\ref{fig:main}). Content conditioning fails by $8\times$,
+Where the account predicts a win, we measure one. The shape of the win confirms composition, where the
+margin alone could not. The advantage is $0.6\%$ on one factor and rises to $25.5\%$, $38.7\%$ and
+$46.6\%$ on two, three and four, while every arm stays within $1.6\%$ of the others at weak single
+conditions. Difficulty and strength cannot produce that (Figure~\ref{fig:main}). Content conditioning fails by $8\times$,
 as the impossibility requires. The polar type of a Navier-Stokes operator named which of our own
-arms would fail before we understood why. Where the account is fitted rather than derived, it
-breaks, and the $-1.1\%$ above is that break; the condition it was missing turns out to be
-measurable in advance, by an instrument already in our repository.
+arms would fail before we understood why. The fitted half breaks, and the $-1.1\%$ above is where. The condition it was missing turns out
+to be measurable in advance, by an instrument already sitting in our repository.
 
 \paragraph{Contributions.}
 \textbf{(1) A negative result, pre-registered.} Structured conditioning loses on most of the
@@ -117,8 +116,7 @@ committed before every run, including both benchmarks whose task we did not desi
 verdicts that cleared their criteria as failures, because the criteria named the wrong baseline
 (\S\ref{sec:protocol},~\S\ref{sec:results}).
 \textbf{(2) What each mechanism can reach.} The reachable sets of FiLM, group actions,
-hypernetworks and complex modulation are nearly disjoint rather than nested, so parameter count is
-the wrong currency; the polar decomposition gives each one's approximation error in closed form
+hypernetworks and complex modulation barely overlap, so parameter count is the wrong currency; the polar decomposition gives each one's approximation error in closed form
 (\S\ref{sec:reach}).
 \textbf{(3) Two impossibilities that explain the negatives.} No orthogonal conditioner represents
 an eigenvalue of modulus $\neq 1$ in any representation, and no conditioner carries content and
@@ -177,10 +175,11 @@ documents CFG's high-scale distortion \citep{bradley2024cfg}.
 We claim none of these components, and several of them are instances of what we analyse: the
 amplitude-and-phase modulation of \citet{chan2021pigan} and the phase composition of
 \citet{sun2019rotate} are the split our \S\ref{sec:reach} derives, arrived at by construction
-rather than by necessity. What is missing from all of it is an account of \emph{which} mechanism
+rather than by necessity. What we could not find anywhere is an account of \emph{which} mechanism
 suits which task. The operator families above are studied as parametrizations and compared by
-benchmark; none states what a mechanism can and cannot represent, and none predicts its own
-failures. That account, its two impossibilities, and the pre-registered programme that tests and
+benchmark; none of the work we surveyed states what a mechanism can and cannot represent, or
+predicts its own failures. We searched deliberately for such an account and report its absence as
+a negative search, not as a proof that none exists. That account, its two impossibilities, and the pre-registered programme that tests and
 partly falsifies it are what we contribute.
 
 \section{Which maps a mechanism can reach}
@@ -222,8 +221,8 @@ repertoires barely overlap. A matrix that is both diagonal and a rotation has to
 $\pm1$, so FiLM and a group action share only $2^d$ matrices out of two families of the same size.
 Switching between them does not shrink the repertoire, it \emph{moves} it, which is why parameter
 counts mislead here: Complex FiLM uses $0.85\times$ FiLM's parameters and reads as a $15\%$ trim
-when it is a substitution of one ability for another. Writing the required map as a rotation times
-a stretch, $\T=US$, gives each mechanism's error exactly rather than as a bound:
+when it is a substitution of one ability for another. Write the required map as a rotation times a stretch, $\T=US$. Each mechanism's error then comes
+out exactly, not as a bound:
 $E_{\mathrm{approx}}=0$ for a hypernetwork, $\|\T^*-\mathrm{diag}\,\T^*\|_F$ for FiLM,
 $\|S^*-I\|_F$ for a group action, and a per-pair residual for Complex FiLM. The middle one is the
 classical closest-rotation problem, solved by Sch\"onemann in 1966. Read it plainly: a group
@@ -233,8 +232,7 @@ action's error \emph{is} however much stretching the task needed and did not get
 \paragraph{One impossibility, and its converse.} Rotations preserve lengths. So if the map a task
 needs shrinks or grows any direction, meaning it has an eigenvalue whose size is not $1$, no group
 action can produce it. Changing coordinates does not rescue this, because a change of coordinates
-leaves the eigenvalues alone. Content conditioning
-needs $|\lambda|\to 0$, so its $8\times$ failure is structural rather than incidental. The converse
+leaves the eigenvalues alone. Content conditioning needs $|\lambda|\to 0$. Its $8\times$ failure is structural. The converse
 matters as much. Approximation error refers to the transformation required \emph{in the coordinates the encoder
 produced}, so it is a property of the task and representation together,
 not of the task alone. A learned representation can repair a rotation wearing the wrong basis and
@@ -259,9 +257,8 @@ the exponent, and a continuous map that turns sums into sums is linear. That is 
 equation, and it says no exactly-compositional conditioner can have a nonlinear head. Content runs the other way. Specifying what to
 produce is not additive, since composing ``cat'' with ``dog'' is not ``cat $+$ dog'', so the
 condition-to-modulation map has to be expressive; the fully linear variant scores $0.19$ in the
-content role against the expressive variant's $0.97$ (\S\ref{sec:results}). The two requirements are therefore
-incompatible on one channel, which makes splitting the representation a theorem rather than a
-design preference. The smallest algebra carrying both an expressive and an exactly-compositional
+content role against the expressive variant's $0.97$ (\S\ref{sec:results}). The two requirements cannot hold on one channel, so the representation has to split. This is
+forced, not preferred. The smallest algebra carrying both an expressive and an exactly-compositional
 direction is $\mathbb{C}=\mathbb{R}\oplus i\mathbb{R}$, whose multiplicative group factors as
 $\mathbb{C}^{*}\cong\mathbb{R}_{>0}\times U(1)$: magnitude and phase. Compactness fixes which
 carries which. Rotations are bounded, so exactness survives on them; $e^{s}$ is unbounded, needs a
@@ -289,8 +286,7 @@ y=\T(c)\,x+\beta(c),
 and they differ only in where the per-sample operator $\T(c)$ comes from.
 
 Call $\T$ \emph{compositional} when applying two conditions at once equals applying them in
-sequence: $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$, with $\T(0)=I$. Getting that exactly, rather than
-approximately after training, takes one construction.
+sequence: $\T(c_1{+}c_2)=\T(c_1)\T(c_2)$, with $\T(0)=I$. Getting that exactly, and not just approximately after training, takes one construction.
 
 \begin{proposition}[Exact composition by construction]
 \label{prop:main}
@@ -487,9 +483,9 @@ We first read this as capacity memorizing the training combinations, and our own
 support that reading. Sorting the arms by parameter count does not sort them by error: the $2.1$M
 hypernetwork beats the $298$K low-rank arm on dSprites ($0.00383$ against $0.00508$) and on
 3D~Shapes ($0.00928$ against $0.01978$), and the $83$K Concat-MLP often beats the $50$K FiLM. What
-survives is weaker and points elsewhere: the unstructured arms are usually worst on held-out
-combinations without being ordered among themselves, which implicates which maps an arm can express
-rather than how many parameters express them (\S\ref{sec:reach}).
+survives is weaker. The unstructured arms are usually worst on held-out combinations without being
+ordered among themselves, which points at which maps an arm can express and away from how many
+parameters express them (\S\ref{sec:reach}).
 
 \paragraph{(4) Complex FiLM covers both conditioning roles at lower cost.} Complex FiLM multiplies
 feature pairs by $m\,e^{i\theta}$, giving content to the magnitude channel and composition to the
@@ -583,8 +579,8 @@ the basis, while the gap to the next best arm grows to five orders of magnitude.
 \includegraphics[width=\textwidth]{figs/f4_angle_recovery.pdf}
 \end{minipage}
 \caption{\textbf{Left:} what happens when a test combination is longer than anything in
-training. Every baseline gets worse; CGA does not move, because composition is a property of its
-parametrization rather than something it had to learn. \textbf{Right:} the angles the model
+training. Every baseline gets worse. CGA does not move, because composition is built into its
+parametrization and was never learned. \textbf{Right:} the angles the model
 learned for each condition, against the true generators of the data. Reading the weights tells
 you which plane a condition rotates, and how fast.}
 \label{fig:mech}
@@ -638,8 +634,8 @@ best, at $1.122\times$. The wins and losses stay separated under either, but the
 from $1.05$ to roughly $1.20$. We report the stricter yardstick throughout Table~\ref{tab:screen}
 and treat the threshold as fitted rather than derived.
 
-The account also covers results the capacity framing could not. The synthetic Navier-Stokes operator
-is diagonal in Fourier, so its polar factors are computable rather than estimated: viscosity and
+The account also covers results the capacity framing could not. The synthetic Navier-Stokes operator is diagonal in Fourier, so we can compute its polar factors
+instead of estimating them: viscosity and
 drag are pure stretch (phase $0.000$), background advection is pure rotation (log-magnitude
 $0.000$, phase $1.594$). A task needing both factors is one a pure rotation cannot fit, and that is
 what happened, to our own arm. The rotation failed on fit while Complex FiLM, which reaches both,
@@ -656,9 +652,9 @@ one, two, four and eight simultaneous controls.
 
 A third condition is missing, and the instrument for it was already in the repository. A rigging
 check we had added only to confirm a task was not built to flatter the operator found $0$ of $12$
-control pairs matching the operator's form. That is the class test of the previous paragraph applied
-to the \emph{task} rather than to the mechanism, and it called the outcome before training. The
-reason is visible in hindsight: dSprites factors are independent coordinates of the generative
+control pairs matching the operator's form. That is the previous paragraph's class test, pointed at the \emph{task} instead of the
+mechanism. It called the outcome before training. The
+likeliest reason, though we have tested it only on this one failure, is that dSprites factors are independent coordinates of the generative
 process, so combining two changes yields a well-defined image and composition holds exactly in
 factor space, whereas the chain's saturation and dynamics stages interact, so the combined effect is
 not the composition of the individual effects. There is then nothing for exact composition to be
@@ -715,19 +711,27 @@ different ones. A proprioceptive reading names which features should be active, 
 and lives in the stretch factor, and proprioceptive states do not compose, so closure has nothing
 to determine; FiLM should win there. Actions compose by construction, so the group structure is
 real, and on our own rollout suite a composing operator with a consistency loss beat FiLM by $78\%$
-at horizon $20$. The prediction is that splitting the two paths beats using one mechanism for both,
+at horizon $20$. We predict that splitting the two paths beats using one mechanism for both,
 that making both FiLM costs long-horizon accuracy, and that making both an operator costs
-single-step fit. It is a smaller intervention than anything we built, it tests the account rather
-than the operator, and we state it so that it can fail in public.
+single-step fit. It is a smaller intervention than anything we built, it tests the account and not the operator,
+and we state it here so that it can fail in public.
 
 \paragraph{Reproducibility statement.} We release the code, the pre-registrations, and the raw
-logs. Every suite has a specification committed before its decision run; a registry maps each
-suite label in this paper to the module that produced it, the log it wrote, and its verdict, so
-a replicator reproduces any row with a single command. Every number, table, and figure here
-regenerates from those append-only logs. Unit tests pin the operator invariants (identity at
-initialization and at $c=0$, orthogonality, exact composition), the budget counters, and the
-registry itself. All amendments and one accounting erratum, a FLOP undercount our own audit
-caught that downgraded a favorable verdict, we disclose with the results.
+logs. Every suite has a specification we wrote before its decision run, and it is worth saying
+exactly how much of that a reader can check. We registered with version control and not with a
+third-party registry, so the record is our repository's history. For ten of sixteen suites the
+specification sits in an earlier commit than its results, by one hour to four days. For the other
+six the specification and its results landed in the same commit, so the history is consistent with
+the ordering we describe but does not establish it; the composition suite, whose AC-2 criterion
+this paper leans on, is one of the six. No specification was ever committed after its results.
+Future work of ours will commit the specification separately and record its hash in the run output,
+which makes the ordering checkable instead of asserted. A registry maps each suite label here to
+the module that produced it, the log it wrote, and its verdict, so a replicator reproduces any row
+with a single command. Every number, table, and figure regenerates from those append-only logs.
+Unit tests pin the operator invariants (identity at initialization and at $c=0$, orthogonality,
+exact composition), the budget counters, and the registry itself. All amendments and one accounting
+erratum, a FLOP undercount our own audit caught that downgraded a favorable verdict, we disclose
+with the results.
 
 \begin{thebibliography}{30}
 \bibitem[Perez et al.(2018)]{perez2018film} E.~Perez, F.~Strub, H.~de~Vries, V.~Dumoulin,
