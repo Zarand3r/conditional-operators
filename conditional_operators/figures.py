@@ -318,8 +318,15 @@ def fig_guidance():
 
 
 def _save(fig, name):
+    """Write both formats, byte-reproducibly.
+
+    matplotlib stamps a CreationDate into the PDF, so re-running this made every figure show
+    as modified in git even when nothing changed. Suppressing it means a regeneration that
+    changes no numbers produces no diff, which is what lets `git status` be a real check that
+    the committed artifacts match the committed results.
+    """
     FIGS.mkdir(parents=True, exist_ok=True)
-    fig.savefig(FIGS / f"{name}.pdf", bbox_inches="tight")
+    fig.savefig(FIGS / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIGS / f"{name}.png", dpi=220, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {name}")
